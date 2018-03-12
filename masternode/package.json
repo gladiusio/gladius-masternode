@@ -1,0 +1,29 @@
+{
+  "name": "gladius-masternode",
+  "version": "0.1.0",
+  "description": "Gladius Masternode software",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/gladiusio/gladius-masternode.git"
+  },
+  "keywords": [
+    "gladius",
+    "master-node",
+    "masternode",
+    "gladius-masternode"
+  ],
+  "author": "Gladius Network LLC.",
+  "license": "GPL-3.0",
+  "bugs": {
+    "url": "https://github.com/gladiusio/gladius-masternode/issues"
+  },
+  "homepage": "https://github.com/gladiusio/gladius-masternode#readme",
+  "dependencies": {
+    "express": "^4.16.3",
+    "npm": "^5.7.1"
+  }
+}
