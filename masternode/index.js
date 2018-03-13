@@ -1,5 +1,4 @@
 var express = require('express');
-var kdt = require("kd.tree")
 var geoip = require('geoip-lite');
 var rpcControl = require('./controller/manager');
 
@@ -12,7 +11,7 @@ app.set('views', './views');
 app.get('/', function(req, res) {
   var ip = req.headers['x-forwarded-for'];
 
-  console.log(ip);
+  console.log(rpcControl.closestNode(ip));
   res.render('index.pug', {
     title: 'Gladius Demo',
     message: 'Your IP is: ' + ip

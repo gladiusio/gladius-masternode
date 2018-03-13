@@ -71,6 +71,7 @@ exports.start = function(app) {
   rpcApp.listen(5000);
 }
 
+// Find the closest node
 exports.closestNode = function(ip) {
   ll = geoip.lookup(ip).ll;
   return nodeTree.nearest({
