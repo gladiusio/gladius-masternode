@@ -1,14 +1,13 @@
-version: '3'
+version: '2'
 services:
-  web:
-    build: ./app
+  masternode:
+    build: ./masternode
+    command: npm run start
     volumes:
-      - "./app:/src/app"
+      - ./masternode/:/usr/app/
+      - /usr/app/node_modules
     ports:
-      - "3030:3000"
-    links:
-      - "db:redis"
-    command: nodemon -L app/bin/www
+      - "3000:3000"
   nginx:
     restart: always
     build: ./nginx/
@@ -17,6 +16,6 @@ services:
     volumes:
       - /www/public
     volumes_from:
-      - web
+      - masternode
     links:
-      - web:web
+      - masternode:masternode
