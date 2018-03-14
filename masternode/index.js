@@ -9,12 +9,16 @@ app.set('views', './views');
 
 // Create a demo route
 app.get('/', function(req, res) {
-  var ip = req.headers['x-forwarded-for'];
+  var clientAddress = req.headers['x-forwarded-for']; // Pull the client IP (behind NGINX only)
+  var edgeAddress = rpcControl.closestNode(clientAddress); // Get closest node
+  console.log(edgeAddress);
 
-  console.log(rpcControl.closestNode(ip));
+  // Build a demo page with content from edge nodes
   res.render('index.pug', {
     title: 'Gladius Demo',
-    message: 'Your IP is: ' + ip
+    message: 'Woah a message',
+    clientAddress: clientAddress,
+    edgeAddress: edgeAddress
   })
 })
 

@@ -11,7 +11,7 @@ var masterNode; // Placeholder for the static app server
 var masterServer; // Store the server object from app.listen
 var running = false; // Running state of the static content app
 var nodes = []; // List of IP addresses and locs of currently online nodes.
-var nodeTree;
+var nodeTree; // KDtree of the nodes
 
 // Set up parsing
 rpcApp.use(bodyParser.urlencoded({
@@ -73,9 +73,13 @@ exports.start = function(app) {
 
 // Find the closest node
 exports.closestNode = function(ip) {
-  ll = geoip.lookup(ip).ll;
-  return nodeTree.nearest({
-    lat: ll[0],
-    long: ll[1]
-  }, 1);
+  loc = geoip.lookup(ip)
+  if (loc) {
+    return nodeTree.nearest({
+      lat: loc.ll[0],
+      long: loc.ll[1]
+    }, 1);
+  } else {
+    return "Error: Could not determine the IP of client";
+  }
 }
