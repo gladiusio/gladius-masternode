@@ -1,25 +1,28 @@
 var express = require('express');
 var geoip = require('geoip-lite');
+var path = require('path');
 var rpcControl = require('./controller/manager');
 
 app = express();
 
 app.set('view engine', 'pug');
 app.set('views', './views');
+app.use(express.static(__dirname + '/public'));
 
 // Create a demo route
 app.get('/', function(req, res) {
+  res.sendFile(path.join(__dirname, 'public/views/index.html'));
+})
+
+app.get('/', function(req, res) {
   var clientAddress = req.headers['x-forwarded-for']; // Pull the client IP (behind NGINX only)
   var edgeAddress = rpcControl.closestNode(clientAddress); // Get closest node
-  console.log(edgeAddress);
 
-  // Build a demo page with content from edge nodes
-  res.render('index.pug', {
-    title: 'Gladius Demo',
-    message: 'Woah a message',
-    clientAddress: clientAddress,
-    edgeAddress: edgeAddress
-  })
+  res.send(JSON.stringify({node: edgeAddress}))
+})
+
+app.get('/src_links', function(req, res) {
+
 })
 
 rpc = rpcControl.start(app);
