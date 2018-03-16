@@ -1,23 +1,35 @@
-function fetchAndLoadEdge() {
-  var expectedHashes = {
-    script1: "13E088365949F8A2D50443B58D28626E"
-  }; // Loaded from master node
+function httpGet(theUrl) {
+  var xmlHttp = new XMLHttpRequest();
+  xmlHttp.open("GET", theUrl, false); // false for synchronous request
+  xmlHttp.send(null);
+  return xmlHttp.responseText;
+}
 
-  var edgeData = {
-    script1: {
-      base64: "YWxlcnQoJ2FzYWRhc2QnKTsK"
-    }
-  }; // Would normally be fetched from edge node
+function fetchAndLoadEdge() {
+  var masterInfo = JSON.parse(httpGet("/master_info")); // Information about node and files
+  console.log(masterInfo);
+  var edgeData = JSON.parse(httpGet(masterInfo.bundle))[masterInfo.name];
 
   // Verify the file matches
   for (let dataKey of Object.keys(edgeData)) {
-    if (md5(edgeData[dataKey].base64) === expectedHashes[dataKey]) {
-      // Create a script tag and attach the base64 data from the edge node if valid
-      var script = document.createElement('script');
-      script.src = "data:text/javascript;base64," + edgeData[dataKey].base64;
+    if (md5(edgeData[dataKey]) === masterInfo.expectedHashes[dataKey]) {
+      var type = "";
+      var srcString = "";
+
+      if (dataKey.endsWith(".js")) {
+        type = "script";
+        srcString = "data:text/javascript;base64,";
+      } else if (dataKey.endsWith(".jpg")) {
+        type = "img";
+        srcString = "data:image/jpg;base64,";
+      }
+
+      // Create a tag and attach the data
+      var tag = document.createElement(type);
+      tag.src = srcString + edgeData[dataKey];
 
       // Insert the script as a child to this script
-      document.getElementById(dataKey).appendChild(script);
+      document.getElementById(dataKey).appendChild(tag);
     } else {
       alert("Edge node delivered non matching content!")
     }

@@ -78,7 +78,7 @@ exports.closestNode = function(ip) {
     return nodeTree.nearest({
       lat: loc.ll[0],
       long: loc.ll[1]
-    }, 1);
+    }, 1)[0][0].ip;
   } else {
     return "Error: Could not determine the IP of client";
   }
