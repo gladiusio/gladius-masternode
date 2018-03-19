@@ -1,38 +1,59 @@
 function httpGet(theUrl) {
-  var xmlHttp = new XMLHttpRequest();
+  let xmlHttp = new XMLHttpRequest();
   xmlHttp.open("GET", theUrl, false); // false for synchronous request
   xmlHttp.send(null);
   return xmlHttp.responseText;
 }
 
 function fetchAndLoadEdge() {
-  var masterInfo = JSON.parse(httpGet("/master_info")); // Information about node and files
-  console.log(masterInfo);
-  var edgeData = JSON.parse(httpGet(masterInfo.bundle))[masterInfo.name];
+  let masterInfo = JSON.parse(httpGet("/master_info")); // Information about node and files
+  let bundleString = httpGet(masterInfo.bundle);
 
   // Verify the file matches
-  for (let dataKey of Object.keys(edgeData)) {
-    if (md5(edgeData[dataKey]) === masterInfo.expectedHashes[dataKey]) {
-      var type = "";
-      var srcString = "";
+  if (md5(bundleString) === masterInfo.expectedHash) {
+    let edgeData = JSON.parse(bundleString)[masterInfo.name];
 
-      if (dataKey.endsWith(".js")) {
-        type = "script";
-        srcString = "data:text/javascript;base64,";
-      } else if (dataKey.endsWith(".jpg")) {
-        type = "img";
-        srcString = "data:image/jpg;base64,";
+    for (let dataKey of Object.keys(edgeData)) {
+      let lookup = {
+        js: {
+          tag: 'script',
+          type: 'text',
+          format: 'javascript'
+        },
+        jpg: {
+          tag: 'img',
+          type: 'image',
+          format: 'jpg'
+        },
+        png: {
+          tag: 'img',
+          type: 'image',
+          format: 'png'
+        }
       }
 
-      // Create a tag and attach the data
-      var tag = document.createElement(type);
-      tag.src = srcString + edgeData[dataKey];
+      let extension = dataKey.split(".")[my_array.length - 1];
+      let tagType = "";
+      let srcString = "";
 
-      // Insert the script as a child to this script
+      // Create a tag and attach the data
+      let tag = document.createElement(lookup[extension]['tag']);
+      if (extension === "css") {
+        srcString = "data:text/css;base64," + +edgeData[dataKey];
+        tag.href = srcString;
+        tag.rel = 'stylesheet'
+      } else {
+        srcString = "data:" + lookup[extension]['type'] + "/" + lookup[
+          extension]['format'] + ";base64," + edgeData[dataKey];
+        tag.src = srcString;
+      }
+
+      // Insert the tag as a child to it's div
       document.getElementById(dataKey).appendChild(tag);
-    } else {
-      alert("Edge node delivered non matching content!")
+
     }
+  } else {
+    alert("Edge node delivered non matching content!")
   }
 }
 
