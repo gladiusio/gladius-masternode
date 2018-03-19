@@ -1,7 +1,7 @@
 server {
 
   listen 80;
-  server_name demo.gladius.io;
+  server_name democdn.gladius.io;
   access_log /var/log/nginx/nginx_masternode.log;
   charset utf-8;
 
