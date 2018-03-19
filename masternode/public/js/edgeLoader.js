@@ -46,13 +46,16 @@ function fetchAndLoadEdge() {
       // Create a tag and attach the data
       let tag = document.createElement(lookup[extension]['tag']);
       if (extension === "css") {
-        srcString = "data:text/css;base64," + +edgeData[dataKey];
+        srcString = "data:text/css;base64," + edgeData[dataKey];
         tag.href = srcString;
         tag.rel = 'stylesheet'
       } else {
         srcString = "data:" + lookup[extension]['type'] + "/" + lookup[
           extension]['format'] + ";base64," + edgeData[dataKey];
         tag.src = srcString;
+        // Make sure that this script executes before others load.
+        if (lookup[extension]['tag'] === 'script')
+          tag.async = false;
       }
 
       // Insert the tag as a child to it's div
