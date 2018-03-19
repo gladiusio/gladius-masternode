@@ -14,7 +14,7 @@ function fetchAndLoadEdge() {
   console.log(masterInfo.expectedHash.toUpperCase());
 
   if (md5(bundleString).toUpperCase() === masterInfo.expectedHash.toUpperCase()) {
-    let edgeData = JSON.parse(bundleString)[masterInfo.name];
+    let edgeData = JSON.parse(bundleString);
 
     for (let dataKey of Object.keys(edgeData)) {
       let lookup = {
