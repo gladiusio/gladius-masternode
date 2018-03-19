@@ -10,7 +10,7 @@ function fetchAndLoadEdge() {
   let bundleString = httpGet(masterInfo.bundle);
 
   // Verify the file matches
-  if (md5(bundleString) === masterInfo.expectedHash) {
+  if (md5(bundleString).toUpperCase() === masterInfo.expectedHash.toUpperCase()) {
     let edgeData = JSON.parse(bundleString)[masterInfo.name];
 
     for (let dataKey of Object.keys(edgeData)) {

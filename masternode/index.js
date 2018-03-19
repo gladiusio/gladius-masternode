@@ -14,7 +14,6 @@ app.get('/', function(req, res) {
   res.sendFile(path.join(__dirname, 'public/views/index.html'));
 })
 
-// Send the info about expected files and the node to use.
 app.get('/master_info', function(req, res) {
   var clientAddress = req.headers['x-forwarded-for']; // Pull the client IP (behind NGINX only)
   var edgeAddress = rpcControl.closestNode(clientAddress); // Get closest node
