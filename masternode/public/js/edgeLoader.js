@@ -35,7 +35,8 @@ function fetchAndLoadEdge() {
         }
       }
 
-      let extension = dataKey.split(".")[my_array.length - 1];
+      let split = dataKey.split(".");
+      let extension = split[split.length - 1];
       let tagType = "";
       let srcString = "";
 
