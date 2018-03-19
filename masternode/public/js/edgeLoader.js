@@ -32,6 +32,9 @@ function fetchAndLoadEdge() {
           tag: 'img',
           type: 'image',
           format: 'png'
+        },
+        css: {
+          tag: 'link'
         }
       }
 
