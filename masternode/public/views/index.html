@@ -7,16 +7,21 @@
 </head>
 
 <body>
-  <h1>Welcome to the Gladius Beta Demo!</h1>
+    <!-- Begin page content -->
+    <main role="main" class="container">
+      <h1 class="mt-5">Welcome to the Gladius Beta Demo</h1>
+      <p class="lead">This page is the first website running on the Gladius Network, all non-text content on this page was loaded from a Gladius edge node. That means all the Javascript, pictures, and CSS came from a beta tester running the Gladius software near you! </p>
+      <hr>
 
-  <p>
-    If you're reading this you've successfully connected to the Gladius CDN component of the network!
-  </p>
-  <p>
-    Below are a few different examples of files loaded from a Gladius edge node:
-  </p>
+   </main>
 
-  <div id="cat.jpg"></div>
+    <footer class="footer">
+      <div class="container">
+        <span class="text-muted">Place sticky footer content here.</span>
+      </div>
+    </footer>
+
+
   <div id="a_jquery.js"></div>
   <div id="popper.min.js"></div>
   <div id="bootstrap.min.js"></div>
@@ -24,7 +29,7 @@
 </body>
 
 <!-- Run our custom resource loaders -->
-<script src="/js/md5.js"></script>
+<script src="/js/sha256.js"></script>
 <script src="/js/edgeLoader.js"></script>
 
 </html>
