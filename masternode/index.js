@@ -20,7 +20,7 @@ app.get('/master_info', function(req, res) {
 
   res.send(JSON.stringify({
     bundle: "http://" + edgeAddress + ":8080/content_bundle",
-    expectedHash: "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+    expectedHash: "b27cea3c5d071df31b20b6b4d2972ffeaeb9b1e3c77d3faa162f713d7432f7e1",
     name: "bundle.json"
   }))
 })
