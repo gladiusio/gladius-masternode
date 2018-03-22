@@ -17,13 +17,15 @@
       To see more and apply check out <a href="http://beta.gladius.io">our beta page</a>. Otherwise check out how Gladius works and some cool stats below:
     </p>
     <h2>How it works</h2>
-      <p>
+    <p>
       Network diagram:
-      <div id="network.png">
-
-      </div> The way this works is first your computer asks DNS which masternode to connect to, that master/node then informs your browser what edge node would be best to load content from (that node's proximity to you being the primary factor).
-       But before any of this content is loaded into your browser, we verify it by checking the hash of the file against what the masternode says it should be (you can read more about hashing <a href="https://en.wikipedia.org/wiki/Hash_function">here</a>).
-      This stops potentially malicious actors from sending you content you don't want or that may compromise your browser. For reference, the hash we expected was <b id=expected_hash></b> and the files you got hash to <b id=actual_hash></b>.
+      <div id="network.png"></div>
+      The way this works is first your computer asks DNS which masternode to connect to, that master/node then informs your browser what edge node would be best to load content from (that node's proximity to you being the primary factor). But before any of
+      this content is loaded into your browser, we verify it by checking the hash of the file against what the masternode says it should be (you can read more about hashing <a href="https://en.wikipedia.org/wiki/Hash_function">here</a>). This stops
+      potentially malicious actors from sending you content you don't want or that may compromise your browser.
+    </p>
+    <p>
+      For reference, the hash we expected was <b id=expected_hash></b> and the files you got hash to <b id=actual_hash></b>.
     </p>
   </main>
 
