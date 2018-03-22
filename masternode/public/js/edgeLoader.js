@@ -9,9 +9,10 @@ function fetchAndLoadEdge() {
   let masterInfo = JSON.parse(httpGet("/master_info")); // Information about node and files
   let bundleString = httpGet(masterInfo.bundle);
 
-  // Verify the file matches
-  console.log(sha256(bundleString).toUpperCase());
-  console.log(masterInfo.expectedHash.toUpperCase());
+  // Show hashes
+  document.getElementById("actual_hash").innerHTML = sha256(bundleString).toUpperCase();
+  document.getElementById("expected_hash").innerHTML = masterInfo.expectedHash.toUpperCase();
+
 
   if (sha256(bundleString).toUpperCase() === masterInfo.expectedHash.toUpperCase()) {
     let edgeData = JSON.parse(bundleString);
@@ -38,6 +39,7 @@ function fetchAndLoadEdge() {
         }
       }
 
+      // Get some info about the tag
       let split = dataKey.split(".");
       let extension = split[split.length - 1];
       let tagType = "";
@@ -45,6 +47,9 @@ function fetchAndLoadEdge() {
 
       // Create a tag and attach the data
       let tag = document.createElement(lookup[extension]['tag']);
+      // Get parent tag
+      let parent = document.getElementById(dataKey);
+
       if (extension === "css") {
         srcString = "data:text/css;base64," + edgeData[dataKey];
         tag.href = srcString;
@@ -58,8 +63,11 @@ function fetchAndLoadEdge() {
           tag.async = false;
       }
 
-      // Insert the tag as a child to it's div
-      document.getElementById(dataKey).appendChild(tag);
+      tag.id = dataKey;
+
+      // Replace the existing tag with the new one.
+      parent.innerHTML = tag.inerHTML;
+      parent.parentNode.replaceChild(tag, parent);
 
     }
   } else {
