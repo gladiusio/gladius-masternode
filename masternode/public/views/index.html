@@ -1,10 +1,10 @@
 <html>
 
 <head>
-  <title>Title</title>
+  <title>Gladius CDN Demo</title>
   <meta charset="utf-8">
-  <div id="bootstrap.min.css"></div>
-  <div id="sticky-footer.css"></div>
+  <link id="bootstrap.min.css"></link>
+  <link id="sticky-footer.css"></link>
 </head>
 
 <body>
@@ -16,10 +16,16 @@
     <p>
       To see more and apply check out <a href="http://beta.gladius.io">our beta page</a>. Otherwise check out how Gladius works and some cool stats below:
     </p>
+    <h2>How it works</h2>
     <p>
-      In its current form, the Gladius network looks like this: Image Here The way this works is first you are connected to a masternode (You're connected to this one: ) and then that informs your browser what edge node would be best to load content from (that
-      node's proximity to you being the primary factor). In fact, you are [miles from node] away from the node you are connected to. But before any of this content is loaded into your browser, we verify it by checking the hash of the file against what
-      we say it should be (you can read more about hashing <a href="https://en.wikipedia.org/wiki/Hash_function">here</a>); this stops potentially malicious actors from sending you content you don't want or that may compromise your browser. For reference, the hash we expected was [expected] and the files you got hash to [actual].
+      Network diagram:
+      <div id="network.png"></div>
+      The way this works is first your computer asks DNS which masternode to connect to, that master/node then informs your browser what edge node would be best to load content from (that node's proximity to you being the primary factor). But before any of
+      this content is loaded into your browser, we verify it by checking the hash of the file against what the masternode says it should be (you can read more about hashing <a href="https://en.wikipedia.org/wiki/Hash_function">here</a>). This stops
+      potentially malicious actors from sending you content you don't want or that may compromise your browser.
+    </p>
+    <p>
+      For reference, the hash we expected was <b id=expected_hash></b> and the files you got hash to <b id=actual_hash></b>.
     </p>
   </main>
 
@@ -32,7 +38,7 @@
 
   <div id="jquery.js"></div>
   <div id="popper.min.js"></div>
-  <div id="bootstrap.min.js"></div>
+  <div id="bootstrap.min.js" class="test"></div>
 
 </body>
 
