@@ -13,7 +13,8 @@ matches the expected content by checking the SHA256 hash against what it should
 be.
 
 ## RPC Endpoints
-These methods are called by the blockchain daemon. This system allows for rapid development on each component by separating them and using standard interfaces. 
+These methods are called by the blockchain daemon. This system allows for rapid
+development on each component by separating them and using standard interfaces.
 
 Start the master node accepting connections:
 
@@ -22,3 +23,8 @@ Start the master node accepting connections:
 Load a list of online nodes into the masternode:
 
 `curl -H 'Content-type: application/json' -d '{"jsonrpc": "2.0", "method": "loadNodes", "params": ["1.1.1.1"], "id": 1}' http://localhost:5000/rpc`
+
+## Running the Software
+
+Run `docker-compose up -d` and the RPC commands above to start the server. Make
+sure you have the port exposed to the outside network.
