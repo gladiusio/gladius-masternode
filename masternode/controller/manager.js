@@ -1,8 +1,10 @@
 var express = require('express');
+var http = require('http');
 var jayson = require('jayson');
 var bodyParser = require('body-parser');
 var geoip = require('geoip-lite');
 var kdt = require("kd.tree")
+var net = require('net');
 
 // Create an express app for the RPC Server
 var rpcApp = express();
@@ -18,6 +20,56 @@ rpcApp.use(bodyParser.urlencoded({
   extended: true
 }));
 rpcApp.use(bodyParser.json());
+
+function checkConnection(node) {
+  return new Promise(function(resolve, reject) {
+    timeout = 1000; // default of 10 seconds
+    var timer = setTimeout(function() {
+      resolve({
+        success: false,
+        error: "timeout"
+      });
+      socket.end();
+    }, timeout);
+    var socket = net.createConnection(8080, node.ip, function() {
+      clearTimeout(timer);
+      resolve({
+        success: true,
+        node: node
+      });
+      socket.end();
+    });
+    socket.on('error', function(err) {
+      clearTimeout(timer);
+      resolve({
+        success: false,
+        error: err
+      });
+    });
+  });
+}
+
+function buildTree() {
+  // Distance function for ndoes
+  var distance = function(a, b) {
+    return Math.pow(a.lat - b.lat, 2) + Math.pow(a.long - b.long, 2);
+  }
+
+  let promiseList = []
+  nodes.forEach(function(node) {
+    promiseList.push(checkConnection(node, 8080));
+  })
+
+  Promise.all(promiseList).then(function(values) {
+    onlineNodes = []
+    values.forEach(function(node) {
+      if (node.success)
+        onlineNodes.push(node.node)
+    })
+    // Rebuild the kdtree
+    nodeTree = kdt.createKdTree(onlineNodes, distance, ['lat', 'long'])
+  })
+}
 
 // Build Jayson (JSON-RPC server)
 var rpcServer = jayson.server({
@@ -50,20 +102,14 @@ var rpcServer = jayson.server({
       };
     })
 
-    // Distance function for ndoes
-    var distance = function(a, b) {
-      return Math.pow(a.lat - b.lat, 2) + Math.pow(a.long - b.long, 2);
-    }
-
-    // Rebuild the kdtree
-    nodeTree = kdt.createKdTree(nodes, distance, ['lat', 'long'])
-
-    callback(null, "Added new nodes and rebuilt kdtree")
+    callback(null, "Set list of nodes")
   }
 });
 
 // Add the RPC endpoint
 rpcApp.post('/rpc', rpcServer.middleware());
+
+setInterval(buildTree, 2000);
 
 // Export a start function
 exports.start = function(app) {
