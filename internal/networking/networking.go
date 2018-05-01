@@ -11,7 +11,7 @@ import (
 func StartProxy() {
 	fmt.Println("Starting...")
 
-	// TODO: This needs to be a thread safe mapping that is loaded from the control daemon continually.
+	// TODO: This needs to be a thread safe mapping that is loaded from the controld continually.
 	hosts := make(map[string]string)
 	hosts["google.com"] = "http://172.217.7.228"
 
