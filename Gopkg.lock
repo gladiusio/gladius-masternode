@@ -14,7 +14,7 @@
     "config",
     "init/manager"
   ]
-  revision = "f8b99a247e7fc125a0fe3e18aaa653017b167f07"
+  revision = "a8964a4a23da9aa519ca9e1f7f295b91656fc33c"
 
 [[projects]]
   branch = "master"
@@ -138,7 +138,7 @@
     "windows/svc/eventlog",
     "windows/svc/mgr"
   ]
-  revision = "9950ad118b73f9207b991f01920a3509c68f7f2b"
+  revision = "d0faeb539838e250bd0a9db4182d48d4a1915181"
 
 [[projects]]
   name = "golang.org/x/text"
