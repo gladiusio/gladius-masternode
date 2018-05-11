@@ -14,7 +14,7 @@
     "config",
     "init/manager"
   ]
-  revision = "fb8e108ea64346ab1b760adb21b277473e3a7d87"
+  revision = "f8b99a247e7fc125a0fe3e18aaa653017b167f07"
 
 [[projects]]
   branch = "master"
@@ -77,19 +77,13 @@
   branch = "master"
   name = "github.com/mitchellh/mapstructure"
   packages = ["."]
-  revision = "00c29f56e2386353d58c599509e8dc3801b0d716"
+  revision = "bb74f1db0675b241733089d5a1faa5dd8b0ef57b"
 
 [[projects]]
   name = "github.com/pelletier/go-toml"
   packages = ["."]
   revision = "acdc4509485b587f5e675510c4f2c63e90ff68a8"
   version = "v1.1.0"
-
-[[projects]]
-  name = "github.com/powerman/rpc-codec"
-  packages = ["jsonrpc2"]
-  revision = "3e1ab3b635b7b0d5f771028cd45aa9a827fd9f31"
-  version = "v1.0.0"
 
 [[projects]]
   name = "github.com/spf13/afero"
@@ -144,7 +138,7 @@
     "windows/svc/eventlog",
     "windows/svc/mgr"
   ]
-  revision = "4adea008a5e5f820b6028611ae0b6b3fbcec534b"
+  revision = "9950ad118b73f9207b991f01920a3509c68f7f2b"
 
 [[projects]]
   name = "golang.org/x/text"
@@ -168,6 +162,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "feb708b2c308d81c64a32b7988a97ceebf4fcc714f8272936b41afd776e70238"
+  inputs-digest = "2067a4b1b90be35a684d2248ccb202f1d3ec9e09f541d4d1f91fcd3d01a5f9c2"
   solver-name = "gps-cdcl"
   solver-version = 1
