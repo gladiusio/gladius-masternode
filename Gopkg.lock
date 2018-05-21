@@ -8,13 +8,13 @@
   version = "v1.4.7"
 
 [[projects]]
-  branch = "master"
   name = "github.com/gladiusio/gladius-utils"
   packages = [
     "config",
     "init/manager"
   ]
-  revision = "a8964a4a23da9aa519ca9e1f7f295b91656fc33c"
+  revision = "486e8052c24340c8b461ef7e407eaaf6b496d708"
+  version = "0.2.5"
 
 [[projects]]
   branch = "master"
@@ -70,8 +70,8 @@
 [[projects]]
   name = "github.com/magiconair/properties"
   packages = ["."]
-  revision = "c3beff4c2358b44d0493c7dda585e7db7ff28ae6"
-  version = "v1.7.6"
+  revision = "c2353362d570a7bfa228149c62842019201cfb71"
+  version = "v1.8.0"
 
 [[projects]]
   branch = "master"
@@ -138,7 +138,7 @@
     "windows/svc/eventlog",
     "windows/svc/mgr"
   ]
-  revision = "d0faeb539838e250bd0a9db4182d48d4a1915181"
+  revision = "7c87d13f8e835d2fb3a70a2912c811ed0c1d241b"
 
 [[projects]]
   name = "golang.org/x/text"
