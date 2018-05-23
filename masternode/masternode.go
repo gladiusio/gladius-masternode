@@ -17,6 +17,6 @@ func Run() {
 		"Gladius Masternode",
 		"Gladius Masternode"
 
-	// Run the function "run" in newtworkd as a service
+	// Run the function "run" in networking package as a service
 	manager.RunService(name, displayName, description, networking.StartProxy)
 }
