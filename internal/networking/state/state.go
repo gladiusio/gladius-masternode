@@ -31,6 +31,12 @@ func (n *NetworkState) SetNetworkRunState(runState bool) {
 	}
 }
 
+// RunningStateChanged returns a channel that updates when the running state
+// is changed
+func (n *NetworkState) RunningStateChanged() chan (bool) {
+	return n.runChannel
+}
+
 // NetworkNode is a struct representing an edge node in a pool
 type NetworkNode struct {
 	kdtree.Point // Implements Point interface

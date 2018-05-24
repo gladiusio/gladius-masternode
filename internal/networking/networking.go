@@ -46,7 +46,18 @@ func StartProxy() {
 
 	go fasthttp.ListenAndServe(":8081", requestBuilder(hosts, cachedRoutes, noCacheRoutes, expectedHash, string(loaderHTML), networkState))
 
-	// infinite loop to run/poll for network state
+	// Forever check through the channels on the main thread
+	for {
+		fmt.Println("Listening for channel messages...")
+		select {
+		case runState := <-networkState.RunningStateChanged(): // If it can be assigned to a variable
+			if runState {
+				// start masternode proxy
+			} else {
+				// stop masternode proxy
+			}
+		}
+	}
 }
 
 func requestBuilder(hosts map[string]string, cachedRoutes, noCacheRoutes map[string]map[string]bool,
