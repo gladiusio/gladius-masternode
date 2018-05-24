@@ -18,7 +18,9 @@ type NetworkState struct {
 
 // NewNetworkState returns a new NetworkState struct
 func NewNetworkState() *NetworkState {
-	return &NetworkState{running: true, runChannel: make(chan bool)}
+	state := &NetworkState{running: true, runChannel: make(chan bool)}
+	state.tree = kdtree.NewKDTree([]kdtree.Point{})
+	return state
 }
 
 // SetNetworkRunState updates the desired state of the networking
