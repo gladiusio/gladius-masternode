@@ -2,6 +2,12 @@
 
 
 [[projects]]
+  branch = "master"
+  name = "github.com/dropbox/godropbox"
+  packages = ["errors"]
+  revision = "31879d3884b90dd94c44c85c0e4f1aff3bbb90e2"
+
+[[projects]]
   name = "github.com/fsnotify/fsnotify"
   packages = ["."]
   revision = "c2828203cd70a50dcccfb2761f8b1f8ceef9a8e9"
@@ -32,6 +38,18 @@
     "json/token"
   ]
   revision = "ef8a98b0bbce4a65b5aa4c368430a80ddc533168"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/hongshibao/go-algo"
+  packages = ["."]
+  revision = "b1aaa26798b69e1d4cc94d1b2a1bf75ce28f58e5"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/hongshibao/go-kdtree"
+  packages = ["."]
+  revision = "0de4e8305acf256954a72e9244d3793b3d34198a"
 
 [[projects]]
   branch = "master"
@@ -162,6 +180,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "2067a4b1b90be35a684d2248ccb202f1d3ec9e09f541d4d1f91fcd3d01a5f9c2"
+  inputs-digest = "f2c14b57cdff0a06a8b40ff6c581245417c73d09063596055cd1f5648d16a833"
   solver-name = "gps-cdcl"
   solver-version = 1

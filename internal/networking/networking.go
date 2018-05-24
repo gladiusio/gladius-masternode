@@ -7,6 +7,7 @@ import (
 	"net/url"
 	"strings"
 
+	"github.com/gladiusio/gladius-masternode/internal/networking/state"
 	"github.com/valyala/fasthttp"
 )
 
@@ -22,7 +23,7 @@ func StartProxy() {
 	}
 
 	// TODO: This needs to be a thread safe mapping that is loaded from the controld continually.
-	hosts := make(map[string]string)
+	hosts := make(map[string]string) // websites we are protecting/hosting for
 	noCacheRoutes := make(map[string]map[string]bool)
 	cachedRoutes := make(map[string]map[string]bool)
 	expectedHash := make(map[string]map[string]string)
@@ -40,10 +41,16 @@ func StartProxy() {
 	expectedHash["demo.gladius.io"]["/"] = "819FFECE1337D34978AB73EF56355B660370F7AB01C6D26415F3E160A3527E26"
 	expectedHash["demo.gladius.io"]["/anotherroute"] = "6F9ECF8D1FAD1D2B8FBF2DA3E2571AEC4267A7018DF0DBDE8889D875FBDE8D3F"
 
-	fasthttp.ListenAndServe(":8081", requestBuilder(hosts, cachedRoutes, noCacheRoutes, expectedHash, string(loaderHTML)))
+	// Create new network state object to keep track of edge nodes
+	networkState := state.NewNetworkState()
+
+	go fasthttp.ListenAndServe(":8081", requestBuilder(hosts, cachedRoutes, noCacheRoutes, expectedHash, string(loaderHTML), networkState))
+
+	// infinite loop to run/poll for network state
 }
 
-func requestBuilder(hosts map[string]string, cachedRoutes, noCacheRoutes map[string]map[string]bool, expectedHash map[string]map[string]string, loaderHTML string) func(ctx *fasthttp.RequestCtx) {
+func requestBuilder(hosts map[string]string, cachedRoutes, noCacheRoutes map[string]map[string]bool,
+	expectedHash map[string]map[string]string, loaderHTML string, networkState *state.NetworkState) func(ctx *fasthttp.RequestCtx) {
 	// The actual serving function
 	return func(ctx *fasthttp.RequestCtx) {
 		host := string(ctx.Host()[:])
