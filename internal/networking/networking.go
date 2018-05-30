@@ -45,14 +45,10 @@ func StartProxy() {
 	// Create new network state object to keep track of edge nodes
 	netState := state.NewNetworkState()
 
-	// Get list of current edge nodes
-	netState.RefreshActiveNodes()
-
 	go fasthttp.ListenAndServe(":8081", requestBuilder(hosts, cachedRoutes, noCacheRoutes, expectedHash, string(loaderHTML), netState))
 
 	// Forever check through the channels on the main thread
 	for {
-		fmt.Println("Listening for channel messages...")
 		select {
 		case runState := <-netState.RunningStateChanged(): // If it can be assigned to a variable
 			if runState {
@@ -105,4 +101,13 @@ func requestBuilder(hosts map[string]string, cachedRoutes, noCacheRoutes map[str
 			ctx.Error("Unsupported Host", fasthttp.StatusBadRequest)
 		}
 	}
+}
+
+// Ask the controld for all active edge nodes
+func fetchActiveNodes() []*state.NetworkNode {
+	return nil
+}
+
+func getClosestNode(ip string) string {
+	return "localhost"
 }
