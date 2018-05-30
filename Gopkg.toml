@@ -31,7 +31,7 @@
 
 [[constraint]]
     name = "github.com/gladiusio/gladius-utils"
-    branch = "master"
+    branch = "feat/add_http_util"
 
 
 [prune]
@@ -41,3 +41,10 @@
 [[constraint]]
   branch = "master"
   name = "github.com/hongshibao/go-kdtree"
+
+[[constraint]]
+  name = "github.com/gladiusio/gladius-controld"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/tidwall/gjson"

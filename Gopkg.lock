@@ -14,13 +14,13 @@
   version = "v1.4.7"
 
 [[projects]]
+  branch = "feat/add_http_util"
   name = "github.com/gladiusio/gladius-utils"
   packages = [
     "config",
     "init/manager"
   ]
-  revision = "486e8052c24340c8b461ef7e407eaaf6b496d708"
-  version = "0.2.5"
+  revision = "77adbf8d379217a45450f6d2b76848dc261032bf"
 
 [[projects]]
   branch = "master"
@@ -137,6 +137,18 @@
   version = "v1.0.2"
 
 [[projects]]
+  branch = "master"
+  name = "github.com/tidwall/gjson"
+  packages = ["."]
+  revision = "3cd3a1192327ac5e24f7e87824be578b0b07c604"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/tidwall/match"
+  packages = ["."]
+  revision = "1731857f09b1f38450e2c12409748407822dc6be"
+
+[[projects]]
   name = "github.com/valyala/fasthttp"
   packages = [
     ".",
@@ -180,6 +192,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "f2c14b57cdff0a06a8b40ff6c581245417c73d09063596055cd1f5648d16a833"
+  inputs-digest = "52002a0c80e2c30b39ab15f418e506759d0fd8bd241da37417b1609e7ccc21ca"
   solver-name = "gps-cdcl"
   solver-version = 1

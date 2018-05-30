@@ -1,9 +1,13 @@
 package state
 
 import (
+	"fmt"
+	"log"
 	"sync"
 
+	"github.com/gladiusio/gladius-masternode/internal/http"
 	"github.com/hongshibao/go-kdtree"
+	"github.com/tidwall/gjson"
 )
 
 // NetworkState is a struct containing a K-D tree representation of the edge node pool
@@ -33,6 +37,26 @@ func (n *NetworkState) SetNetworkRunState(runState bool) {
 	}
 }
 
+// RefreshActiveNodes fetches the latest status of nodes in the pool
+func (n *NetworkState) RefreshActiveNodes() {
+	// Make a request to controld for the currently active nodes
+	// todo: viper.GetString() for host config
+	responseBytes, err := http.GetJSONBytes("http://localhost:3001/api/pool/0xDAcd582c3Ba1A90567Da0fC3f1dBB638D9438e06/nodes/approved")
+	if err != nil {
+		log.Fatal(err)
+	}
+	// Parse the 'response' field from the response data
+	_nodes := gjson.GetBytes(responseBytes, "response").Array()
+
+	// Create NetworkNode structs from the nodes response
+	var nodes []*NetworkNode
+	for i := 0; i < len(_nodes); i++ {
+		newNode := NewNetworkNode(0.0, 0.0, _nodes[i].Get("data.ip").String())
+		nodes = append(nodes, newNode)
+		fmt.Println(newNode.ip)
+	}
+}
+
 // RunningStateChanged returns a channel that updates when the running state
 // is changed
 func (n *NetworkState) RunningStateChanged() chan (bool) {
@@ -43,14 +67,14 @@ func (n *NetworkState) RunningStateChanged() chan (bool) {
 type NetworkNode struct {
 	kdtree.Point // Implements Point interface
 
-	longitude float64
-	latitude  float64
+	longitude float64 // Longitude
+	latitude  float64 // Latitude
 	ip        string
 }
 
 // NewNetworkNode returns a new NetworkNode struct
-func NewNetworkNode(long, lat float64) *NetworkNode {
-	return &NetworkNode{longitude: long, latitude: lat, ip: "0.0.0.0"}
+func NewNetworkNode(long, lat float64, ip string) *NetworkNode {
+	return &NetworkNode{longitude: long, latitude: lat, ip: ip}
 }
 
 func (n *NetworkNode) Dim() int {

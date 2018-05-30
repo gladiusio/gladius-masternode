@@ -29,6 +29,7 @@ func StartProxy() {
 	expectedHash := make(map[string]map[string]string)
 
 	// Define accepted hosts
+	// TODO: will come from controld eventually (from p2p network)
 	hosts["demo.gladius.io"] = "http://172.217.7.228"
 	cachedRoutes["demo.gladius.io"] = make(map[string]bool)
 	cachedRoutes["demo.gladius.io"]["/"] = true
@@ -42,15 +43,18 @@ func StartProxy() {
 	expectedHash["demo.gladius.io"]["/anotherroute"] = "6F9ECF8D1FAD1D2B8FBF2DA3E2571AEC4267A7018DF0DBDE8889D875FBDE8D3F"
 
 	// Create new network state object to keep track of edge nodes
-	networkState := state.NewNetworkState()
+	netState := state.NewNetworkState()
 
-	go fasthttp.ListenAndServe(":8081", requestBuilder(hosts, cachedRoutes, noCacheRoutes, expectedHash, string(loaderHTML), networkState))
+	// Get list of current edge nodes
+	netState.RefreshActiveNodes()
+
+	go fasthttp.ListenAndServe(":8081", requestBuilder(hosts, cachedRoutes, noCacheRoutes, expectedHash, string(loaderHTML), netState))
 
 	// Forever check through the channels on the main thread
 	for {
 		fmt.Println("Listening for channel messages...")
 		select {
-		case runState := <-networkState.RunningStateChanged(): // If it can be assigned to a variable
+		case runState := <-netState.RunningStateChanged(): // If it can be assigned to a variable
 			if runState {
 				// start masternode proxy
 			} else {
@@ -101,6 +105,11 @@ func requestBuilder(hosts map[string]string, cachedRoutes, noCacheRoutes map[str
 			ctx.Error("Unsupported Host", fasthttp.StatusBadRequest)
 		}
 	}
+}
+
+// Ask the controld for all active edge nodes
+func fetchActiveNodes() []*state.NetworkNode {
+	return nil
 }
 
 func getClosestNode(ip string) string {
