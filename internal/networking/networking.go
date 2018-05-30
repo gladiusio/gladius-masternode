@@ -106,12 +106,3 @@ func requestBuilder(hosts map[string]string, cachedRoutes, noCacheRoutes map[str
 		}
 	}
 }
-
-// Ask the controld for all active edge nodes
-func fetchActiveNodes() []*state.NetworkNode {
-	return nil
-}
-
-func getClosestNode(ip string) string {
-	return "localhost"
-}

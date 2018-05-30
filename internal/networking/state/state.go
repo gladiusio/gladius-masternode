@@ -1,12 +1,10 @@
 package state
 
 import (
-	"fmt"
 	"log"
-	"math/rand"
 	"net"
+	"strings"
 	"sync"
-	"time"
 
 	"github.com/gladiusio/gladius-masternode/internal/http"
 	"github.com/hongshibao/go-kdtree"
@@ -42,7 +40,6 @@ func (n *NetworkState) SetNetworkRunState(runState bool) {
 
 // RefreshActiveNodes fetches the latest status of nodes in the pool
 func (n *NetworkState) RefreshActiveNodes() {
-	rand.Seed(time.Now().Unix())
 	// Make a request to controld for the currently active nodes
 	// todo: viper.GetString() for host config
 	responseBytes, err := http.GetJSONBytes("http://localhost:3001/api/pool/0xDAcd582c3Ba1A90567Da0fC3f1dBB638D9438e06/nodes/approved")
@@ -52,31 +49,24 @@ func (n *NetworkState) RefreshActiveNodes() {
 	// Parse the 'response' field from the response data
 	_nodes := gjson.GetBytes(responseBytes, "response").Array()
 
-	// Create NetworkNode structs from the nodes response
+	// Create NetworkNode structs from the list of nodes returned from controld
 	nodes := make([]kdtree.Point, 0)
 	for i := 0; i < len(_nodes); i++ {
-		ip := net.ParseIP(_nodes[i].Get("data.ip").String())
+		ipStr := strings.TrimSpace(_nodes[i].Get("data.ip").String())
+		ip := net.ParseIP(ipStr)
 		if ip == nil {
 			log.Printf("Invalid IP Address found in node: %v", _nodes[i])
 			// continue
 		}
-		newNode := NewNetworkNode(rand.Float64(), rand.Float64(), ip)
+		newNode := NewNetworkNode(0, 0, ip)
 		nodes = append(nodes, newNode)
 	}
-	n.mux.Lock()
-	n.tree = kdtree.NewKDTree(nodes)
-	n.mux.Unlock()
 
-	testNode := NewNetworkNode(0.0, 0.0, net.ParseIP("127.0.0.1"))
-	neighbors := n.tree.KNN(testNode, 5)
-	for idx, p := range neighbors {
-		z := p.(*NetworkNode)
-		fmt.Printf("Node %d: (%f", idx, z.GetValue(0))
-		for i := 1; i < p.Dim(); i++ {
-			fmt.Printf(", %f", p.GetValue(i))
-		}
-		fmt.Printf(") %s\n", string(z.ip.String()))
-	}
+	// Create a new KD-Tree with the new set of nodes
+	newTree := kdtree.NewKDTree(nodes)
+	n.mux.Lock()
+	n.tree = newTree
+	n.mux.Unlock()
 }
 
 // RunningStateChanged returns a channel that updates when the running state
