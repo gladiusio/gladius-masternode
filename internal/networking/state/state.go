@@ -3,7 +3,10 @@ package state
 import (
 	"fmt"
 	"log"
+	"math/rand"
+	"net"
 	"sync"
+	"time"
 
 	"github.com/gladiusio/gladius-masternode/internal/http"
 	"github.com/hongshibao/go-kdtree"
@@ -39,6 +42,7 @@ func (n *NetworkState) SetNetworkRunState(runState bool) {
 
 // RefreshActiveNodes fetches the latest status of nodes in the pool
 func (n *NetworkState) RefreshActiveNodes() {
+	rand.Seed(time.Now().Unix())
 	// Make a request to controld for the currently active nodes
 	// todo: viper.GetString() for host config
 	responseBytes, err := http.GetJSONBytes("http://localhost:3001/api/pool/0xDAcd582c3Ba1A90567Da0fC3f1dBB638D9438e06/nodes/approved")
@@ -49,11 +53,29 @@ func (n *NetworkState) RefreshActiveNodes() {
 	_nodes := gjson.GetBytes(responseBytes, "response").Array()
 
 	// Create NetworkNode structs from the nodes response
-	var nodes []*NetworkNode
+	nodes := make([]kdtree.Point, 0)
 	for i := 0; i < len(_nodes); i++ {
-		newNode := NewNetworkNode(0.0, 0.0, _nodes[i].Get("data.ip").String())
+		ip := net.ParseIP(_nodes[i].Get("data.ip").String())
+		if ip == nil {
+			log.Printf("Invalid IP Address found in node: %v", _nodes[i])
+			// continue
+		}
+		newNode := NewNetworkNode(rand.Float64(), rand.Float64(), ip)
 		nodes = append(nodes, newNode)
-		fmt.Println(newNode.ip)
+	}
+	n.mux.Lock()
+	n.tree = kdtree.NewKDTree(nodes)
+	n.mux.Unlock()
+
+	testNode := NewNetworkNode(0.0, 0.0, net.ParseIP("127.0.0.1"))
+	neighbors := n.tree.KNN(testNode, 5)
+	for idx, p := range neighbors {
+		z := p.(*NetworkNode)
+		fmt.Printf("Node %d: (%f", idx, z.GetValue(0))
+		for i := 1; i < p.Dim(); i++ {
+			fmt.Printf(", %f", p.GetValue(i))
+		}
+		fmt.Printf(") %s\n", string(z.ip.String()))
 	}
 }
 
@@ -69,11 +91,11 @@ type NetworkNode struct {
 
 	longitude float64 // Longitude
 	latitude  float64 // Latitude
-	ip        string
+	ip        net.IP
 }
 
 // NewNetworkNode returns a new NetworkNode struct
-func NewNetworkNode(long, lat float64, ip string) *NetworkNode {
+func NewNetworkNode(long, lat float64, ip net.IP) *NetworkNode {
 	return &NetworkNode{longitude: long, latitude: lat, ip: ip}
 }
 
