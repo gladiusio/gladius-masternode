@@ -1,6 +1,7 @@
 package state
 
 import (
+	"fmt"
 	"log"
 	"net"
 	"strings"
@@ -8,6 +9,7 @@ import (
 
 	"github.com/gladiusio/gladius-masternode/internal/http"
 	"github.com/hongshibao/go-kdtree"
+	"github.com/spf13/viper"
 	"github.com/tidwall/gjson"
 )
 
@@ -41,8 +43,8 @@ func (n *NetworkState) SetNetworkRunState(runState bool) {
 // RefreshActiveNodes fetches the latest status of nodes in the pool
 func (n *NetworkState) RefreshActiveNodes() {
 	// Make a request to controld for the currently active nodes
-	// todo: viper.GetString() for host config
-	responseBytes, err := http.GetJSONBytes("http://localhost:3001/api/pool/0xDAcd582c3Ba1A90567Da0fC3f1dBB638D9438e06/nodes/approved")
+	url := http.BuildControldURL(fmt.Sprintf("/api/pool/%s/nodes/approved", viper.GetString("PoolEthAddress")))
+	responseBytes, err := http.GetJSONBytes(url)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -56,7 +58,7 @@ func (n *NetworkState) RefreshActiveNodes() {
 		ip := net.ParseIP(ipStr)
 		if ip == nil {
 			log.Printf("Invalid IP Address found in node: %v", _nodes[i])
-			// continue
+			continue
 		}
 		newNode := NewNetworkNode(0, 0, ip)
 		nodes = append(nodes, newNode)
