@@ -37,18 +37,21 @@ func JoinStrings(strs ...string) string {
 }
 
 // BuildURL constructs a URL string
-func BuildURL(protocol string, fqdn string, route string) string {
+func BuildURL(protocol string, host string, port string, route string) string {
 	var builder strings.Builder
 	builder.WriteString(protocol)
 	builder.WriteString("://")
-	builder.WriteString(fqdn)
+	builder.WriteString(host)
+	builder.WriteString(":")
+	builder.WriteString(port)
 	builder.WriteString(route)
 	return builder.String()
 }
 
-// BuildControldURL builds a URL for the controld API
-func BuildControldURL(route string) string {
-	protocol := viper.GetString("PoolProtocol")
-	fqdn := viper.GetString("PoolFQDN")
-	return BuildURL(protocol, fqdn, route)
+// BuildControldEndpoint builds a URL for a controld endpoint
+func BuildControldEndpoint(route string) string {
+	protocol := viper.GetString("ControldProtocol")
+	host := viper.GetString("ControldHostname")
+	port := viper.GetString("ControldPort")
+	return BuildURL(protocol, host, port, route)
 }

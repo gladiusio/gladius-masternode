@@ -43,7 +43,7 @@ func (n *NetworkState) SetNetworkRunState(runState bool) {
 // RefreshActiveNodes fetches the latest status of nodes in the pool
 func (n *NetworkState) RefreshActiveNodes() {
 	// Make a request to controld for the currently active nodes
-	url := http.BuildControldURL(fmt.Sprintf("/api/pool/%s/nodes/approved", viper.GetString("PoolEthAddress")))
+	url := http.BuildControldEndpoint(fmt.Sprintf("/api/pool/%s/nodes/approved", viper.GetString("PoolEthAddress")))
 	responseBytes, err := http.GetJSONBytes(url)
 	if err != nil {
 		log.Fatal(err)
