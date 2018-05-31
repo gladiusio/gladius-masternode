@@ -58,7 +58,7 @@ func (n *NetworkState) RefreshActiveNodes() {
 		ip := net.ParseIP(ipStr)
 		if ip == nil {
 			log.Printf("Invalid IP Address found in node: %v", _nodes[i])
-			continue
+			continue // Discard this node
 		}
 		newNode := NewNetworkNode(0, 0, ip)
 		nodes = append(nodes, newNode)
@@ -81,8 +81,8 @@ func (n *NetworkState) RunningStateChanged() chan (bool) {
 type NetworkNode struct {
 	kdtree.Point // Implements Point interface
 
-	longitude float64 // Longitude
-	latitude  float64 // Latitude
+	longitude float64
+	latitude  float64
 	ip        net.IP
 }
 
@@ -91,10 +91,12 @@ func NewNetworkNode(long, lat float64, ip net.IP) *NetworkNode {
 	return &NetworkNode{longitude: long, latitude: lat, ip: ip}
 }
 
+// Dim returns the number of dimensions the KD-Tree splits on
 func (n *NetworkNode) Dim() int {
 	return 2
 }
 
+// GetValue returns the value associated with the provided dimension
 func (n *NetworkNode) GetValue(dim int) float64 {
 	if dim == 0 {
 		return n.longitude
@@ -102,6 +104,7 @@ func (n *NetworkNode) GetValue(dim int) float64 {
 	return n.latitude
 }
 
+// Distance returns the calculated distance between two nodes
 func (n *NetworkNode) Distance(other kdtree.Point) float64 {
 	var ret float64
 	for i := 0; i < n.Dim(); i++ {
@@ -111,6 +114,8 @@ func (n *NetworkNode) Distance(other kdtree.Point) float64 {
 	return ret
 }
 
+// PlaneDistance returns the distance between the point and the specified
+// plane
 func (n *NetworkNode) PlaneDistance(val float64, dim int) float64 {
 	tmp := n.GetValue(dim) - val
 	return tmp * tmp
