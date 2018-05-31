@@ -2,6 +2,7 @@ package http
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/tidwall/gjson"
@@ -23,4 +24,23 @@ func GetJSONBytes(url string) ([]byte, error) {
 	}
 
 	return body, nil
+}
+
+// JoinStrings ... concatenates an arbitrary amount of provided strings
+func JoinStrings(strs ...string) string {
+	var builder strings.Builder
+	for _, str := range strs {
+		builder.WriteString(str)
+	}
+	return builder.String()
+}
+
+// BuildURL constructs a URL string
+func BuildURL(protocol string, fqdn string, path string) string {
+	var builder strings.Builder
+	builder.WriteString(protocol)
+	builder.WriteString("://")
+	builder.WriteString(fqdn)
+	builder.WriteString(path)
+	return builder.String()
 }
