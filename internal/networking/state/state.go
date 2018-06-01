@@ -9,6 +9,7 @@ import (
 
 	"github.com/gladiusio/gladius-masternode/internal/http"
 	"github.com/hongshibao/go-kdtree"
+	"github.com/oschwald/geoip2-golang"
 	"github.com/spf13/viper"
 	"github.com/tidwall/gjson"
 )
@@ -16,7 +17,8 @@ import (
 // NetworkState is a struct containing a K-D tree representation of the edge node pool
 // associated with this masternode
 type NetworkState struct {
-	tree *kdtree.KDTree // K-D Tree to store network node structs
+	tree  *kdtree.KDTree // K-D Tree to store network node structs
+	geoIP *geoip2.Reader
 
 	running    bool
 	runChannel chan (bool)
@@ -26,6 +28,12 @@ type NetworkState struct {
 // NewNetworkState returns a new NetworkState struct
 func NewNetworkState() *NetworkState {
 	state := &NetworkState{running: true, runChannel: make(chan bool)}
+	db, err := InitGeoIP()
+	if err != nil {
+		log.Fatal(err)
+	}
+	state.geoIP = db
+	// Initialize node tree
 	state.RefreshActiveNodes()
 	return state
 }

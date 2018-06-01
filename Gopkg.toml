@@ -49,3 +49,11 @@
 [[constraint]]
   name = "github.com/oschwald/geoip2-golang"
   version = "1.2.1"
+
+[[constraint]]
+  branch = "master"
+  name = "golang.org/x/build"
+
+[[constraint]]
+  name = "github.com/mholt/archiver"
+  version = "2.0.0"
