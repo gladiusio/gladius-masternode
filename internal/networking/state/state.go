@@ -81,6 +81,7 @@ func (n *NetworkState) RefreshActiveNodes() {
 	newTree := kdtree.NewKDTree(nodes)
 	n.mux.Lock()
 	n.tree = newTree
+	fmt.Printf("Created network state with nodes:\n%v", nodes)
 	n.mux.Unlock()
 }
 
@@ -102,6 +103,10 @@ type NetworkNode struct {
 // NewNetworkNode returns a new NetworkNode struct
 func NewNetworkNode(long, lat float64, ip net.IP) *NetworkNode {
 	return &NetworkNode{longitude: long, latitude: lat, ip: ip}
+}
+
+func (n *NetworkNode) String() string {
+	return fmt.Sprintf("%v (%v, %v)", n.ip, n.longitude, n.latitude)
 }
 
 // Dim returns the number of dimensions the KD-Tree splits on
