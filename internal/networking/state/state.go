@@ -68,7 +68,12 @@ func (n *NetworkState) RefreshActiveNodes() {
 			log.Printf("Invalid IP Address found in node: %v", _nodes[i])
 			continue // Discard this node
 		}
-		newNode := NewNetworkNode(0, 0, ip)
+		city, err := n.geoIP.City(ip)
+		if err != nil {
+			log.Printf("Error encountered when looking up coordinates for IP: %v\n\n%v", ip, err)
+			continue // Discard this node
+		}
+		newNode := NewNetworkNode(city.Location.Longitude, city.Location.Latitude, ip)
 		nodes = append(nodes, newNode)
 	}
 
