@@ -8,6 +8,19 @@
   revision = "31879d3884b90dd94c44c85c0e4f1aff3bbb90e2"
 
 [[projects]]
+  branch = "master"
+  name = "github.com/dsnet/compress"
+  packages = [
+    ".",
+    "bzip2",
+    "bzip2/internal/sais",
+    "internal",
+    "internal/errors",
+    "internal/prefix"
+  ]
+  revision = "cc9eb1d7ad760af14e8f918698f745e80377af4f"
+
+[[projects]]
   name = "github.com/fsnotify/fsnotify"
   packages = ["."]
   revision = "c2828203cd70a50dcccfb2761f8b1f8ceef9a8e9"
@@ -92,10 +105,37 @@
   version = "v1.8.0"
 
 [[projects]]
+  name = "github.com/mholt/archiver"
+  packages = [
+    ".",
+    "cmd/archiver"
+  ]
+  revision = "cdc68dd1f170b8dfc1a0d2231b5bb0967ed67006"
+  version = "v2.0"
+
+[[projects]]
   branch = "master"
   name = "github.com/mitchellh/mapstructure"
   packages = ["."]
   revision = "bb74f1db0675b241733089d5a1faa5dd8b0ef57b"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/nwaples/rardecode"
+  packages = ["."]
+  revision = "e06696f847aeda6f39a8f0b7cdff193b7690aef6"
+
+[[projects]]
+  name = "github.com/oschwald/geoip2-golang"
+  packages = ["."]
+  revision = "7118115686e16b77967cdbf55d1b944fe14ad312"
+  version = "v1.2.1"
+
+[[projects]]
+  name = "github.com/oschwald/maxminddb-golang"
+  packages = ["."]
+  revision = "c5bec84d1963260297932a1b7a1753c8420717a7"
+  version = "v1.3.0"
 
 [[projects]]
   name = "github.com/pelletier/go-toml"
@@ -149,6 +189,17 @@
   revision = "1731857f09b1f38450e2c12409748407822dc6be"
 
 [[projects]]
+  name = "github.com/ulikunitz/xz"
+  packages = [
+    ".",
+    "internal/hash",
+    "internal/xlog",
+    "lzma"
+  ]
+  revision = "0c6b41e72360850ca4f98dc341fd999726ea007f"
+  version = "v0.5.4"
+
+[[projects]]
   name = "github.com/valyala/fasthttp"
   packages = [
     ".",
@@ -192,6 +243,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "f7a514545e42838466a7eeda27df5313ac1c7b41ff7f585e067d4df8d6ed9596"
+  inputs-digest = "6985cfc988ad1f3a95980721e086777b491d2809e426001c905ba0d8425c1fef"
   solver-name = "gps-cdcl"
   solver-version = 1
