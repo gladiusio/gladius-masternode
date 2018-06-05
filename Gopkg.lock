@@ -27,13 +27,25 @@
   version = "v1.4.7"
 
 [[projects]]
-  branch = "feat/add_http_util"
+  branch = "master"
   name = "github.com/gladiusio/gladius-utils"
   packages = [
     "config",
     "init/manager"
   ]
-  revision = "77adbf8d379217a45450f6d2b76848dc261032bf"
+  revision = "2aa739be06829e7ba3232572581f2905c72fd1a2"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/golang/geo"
+  packages = [
+    "r1",
+    "r2",
+    "r3",
+    "s1",
+    "s2"
+  ]
+  revision = "e41ca803f92c4c1770133cfa5b4fc8249a7dbe82"
 
 [[projects]]
   branch = "master"
@@ -106,10 +118,7 @@
 
 [[projects]]
   name = "github.com/mholt/archiver"
-  packages = [
-    ".",
-    "cmd/archiver"
-  ]
+  packages = ["."]
   revision = "cdc68dd1f170b8dfc1a0d2231b5bb0967ed67006"
   version = "v2.0"
 
@@ -243,6 +252,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "6985cfc988ad1f3a95980721e086777b491d2809e426001c905ba0d8425c1fef"
+  inputs-digest = "009141bba03ad1a39149cb4856a2561292c667443f7f6221df89af675a291396"
   solver-name = "gps-cdcl"
   solver-version = 1

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"net"
 	"net/url"
 	"strings"
 
@@ -63,7 +64,7 @@ func requestBuilder(hosts map[string]string, cachedRoutes, noCacheRoutes map[str
 
 			if cachedRoutes[host][path] { // The route is cached, return link to bundle
 				ip := ctx.RemoteIP().String()
-				closestNode := getClosestNode(ip)
+				closestNode := getClosestNode(ip, networkState)
 
 				route := "http://" + closestNode + ":8080/content?website=" + host + "&route=" + strings.Replace(path, "/", "%2f", -1)
 				withLink := strings.Replace(loaderHTML, "{EDGEHOST}", route, 1)
@@ -91,11 +92,16 @@ func requestBuilder(hosts map[string]string, cachedRoutes, noCacheRoutes map[str
 	}
 }
 
-// Ask the controld for all active edge nodes
-func fetchActiveNodes() []*state.NetworkNode {
-	return nil
-}
-
-func getClosestNode(ip string) string {
-	return "localhost"
+func getClosestNode(ipStr string, netState *state.NetworkState) string {
+	ip := net.ParseIP(ipStr)
+	if ip == nil {
+		log.Printf("Could not parse IP address: %v", ip)
+		return "localhost"
+	}
+	closestNode, err := netState.GetClosestNode(ip)
+	if err != nil {
+		log.Print(err)
+		return "localhost"
+	}
+	return closestNode.IP().String()
 }

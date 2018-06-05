@@ -8,6 +8,7 @@ import (
 	"sync"
 
 	"github.com/gladiusio/gladius-masternode/internal/http"
+	"github.com/golang/geo/s2"
 	"github.com/hongshibao/go-kdtree"
 	"github.com/oschwald/geoip2-golang"
 	"github.com/spf13/viper"
@@ -68,21 +69,44 @@ func (n *NetworkState) RefreshActiveNodes() {
 			log.Printf("Invalid IP Address found in node: %v", _nodes[i])
 			continue // Discard this node
 		}
-		city, err := n.geoIP.City(ip)
+		long, lat, err := n.GeolocateIP(ip)
 		if err != nil {
 			log.Printf("Error encountered when looking up coordinates for IP: %v\n\n%v", ip, err)
 			continue // Discard this node
 		}
-		newNode := NewNetworkNode(city.Location.Longitude, city.Location.Latitude, ip)
+		newNode := NewNetworkNode(long, lat, ip)
 		nodes = append(nodes, newNode)
 	}
 
 	// Create a new KD-Tree with the new set of nodes
 	newTree := kdtree.NewKDTree(nodes)
 	n.mux.Lock()
+	defer n.mux.Unlock()
 	n.tree = newTree
 	fmt.Printf("Created network state with nodes:\n%v", nodes)
-	n.mux.Unlock()
+}
+
+// GeolocateIP looks up the coordinates for a given ip address
+func (n *NetworkState) GeolocateIP(ip net.IP) (long float64, lat float64, retErr error) {
+	n.mux.Lock()
+	defer n.mux.Unlock()
+	city, err := n.geoIP.City(ip)
+	if err != nil {
+		return 0.0, 0.0, err
+	}
+	return city.Location.Longitude, city.Location.Latitude, nil
+}
+
+// GetClosestNode searches the KD-Tree for the node nearest to the IP provided
+func (n *NetworkState) GetClosestNode(ip net.IP) (*NetworkNode, error) {
+	n.mux.Lock()
+	defer n.mux.Unlock()
+	long, lat, err := n.GeolocateIP(ip)
+	if err != nil {
+		return nil, fmt.Errorf("Error encountered when looking up coordinates for IP: %v\n\n%v", ip, err)
+	}
+	neighbors := n.tree.KNN(NewNetworkNode(long, lat, ip), 1)
+	return neighbors[0].(*NetworkNode), nil
 }
 
 // RunningStateChanged returns a channel that updates when the running state
@@ -95,18 +119,22 @@ func (n *NetworkState) RunningStateChanged() chan (bool) {
 type NetworkNode struct {
 	kdtree.Point // Implements Point interface
 
-	longitude float64
-	latitude  float64
-	ip        net.IP
+	geoLocation s2.LatLng
+	ip          net.IP
 }
 
 // NewNetworkNode returns a new NetworkNode struct
-func NewNetworkNode(long, lat float64, ip net.IP) *NetworkNode {
-	return &NetworkNode{longitude: long, latitude: lat, ip: ip}
+func NewNetworkNode(lat, long float64, ip net.IP) *NetworkNode {
+	return &NetworkNode{geoLocation: s2.LatLngFromDegrees(lat, long), ip: ip}
 }
 
 func (n *NetworkNode) String() string {
-	return fmt.Sprintf("%v (%v, %v)", n.ip, n.longitude, n.latitude)
+	return fmt.Sprintf("%v [%v, %v]", n.ip, n.geoLocation.Lat.Degrees(), n.geoLocation.Lng.Degrees())
+}
+
+// IP returns the IP address of the NetworkNode
+func (n *NetworkNode) IP() net.IP {
+	return n.ip
 }
 
 // Dim returns the number of dimensions the KD-Tree splits on
@@ -117,24 +145,24 @@ func (n *NetworkNode) Dim() int {
 // GetValue returns the value associated with the provided dimension
 func (n *NetworkNode) GetValue(dim int) float64 {
 	if dim == 0 {
-		return n.longitude
+		return n.geoLocation.Lat.Degrees()
 	}
-	return n.latitude
+	return n.geoLocation.Lng.Degrees()
 }
 
 // Distance returns the calculated distance between two nodes
 func (n *NetworkNode) Distance(other kdtree.Point) float64 {
-	var ret float64
-	for i := 0; i < n.Dim(); i++ {
-		tmp := n.GetValue(i) - other.GetValue(i)
-		ret += tmp * tmp
-	}
-	return ret
+	return n.geoLocation.Distance(other.(*NetworkNode).geoLocation).Radians()
 }
 
 // PlaneDistance returns the distance between the point and the specified
 // plane
 func (n *NetworkNode) PlaneDistance(val float64, dim int) float64 {
-	tmp := n.GetValue(dim) - val
-	return tmp * tmp
+	var plane s2.LatLng
+	if dim == 0 {
+		plane = s2.LatLngFromDegrees(val, 0)
+	} else {
+		plane = s2.LatLngFromDegrees(0, val)
+	}
+	return n.geoLocation.Distance(plane).Radians()
 }
