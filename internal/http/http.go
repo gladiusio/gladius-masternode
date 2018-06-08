@@ -24,6 +24,7 @@ func GetJSONBytes(url string) ([]byte, error) {
 	return bytes, nil
 }
 
+// GetBytes queries an HTTP endpoint and returns the raw []byte response
 func GetBytes(url string) ([]byte, error) {
 	statusCode, body, err := fasthttp.GetTimeout(nil, url, 10*time.Second)
 	if err != nil {
