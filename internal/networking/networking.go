@@ -7,6 +7,7 @@ import (
 	"net"
 	"net/url"
 	"strings"
+	"time"
 
 	"github.com/gladiusio/gladius-masternode/internal/networking/state"
 	"github.com/valyala/fasthttp"
@@ -47,6 +48,16 @@ func StartProxy() {
 	netState := state.NewNetworkState()
 
 	go fasthttp.ListenAndServe(":8081", requestBuilder(hosts, cachedRoutes, noCacheRoutes, expectedHash, string(loaderHTML), netState))
+
+	// Update network state every 30 seconds
+	ticker := time.NewTicker(time.Second * 30)
+	defer ticker.Stop()
+	for {
+		select {
+		case <-ticker.C:
+			netState.RefreshActiveNodes()
+		}
+	}
 }
 
 func requestBuilder(hosts map[string]string, cachedRoutes, noCacheRoutes map[string]map[string]bool,
