@@ -13,6 +13,9 @@ import (
 	"github.com/spf13/viper"
 )
 
+// InitGeoIP opens the GeoIP database and returns a pointer
+// to it. If it does not already exist on disk, this function
+// will also download the binary for it.
 func InitGeoIP() (*geoip2.Reader, error) {
 	geoipDir := viper.GetString("GeoIPDatabaseDir")
 	// Make the geoip directory (may already exist)
@@ -72,6 +75,7 @@ func InitGeoIP() (*geoip2.Reader, error) {
 	return db, nil
 }
 
+// searchForDB Walks a given file path for the GeoIP database file
 func searchForDB(root string) (matchPath string, err error) {
 	err = filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
