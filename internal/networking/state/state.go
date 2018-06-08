@@ -75,15 +75,15 @@ func (n *NetworkState) RefreshActiveNodes() {
 			continue // Discard this node
 		}
 		newNode := NewNetworkNode(long, lat, ip)
+		fmt.Printf("Added Node: %v      (%v, %v)\n", ip, long, lat)
 		nodes = append(nodes, newNode)
 	}
 
 	// Create a new KD-Tree with the new set of nodes
 	newTree := kdtree.NewKDTree(nodes)
 	n.mux.Lock()
-	defer n.mux.Unlock()
 	n.tree = newTree
-	fmt.Printf("Created network state with nodes:\n%v", nodes)
+	n.mux.Unlock()
 }
 
 // GeolocateIP looks up the coordinates for a given ip address
@@ -94,17 +94,18 @@ func (n *NetworkState) GeolocateIP(ip net.IP) (long float64, lat float64, retErr
 	if err != nil {
 		return 0.0, 0.0, err
 	}
+
 	return city.Location.Longitude, city.Location.Latitude, nil
 }
 
 // GetClosestNode searches the KD-Tree for the node nearest to the IP provided
 func (n *NetworkState) GetClosestNode(ip net.IP) (*NetworkNode, error) {
-	n.mux.Lock()
-	defer n.mux.Unlock()
 	long, lat, err := n.GeolocateIP(ip)
 	if err != nil {
 		return nil, fmt.Errorf("Error encountered when looking up coordinates for IP: %v\n\n%v", ip, err)
 	}
+	n.mux.Lock()
+	defer n.mux.Unlock()
 	neighbors := n.tree.KNN(NewNetworkNode(long, lat, ip), 1)
 	return neighbors[0].(*NetworkNode), nil
 }
