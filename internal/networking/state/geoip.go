@@ -57,7 +57,7 @@ func InitGeoIP() (*geoip2.Reader, error) {
 		if err != nil {
 			return nil, err
 		}
-		// Find the latest version now (tar paths may change)
+		// Find the database (tar paths may change)
 		dbPath, err = searchForDB(geoipDir)
 		if err != nil {
 			return nil, err
