@@ -19,7 +19,7 @@ import (
 // associated with this masternode
 type NetworkState struct {
 	tree  *kdtree.KDTree // K-D Tree to store network node structs
-	geoIP *geoip2.Reader
+	geoIP *geoip2.Reader // Geo IP database reference
 
 	running    bool
 	runChannel chan (bool)
@@ -29,6 +29,7 @@ type NetworkState struct {
 // NewNetworkState returns a new NetworkState struct
 func NewNetworkState() *NetworkState {
 	state := &NetworkState{running: true, runChannel: make(chan bool)}
+	// Initialize the Geo IP database
 	db, err := InitGeoIP()
 	if err != nil {
 		log.Fatal(err)
@@ -69,6 +70,7 @@ func (n *NetworkState) RefreshActiveNodes() {
 			log.Printf("Invalid IP Address found in node: %v", _nodes[i])
 			continue // Discard this node
 		}
+		// Lookup approximate coordinates of this IP address
 		long, lat, err := n.GeolocateIP(ip)
 		if err != nil {
 			log.Printf("Error encountered when looking up coordinates for IP: %v\n\n%v", ip, err)
@@ -106,7 +108,11 @@ func (n *NetworkState) GetClosestNode(ip net.IP) (*NetworkNode, error) {
 	}
 	n.mux.Lock()
 	defer n.mux.Unlock()
+	// Find the closest neighboring node
 	neighbors := n.tree.KNN(NewNetworkNode(long, lat, ip), 1)
+	if len(neighbors) == 0 {
+		return nil, fmt.Errorf("Error: No neighbors were found in nearest neighbor search")
+	}
 	return neighbors[0].(*NetworkNode), nil
 }
 

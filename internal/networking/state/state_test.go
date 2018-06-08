@@ -7,6 +7,7 @@ import (
 	"github.com/hongshibao/go-kdtree"
 )
 
+// Tests the construction and nearest neighbor functions of the KD-Tree
 func TestKDTree(t *testing.T) {
 	var nodes [4]kdtree.Point
 	nodes[0] = NewNetworkNode(0.1, 0.1, net.ParseIP("0.1.0.1"))
