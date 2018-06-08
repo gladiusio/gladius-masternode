@@ -22,7 +22,7 @@ endif
 SRC_DIR=./cmd
 DST_DIR=./build
 
-MN_SRC=$(SRC_DIR)/gladius-masternode
+MN_SRC=$(SRC_DIR)
 MN_DEST=$(DST_DIR)/gladius-masternode$(BINARY_SUFFIX)
 
 # commands for go
