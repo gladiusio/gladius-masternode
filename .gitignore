@@ -18,3 +18,5 @@ build/
 
 # goland ide
 .idea/
+cmd/debug
+GeoLite2-City.mmdb
