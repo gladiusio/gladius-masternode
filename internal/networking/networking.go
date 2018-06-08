@@ -103,6 +103,9 @@ func requestBuilder(hosts map[string]string, cachedRoutes, noCacheRoutes map[str
 	}
 }
 
+// getClosestNode wraps the GetClosestNode function from the 'state'
+// package to lookup the geographically closest content node to a
+// given IP address
 func getClosestNode(ipStr string, netState *state.NetworkState) string {
 	ip := net.ParseIP(ipStr)
 	if ip == nil {
