@@ -3,6 +3,12 @@
 
 [[projects]]
   branch = "master"
+  name = "github.com/alecthomas/units"
+  packages = ["."]
+  revision = "2efee857e7cfd4f3d0138cc3cbb1b4966962b93a"
+
+[[projects]]
+  branch = "master"
   name = "github.com/dropbox/godropbox"
   packages = ["errors"]
   revision = "31879d3884b90dd94c44c85c0e4f1aff3bbb90e2"
@@ -46,6 +52,12 @@
     "s2"
   ]
   revision = "e41ca803f92c4c1770133cfa5b4fc8249a7dbe82"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/google/shlex"
+  packages = ["."]
+  revision = "6f45313302b9c56850fc17f99e40caebce98c716"
 
 [[projects]]
   branch = "master"
@@ -127,6 +139,17 @@
   name = "github.com/mitchellh/mapstructure"
   packages = ["."]
   revision = "bb74f1db0675b241733089d5a1faa5dd8b0ef57b"
+
+[[projects]]
+  name = "github.com/nicksnyder/go-i18n"
+  packages = [
+    "i18n",
+    "i18n/bundle",
+    "i18n/language",
+    "i18n/translation"
+  ]
+  revision = "0dc1626d56435e9d605a29875701721c54bc9bbd"
+  version = "v1.10.0"
 
 [[projects]]
   branch = "master"
@@ -244,6 +267,18 @@
   version = "v0.3.0"
 
 [[projects]]
+  name = "gopkg.in/alecthomas/gometalinter.v2"
+  packages = ["."]
+  revision = "46cc1ea3778b247666c2949669a3333c532fa9c6"
+  version = "v2.0.5"
+
+[[projects]]
+  branch = "v3-unstable"
+  name = "gopkg.in/alecthomas/kingpin.v3-unstable"
+  packages = ["."]
+  revision = "2b154cee082ef5c544fa8ea1750b9eb6581b0040"
+
+[[projects]]
   name = "gopkg.in/yaml.v2"
   packages = ["."]
   revision = "5420a8b6744d3b0345ab293f6fcba19c978f1183"
@@ -252,6 +287,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "009141bba03ad1a39149cb4856a2561292c667443f7f6221df89af675a291396"
+  inputs-digest = "c0ea203ba0bf1ff079a9c87dc41520226250f296fc0228b79daf5e8203cfebb5"
   solver-name = "gps-cdcl"
   solver-version = 1
