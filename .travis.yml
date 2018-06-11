@@ -9,6 +9,7 @@ before_install:
 
 install:
   - dep ensure
+  - go get gopkg.in/alecthomas/gometalinter.v2
 
 script:
   - make lint
