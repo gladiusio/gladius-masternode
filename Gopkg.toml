@@ -57,3 +57,6 @@
 [[constraint]]
   branch = "master"
   name = "github.com/golang/geo"
+
+[[constraint]]
+  name = "gopkg.in/alecthomas/gometalinter.v2"

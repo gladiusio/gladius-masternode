@@ -4,8 +4,8 @@ go:
   - "1.x"
 
 before_install:
-  # Setup dependency management tool
-  - curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh 
+  # Setup dependency management tool "dep"
+  - curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
 
 install:
   - dep ensure

@@ -47,5 +47,8 @@ dependencies:
 test: $(MN_SRC)
 	$(GOTEST) ./...
 
-masternode: test
+lint:
+	gometalinter ./...
+
+masternode: test lint
 	$(GOBUILD) -o $(MN_DEST) $(MN_SRC)
