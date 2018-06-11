@@ -6,10 +6,10 @@ go:
 before_install:
   # Setup dependency management tool "dep"
   - curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
+  - go get gopkg.in/alecthomas/gometalinter.v2
 
 install:
   - dep ensure
-  - go get gopkg.in/alecthomas/gometalinter.v2
 
 script:
   - make lint
