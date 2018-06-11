@@ -44,7 +44,7 @@ dependencies:
 	# install go packages
 	dep ensure
 
-test: dependencies $(MN_SRC)
+test: $(MN_SRC)
 	$(GOTEST) ./...
 
 masternode: test
