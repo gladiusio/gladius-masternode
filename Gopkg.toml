@@ -25,6 +25,8 @@
 #   unused-packages = true
 
 
+required = ["gopkg.in/alecthomas/gometalinter.v2"]
+
 [[constraint]]
   name = "github.com/valyala/fasthttp"
   version = "20160617.0.0"
@@ -32,7 +34,6 @@
 [[constraint]]
     name = "github.com/gladiusio/gladius-utils"
     branch = "master"
-
 
 [prune]
   go-tests = true
