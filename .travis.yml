@@ -15,6 +15,7 @@ before_install:
 
 install:
   - dep ensure
+  - gometalinter.v2 --install
 
 before_script:
   - make lint

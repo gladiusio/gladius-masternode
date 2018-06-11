@@ -22,11 +22,14 @@
         "varcheck",
         "vet",
         "vetshadow"
-        
     ],
     "Vendor": true,
     "Sort": ["severity"],
     "Test": true,
     "Aggregate": true,
-    "Deadline": "60s"
+    "Deadline": "60s",
+    "Linters": {
+        "vet": {"Command": "go vet"},
+        "vetshadow": {"Command": "go vet --no-recurse --shadow"}
+    }
 }

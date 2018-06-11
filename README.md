@@ -27,5 +27,6 @@ make
 Optionally, you can install and run linting tools:
 ```sh
 go get gopkg.in/alecthomas/gometalinter.v2
+gometalinter.v2 --install
 make lint
 ```
