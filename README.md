@@ -16,3 +16,16 @@ be.
 
 Run `go run cmd/main.go` in the root directory. Make
 sure you have 80 forwarded to 8081.
+
+## Building
+Run these commands in the root directory:
+```sh
+make dependencies
+make
+```
+
+Optionally, you can install and run linting tools:
+```sh
+go get gopkg.in/alecthomas/gometalinter.v2
+make lint
+```

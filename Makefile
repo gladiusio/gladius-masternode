@@ -50,5 +50,5 @@ test: $(MN_SRC)
 lint:
 	gometalinter ./...
 
-masternode: test lint
+masternode: test
 	$(GOBUILD) -o $(MN_DEST) $(MN_SRC)
