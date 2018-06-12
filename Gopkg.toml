@@ -33,7 +33,6 @@
     name = "github.com/gladiusio/gladius-utils"
     branch = "master"
 
-
 [prune]
   go-tests = true
   unused-packages = true
