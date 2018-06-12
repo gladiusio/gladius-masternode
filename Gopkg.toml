@@ -25,8 +25,6 @@
 #   unused-packages = true
 
 
-required = ["gopkg.in/alecthomas/gometalinter.v2"]
-
 [[constraint]]
   name = "github.com/valyala/fasthttp"
   version = "20160617.0.0"
