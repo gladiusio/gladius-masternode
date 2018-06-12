@@ -18,4 +18,4 @@ install:
   - gometalinter.v2 --install
 
 before_script:
-  - make lint
+  - make lint || true
