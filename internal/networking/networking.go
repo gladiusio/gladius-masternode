@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/gladiusio/gladius-masternode/internal/networking/state"
+	"github.com/spf13/viper"
 	"github.com/valyala/fasthttp"
 )
 
@@ -75,9 +76,15 @@ func requestBuilder(hosts map[string]string, cachedRoutes, noCacheRoutes map[str
 
 			if cachedRoutes[host][path] { // The route is cached, return link to bundle
 				ip := ctx.RemoteIP().String()
-				closestNode := getClosestNode(ip, networkState)
 
-				route := "http://" + closestNode + ":8080/content?website=" + host + "&route=" + strings.Replace(path, "/", "%2f", -1)
+				var contentNode string
+				if viper.GetInt("ROUND_ROBIN") == 1 {
+					contentNode = getNextNode(networkState)
+				} else {
+					contentNode = getClosestNode(ip, networkState)
+				}
+
+				route := "http://" + contentNode + ":8080/content?website=" + host + "&route=" + strings.Replace(path, "/", "%2f", -1)
 				withLink := strings.Replace(loaderHTML, "{EDGEHOST}", route, 1)
 				withLinkAndHash := strings.Replace(withLink, "{EXPECTEDHASH}", expectedHash[host][path], 1)
 				ctx.SetContentType("text/html")
@@ -118,4 +125,9 @@ func getClosestNode(ipStr string, netState *state.NetworkState) string {
 		return "localhost"
 	}
 	return closestNode.IP().String()
+}
+
+func getNextNode(netState *state.NetworkState) string {
+	nextNode := netState.GetNextNode()
+	return nextNode.IP().String()
 }
