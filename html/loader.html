@@ -44,7 +44,7 @@
       function getAndLoadEdgeContent() {
         var edgeHost = "{EDGEHOST}"
         var route = "{ROUTE}"
-        var expectedHash = "{EXPECTEDHASH}"
+        const expectedHash = "{EXPECTEDHASH}"
 
         fetch(edgeHost + "&route=" + route).then(function(response) {
           return response.text()
