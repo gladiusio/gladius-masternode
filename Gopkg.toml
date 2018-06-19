@@ -33,7 +33,26 @@
     name = "github.com/gladiusio/gladius-utils"
     branch = "master"
 
-
 [prune]
   go-tests = true
   unused-packages = true
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/hongshibao/go-kdtree"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/tidwall/gjson"
+
+[[constraint]]
+  name = "github.com/oschwald/geoip2-golang"
+  version = "1.2.1"
+
+[[constraint]]
+  name = "github.com/mholt/archiver"
+  version = "2.0.0"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/golang/geo"
