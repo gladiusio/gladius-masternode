@@ -68,7 +68,9 @@ func (n *NetworkState) RefreshActiveNodes() {
 	}
 	// Parse the 'response' field from the response data
 	_nodes := gjson.GetBytes(responseBytes, "response").Array()
-
+	if len(_nodes) == 0 {
+		return
+	}
 	if viper.GetInt("ROUND_ROBIN") == 1 {
 		n.BuildTree(_nodes)
 	} else {
@@ -146,12 +148,16 @@ func (n *NetworkState) GeolocateIP(ip net.IP) (long float64, lat float64, retErr
 
 // GetClosestNode searches the KD-Tree for the node nearest to the IP provided
 func (n *NetworkState) GetClosestNode(ip net.IP) (*NetworkNode, error) {
+	if n.tree == nil {
+		return nil, fmt.Errorf("Could not find closest node, no nodes are available")
+	}
 	long, lat, err := n.GeolocateIP(ip)
 	if err != nil {
 		return nil, fmt.Errorf("Error encountered when looking up coordinates for IP: %v\n\n%v", ip, err)
 	}
 	n.mux.Lock()
 	defer n.mux.Unlock()
+
 	// Find the closest neighboring node
 	neighbors := n.tree.KNN(NewNetworkNode(long, lat, ip), 1)
 	if len(neighbors) == 0 {
