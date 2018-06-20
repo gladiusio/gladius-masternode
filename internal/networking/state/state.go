@@ -71,7 +71,7 @@ func (n *NetworkState) RefreshActiveNodes() {
 	if len(_nodes) == 0 {
 		return
 	}
-	if viper.GetInt("ROUND_ROBIN") == 1 {
+	if viper.GetInt("ROUND_ROBIN") != 1 {
 		n.BuildTree(_nodes)
 	} else {
 		n.BuildQueue(_nodes)
@@ -167,12 +167,15 @@ func (n *NetworkState) GetClosestNode(ip net.IP) (*NetworkNode, error) {
 }
 
 // GetNextNode returns the next NetworkNode in the queue for round robin node selection
-func (n *NetworkState) GetNextNode() *NetworkNode {
+func (n *NetworkState) GetNextNode() (*NetworkNode, error) {
 	n.mux.Lock()
 	defer n.mux.Unlock()
+	if n.queue == nil || n.queue.Len() == 0 {
+		return nil, fmt.Errorf("There are no nodes available to choose from")
+	}
 	node := n.queue.Value
 	n.queue.Next()
-	return node.(*NetworkNode)
+	return node.(*NetworkNode), nil
 }
 
 // RunningStateChanged returns a channel that updates when the running state

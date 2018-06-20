@@ -78,18 +78,21 @@ func requestBuilder(hosts map[string]string, cachedRoutes, noCacheRoutes map[str
 				ip := ctx.RemoteIP().String()
 
 				var contentNode string
+				var nodeErr error
 				if viper.GetInt("ROUND_ROBIN") == 1 {
-					contentNode = getNextNode(networkState)
+					contentNode, nodeErr = getNextNode(networkState)
 				} else {
-					contentNode = getClosestNode(ip, networkState)
+					contentNode, nodeErr = getClosestNode(ip, networkState)
 				}
-
-				route := "http://" + contentNode + ":8080/content?website=" + host + "&route=" + strings.Replace(path, "/", "%2f", -1)
-				withLink := strings.Replace(loaderHTML, "{EDGEHOST}", route, 1)
-				withLinkAndHash := strings.Replace(withLink, "{EXPECTEDHASH}", expectedHash[host][path], 1)
-				ctx.SetContentType("text/html")
-				ctx.SetBody([]byte(withLinkAndHash))
-
+				if nodeErr != nil {
+					proxyRequest(ctx, hosts[host]+path)
+				} else {
+					route := "http://" + contentNode + ":8080/content?website=" + host + "&route=" + strings.Replace(path, "/", "%2f", -1)
+					withLink := strings.Replace(loaderHTML, "{EDGEHOST}", route, 1)
+					withLinkAndHash := strings.Replace(withLink, "{EXPECTEDHASH}", expectedHash[host][path], 1)
+					ctx.SetContentType("text/html")
+					ctx.SetBody([]byte(withLinkAndHash))
+				}
 			} else if noCacheRoutes[host][path] { // Route is not cached, proxy it
 				proxyRequest(ctx, hosts[host]+path)
 			} else {
@@ -131,7 +134,10 @@ func getClosestNode(ipStr string, netState *state.NetworkState) (string, error) 
 	return closestNode.IP().String(), nil
 }
 
-func getNextNode(netState *state.NetworkState) string {
-	nextNode := netState.GetNextNode()
-	return nextNode.IP().String()
+func getNextNode(netState *state.NetworkState) (string, error) {
+	nextNode, err := netState.GetNextNode()
+	if err != nil {
+		return "", err
+	}
+	return nextNode.IP().String(), nil
 }
