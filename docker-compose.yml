@@ -1,0 +1,26 @@
+version: '3.2'
+
+volumes:
+  wallet-masternode:
+  keys-masternode:
+
+services:
+  gladius-controld-masternode:
+    container_name: gladius-controld-masternode
+    image: gladiusio/gladius-controld
+    ports:
+      - 3001:3001/tcp
+    volumes:
+      - ~/.config/gladius/keys:/gladius/keys/:ro
+      - ~/.config/gladius/wallet:/gladius/wallet/:ro
+    environment:
+      - GLADIUSBASE=/gladius/
+
+  gladius-masternode:
+    depends_on:
+      - gladius-controld-masternode
+    container_name: gladius-masternode
+    build:
+      context: ./
+    ports:
+      - 8081:8081/tcp

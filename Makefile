@@ -26,7 +26,7 @@ MN_SRC=$(SRC_DIR)
 MN_DEST=$(DST_DIR)/gladius-masternode$(BINARY_SUFFIX)
 
 # commands for go
-GOBUILD=go build
+GOBUILD=CGO_ENABLED=0 GOOS=linux go build -a
 GOTEST=go test
 ##
 # MAKE TARGETS
@@ -52,3 +52,6 @@ lint:
 
 masternode: test
 	$(GOBUILD) -o $(MN_DEST) $(MN_SRC)
+
+docker: test
+	$(GOBUILD) -o /gladius-masternode $(MN_SRC)
