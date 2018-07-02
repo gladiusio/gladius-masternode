@@ -7,12 +7,12 @@ volumes:
 services:
   gladius-controld-masternode:
     container_name: gladius-controld-masternode
-    image: gladiusio/gladius-controld
+    image: gladiusio:gladius-controld
     ports:
       - 3001:3001/tcp
     volumes:
-      - ~/.config/gladius/keys:/gladius/keys/:ro
-      - ~/.config/gladius/wallet:/gladius/wallet/:ro
+      - ~/.config/gladius/keys:/gladius/keys/
+      - ~/.config/gladius/wallet:/gladius/wallet/
     environment:
       - GLADIUSBASE=/gladius/
 

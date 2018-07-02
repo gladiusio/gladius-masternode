@@ -14,7 +14,7 @@ ENV GLADIUSBASE=/gladius
 RUN mkdir -p ${GLADIUSBASE}/wallet
 RUN mkdir -p ${GLADIUSBASE}/keys
 RUN touch ${GLADIUSBASE}/gladius-masternode.toml
-
+RUN echo 'ControldHostname = "gladius-controld-masternode"' > ${GLADIUSBASE}/gladius-masternode.toml
 ########################################
 
 # Make the minimal container to distribute with only the masternode and needed files
@@ -24,9 +24,6 @@ COPY --from=builder ${GLADIUSBASE}/wallet ${GLADIUSBASE}/wallet
 COPY --from=builder ${GLADIUSBASE}/keys ${GLADIUSBASE}/keys
 COPY --from=builder ${GLADIUSBASE}/gladius-masternode.toml ${GLADIUSBASE}/gladius-masternode.toml
 COPY --from=builder ./html /html
-
-VOLUME ${GLADIUSBASE}/wallet
-VOLUME ${GLADIUSBASE}/keys
 
 COPY --from=builder /gladius-masternode ./
 ENTRYPOINT ["./gladius-masternode"]
