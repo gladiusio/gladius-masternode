@@ -69,7 +69,7 @@ func (n *NetworkState) RefreshActiveNodes() {
 	// Parse the 'response' field from the response data
 	_nodes := gjson.GetBytes(responseBytes, "response").Array()
 
-	if viper.GetInt("ROUND_ROBIN") == 1 {
+	if viper.GetInt("ROUND_ROBIN") != 1 {
 		n.BuildTree(_nodes)
 	} else {
 		n.BuildQueue(_nodes)
