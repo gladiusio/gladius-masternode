@@ -1,13 +1,9 @@
 version: '3.2'
 
-volumes:
-  wallet-masternode:
-  keys-masternode:
-
 services:
   gladius-controld-masternode:
     container_name: gladius-controld-masternode
-    image: gladiusio:gladius-controld
+    image: gladiusio/gladius-controld
     ports:
       - 3001:3001/tcp
     volumes:
@@ -20,6 +16,7 @@ services:
     depends_on:
       - gladius-controld-masternode
     container_name: gladius-masternode
+    image: gladiusio/gladius-masternode
     build:
       context: ./
     ports:
