@@ -50,13 +50,15 @@ func StartProxy() {
 
 	go fasthttp.ListenAndServe(":8081", requestBuilder(hosts, cachedRoutes, noCacheRoutes, expectedHash, string(loaderHTML), netState))
 
-	// Update network state every 30 seconds
-	ticker := time.NewTicker(time.Second * 30)
-	defer ticker.Stop()
-	for {
-		select {
-		case <-ticker.C:
-			netState.RefreshActiveNodes()
+	if viper.GetString("MININET_CONFIG") == "" {
+		// Update network state every 30 seconds
+		ticker := time.NewTicker(time.Second * 30)
+		defer ticker.Stop()
+		for {
+			select {
+			case <-ticker.C:
+				netState.RefreshActiveNodes()
+			}
 		}
 	}
 }
@@ -81,6 +83,7 @@ func requestBuilder(hosts map[string]string, cachedRoutes, noCacheRoutes map[str
 				var nodeErr error
 				if viper.GetInt("ROUND_ROBIN") == 1 {
 					contentNode, nodeErr = getNextNode(networkState)
+					fmt.Printf("Serving from content node: %v\n", contentNode)
 				} else {
 					contentNode, nodeErr = getClosestNode(ip, networkState)
 				}

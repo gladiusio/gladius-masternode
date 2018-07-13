@@ -3,6 +3,7 @@ package state
 import (
 	"container/ring"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net"
 	"strings"
@@ -43,9 +44,26 @@ func NewNetworkState() *NetworkState {
 		state.geoIP = db
 	}
 
-	// Initialize node tree
-	state.RefreshActiveNodes()
+	if path := viper.GetString("MININET_CONFIG"); path != "" {
+		state.LoadDebugNetwork(path)
+	} else {
+		// Initialize nodes
+		state.RefreshActiveNodes()
+	}
+
 	return state
+}
+
+func (n *NetworkState) LoadDebugNetwork(path string) {
+	config, err := ioutil.ReadFile(path)
+	if err != nil {
+		log.Fatal(err)
+	}
+	numNodes := len(gjson.GetBytes(config, "hosts").Array())
+	fmt.Printf("Number of nodes in test net: %v\n", numNodes)
+	ipBase := gjson.GetBytes(config, "application.ipBase").String()
+	fmt.Printf("IP Base: %v\n", ipBase)
+	n.BuildTestQueue(numNodes, ipBase)
 }
 
 // SetNetworkRunState updates the desired state of the networking
@@ -107,6 +125,39 @@ func (n *NetworkState) BuildTree(_nodes []gjson.Result) {
 	n.mux.Lock()
 	n.tree = newTree
 	n.mux.Unlock()
+}
+
+func incIP(ip net.IP) {
+	for j := len(ip) - 1; j >= 0; j-- {
+		ip[j]++
+		if ip[j] > 0 {
+			break
+		}
+	}
+}
+
+func (n *NetworkState) BuildTestQueue(numNodes int, ipBase string) {
+	addr, network, err := net.ParseCIDR(ipBase)
+	if err != nil {
+		log.Fatal(err)
+	}
+	nodes := make([]*NetworkNode, 0)
+	nodesCreated := 0
+	for ip := addr.Mask(network.Mask); network.Contains(ip) && (nodesCreated < numNodes); incIP(ip) {
+		nodeIP := make(net.IP, len(ip))
+		copy(nodeIP, ip)
+		newNode := NewNetworkNode(0.0, 0.0, nodeIP)
+		fmt.Printf("Added Node: %v      (%v, %v)\n", nodeIP, 0.0, 0.0)
+		nodes = append(nodes, newNode)
+		nodesCreated++
+	}
+	n.mux.Lock()
+	defer n.mux.Unlock()
+	n.queue = ring.New(len(nodes))
+	for i := 0; i < n.queue.Len(); i++ {
+		n.queue.Value = nodes[i]
+		n.queue = n.queue.Next()
+	}
 }
 
 // BuildQueue creates a circular queue of NetworkNodes for use with round
@@ -174,7 +225,7 @@ func (n *NetworkState) GetNextNode() (*NetworkNode, error) {
 		return nil, fmt.Errorf("There are no nodes available to choose from")
 	}
 	node := n.queue.Value
-	n.queue.Next()
+	n.queue = n.queue.Next()
 	return node.(*NetworkNode), nil
 }
 
