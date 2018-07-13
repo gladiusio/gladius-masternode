@@ -136,21 +136,34 @@ func incIP(ip net.IP) {
 	}
 }
 
-func (n *NetworkState) BuildTestQueue(numNodes int, ipBase string) {
-	addr, network, err := net.ParseCIDR(ipBase)
+func HostsFromCIDR(cidr string) []net.IP {
+	ip, network, err := net.ParseCIDR(cidr)
 	if err != nil {
 		log.Fatal(err)
 	}
+	var ips []net.IP
+	for ip := ip.Mask(network.Mask); network.Contains(ip); incIP(ip) {
+		ipCopy := make(net.IP, len(ip))
+		copy(ipCopy, ip)
+		ips = append(ips, ipCopy)
+	}
+
+	return ips[1 : len(ips)-1]
+}
+
+func (n *NetworkState) BuildTestQueue(numNodes int, ipBase string) {
 	nodes := make([]*NetworkNode, 0)
 	nodesCreated := 0
-	for ip := addr.Mask(network.Mask); network.Contains(ip) && (nodesCreated < numNodes); incIP(ip) {
-		nodeIP := make(net.IP, len(ip))
-		copy(nodeIP, ip)
-		newNode := NewNetworkNode(0.0, 0.0, nodeIP)
-		fmt.Printf("Added Node: %v      (%v, %v)\n", nodeIP, 0.0, 0.0)
+	for _, ip := range HostsFromCIDR(ipBase) {
+		if nodesCreated >= numNodes {
+			break
+		}
+		newNode := NewNetworkNode(0.0, 0.0, ip)
+		fmt.Printf("Added Node: %v      (%v, %v)\n", ip, 0.0, 0.0)
 		nodes = append(nodes, newNode)
 		nodesCreated++
 	}
+
 	n.mux.Lock()
 	defer n.mux.Unlock()
 	n.queue = ring.New(len(nodes))
