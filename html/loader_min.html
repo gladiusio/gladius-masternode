@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+  <body>
+    <script>
+function sha256(e){function t(e,t){return e>>>t|e<<32-t}for(var n,o,r=Math.pow,a=r(2,32),u="length",s="",c=[],i=8*b[u],l=e.h=e.h||[],f=e.k=e.k||[],g=f[u],h={},d=2;64>g;d++)if(!h[d]){for(n=0;313>n;n+=d)h[n]=d;l[g]=r(d,.5)*a|0,f[g++]=r(d,1/3)*a|0}for(b+="";b[u]%64-56;)b+="\0";for(n=0;n<b[u];n++){if((o=b.charCodeAt(n))>>8)return;c[n>>2]|=o<<(3-n)%4*8}for(c[c[u]]=i/a|0,c[c[u]]=i,o=0;o<c[u];){var p=c.slice(o,o+=16),E=l;for(l=l.slice(0,8),n=0;64>n;n++){var C=p[n-15],v=p[n-2],m=l[0],D=l[4],I=l[7]+(t(D,6)^t(D,11)^t(D,25))+(D&l[5]^~D&l[6])+f[n]+(p[n]=16>n?p[n]:p[n-16]+(t(C,7)^t(C,18)^C>>>3)+p[n-7]+(t(v,17)^t(v,19)^v>>>10)|0);(l=[I+((t(m,2)^t(m,13)^t(m,22))+(m&l[1]^m&l[2]^l[1]&l[2]))|0].concat(l))[4]=l[4]+I|0}for(n=0;8>n;n++)l[n]=l[n]+E[n]|0}for(n=0;8>n;n++)for(o=3;o+1;o--){var U=l[n]>>8*o&255;s+=(16>U?0:"")+U.toString(16)}return s}function getAndLoadEdgeContent(){var e="{EDGEHOST}";fetch(e+"&route={ROUTE}").then(function(e){return e.text()}).then(function(e){return console.log(sha256(e).toUpperCase()),sha256(e).toUpperCase()==="{EXPECTEDHASH}".toUpperCase()?(document.getElementById("page").innerHTML=e,!0):(document.getElementById("page").innerHTML="Something went wrong loading content.",!1)}).then(function(t){t&&document.querySelectorAll("[gladiusID]").forEach(function(t){console.log(e+"&asset="+t.attributes.gladiusID.value),fetch(e+"&asset="+t.attributes.gladiusID.value).then(function(e){return e.text()}).then(function(e){console.log(sha256(e)),sha256(e).toUpperCase()===t.attributes.gladiusID.value.toUpperCase()?t.src=e:console.log("Not same")})})})}getAndLoadEdgeContent();
+    </script>
+
+    <div id="page"> </div>
+  </body>
+
+</html>
