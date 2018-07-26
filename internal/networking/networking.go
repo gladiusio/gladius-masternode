@@ -50,13 +50,15 @@ func StartProxy() {
 
 	go fasthttp.ListenAndServe(":8081", requestBuilder(hosts, cachedRoutes, noCacheRoutes, expectedHash, string(loaderHTML), netState))
 
-	// Update network state every 30 seconds
-	ticker := time.NewTicker(time.Second * 30)
-	defer ticker.Stop()
-	for {
-		select {
-		case <-ticker.C:
-			netState.RefreshActiveNodes()
+	if viper.GetString("MININET_CONFIG") == "" {
+		// Update network state every 30 seconds
+		ticker := time.NewTicker(time.Second * 30)
+		defer ticker.Stop()
+		for {
+			select {
+			case <-ticker.C:
+				netState.RefreshActiveNodes()
+			}
 		}
 	}
 }
@@ -76,32 +78,28 @@ func requestBuilder(hosts map[string]string, cachedRoutes, noCacheRoutes map[str
 
 			if cachedRoutes[host][path] { // The route is cached, return link to bundle
 				ip := ctx.RemoteIP().String()
-        
+
 				var contentNode string
+				var nodeErr error
 				if viper.GetInt("ROUND_ROBIN") == 1 {
-					contentNode = getNextNode(networkState)
+					contentNode, nodeErr = getNextNode(networkState)
+					fmt.Printf("Serving from content node: %v\n", contentNode)
 				} else {
-					contentNode = getClosestNode(ip, networkState)
+					contentNode, nodeErr = getClosestNode(ip, networkState)
 				}
 
-				route := "http://" + contentNode + ":8080/content?website=" + host + "&route=" + strings.Replace(path, "/", "%2f", -1)
-				withLink := strings.Replace(loaderHTML, "{EDGEHOST}", route, 1)
-				withLinkAndHash := strings.Replace(withLink, "{EXPECTEDHASH}", expectedHash[host][path], 1)
-				withLinkAndRoute := strings.Replace(withLinkAndHash, "{ROUTE}", strings.Replace(path, "/", "%2f", -1), 1)
-
-				ctx.SetContentType("text/html")
-				ctx.SetBody([]byte(withLinkAndRoute))
-
+				if nodeErr != nil {
+					proxyRequest(ctx, hosts[host]+path)
+				} else {
+					route := "http://" + contentNode + ":8080/content?website=" + host + "&route=" + strings.Replace(path, "/", "%2f", -1)
+					withLink := strings.Replace(loaderHTML, "{EDGEHOST}", route, 1)
+					withLinkAndHash := strings.Replace(withLink, "{EXPECTEDHASH}", expectedHash[host][path], 1)
+					withLinkAndRoute := strings.Replace(withLinkAndHash, "{ROUTE}", strings.Replace(path, "/", "%2f", -1), 1)
+					ctx.SetContentType("text/html")
+					ctx.SetBody([]byte(withLinkAndRoute))
+				}
 			} else if noCacheRoutes[host][path] { // Route is not cached, proxy it
-				c := &fasthttp.Client{}
-
-				// Transfer the header to a GET request
-				statusCode, body, err := c.Get([]byte(ctx.Request.Header.String()), hosts[host]+path)
-				if err != nil {
-					log.Fatalf("Error proxying page: %s", err)
-				}
-				ctx.SetBody(body)
-				ctx.SetStatusCode(statusCode)
+				proxyRequest(ctx, hosts[host]+path)
 			} else {
 				ctx.SetBody([]byte("404 Not found"))
 				ctx.SetStatusCode(fasthttp.StatusNotFound)
@@ -112,24 +110,39 @@ func requestBuilder(hosts map[string]string, cachedRoutes, noCacheRoutes map[str
 	}
 }
 
+func proxyRequest(ctx *fasthttp.RequestCtx, url string) {
+	c := &fasthttp.Client{}
+
+	// Transfer the header to a GET request
+	statusCode, body, err := c.Get([]byte(ctx.Request.Header.String()), url)
+	if err != nil {
+		log.Fatalf("Error proxying page: %s", err)
+	}
+	ctx.SetBody(body)
+	ctx.SetStatusCode(statusCode)
+}
+
 // getClosestNode wraps the GetClosestNode function from the 'state'
 // package to lookup the geographically closest content node to a
 // given IP address
-func getClosestNode(ipStr string, netState *state.NetworkState) string {
+func getClosestNode(ipStr string, netState *state.NetworkState) (string, error) {
 	ip := net.ParseIP(ipStr)
 	if ip == nil {
 		log.Printf("Could not parse IP address: %v", ip)
-		return "localhost"
+		return "localhost", fmt.Errorf("Could not parse IP address: %v", ip)
 	}
 	closestNode, err := netState.GetClosestNode(ip)
 	if err != nil {
 		log.Print(err)
-		return "localhost"
+		return "localhost", err
 	}
-	return closestNode.IP().String()
+	return closestNode.IP().String(), nil
 }
 
-func getNextNode(netState *state.NetworkState) string {
-	nextNode := netState.GetNextNode()
-	return nextNode.IP().String()
+func getNextNode(netState *state.NetworkState) (string, error) {
+	nextNode, err := netState.GetNextNode()
+	if err != nil {
+		return "", err
+	}
+	return nextNode.IP().String(), nil
 }

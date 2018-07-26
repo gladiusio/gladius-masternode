@@ -52,3 +52,6 @@ lint:
 
 masternode: test
 	$(GOBUILD) -o $(MN_DEST) $(MN_SRC)
+
+docker: test
+	$(GOBUILD) -o /gladius-masternode $(MN_SRC)

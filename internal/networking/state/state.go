@@ -3,6 +3,7 @@ package state
 import (
 	"container/ring"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net"
 	"strings"
@@ -43,9 +44,26 @@ func NewNetworkState() *NetworkState {
 		state.geoIP = db
 	}
 
-	// Initialize node tree
-	state.RefreshActiveNodes()
+	if path := viper.GetString("MININET_CONFIG"); path != "" {
+		state.LoadDebugNetwork(path)
+	} else {
+		// Initialize nodes
+		state.RefreshActiveNodes()
+	}
+
 	return state
+}
+
+func (n *NetworkState) LoadDebugNetwork(path string) {
+	config, err := ioutil.ReadFile(path)
+	if err != nil {
+		log.Fatal(err)
+	}
+	numNodes := len(gjson.GetBytes(config, "hosts").Array())
+	fmt.Printf("Number of nodes in test net: %v\n", numNodes)
+	ipBase := gjson.GetBytes(config, "application.ipBase").String()
+	fmt.Printf("IP Base: %v\n", ipBase)
+	n.BuildTestQueue(numNodes, ipBase)
 }
 
 // SetNetworkRunState updates the desired state of the networking
@@ -68,8 +86,10 @@ func (n *NetworkState) RefreshActiveNodes() {
 	}
 	// Parse the 'response' field from the response data
 	_nodes := gjson.GetBytes(responseBytes, "response").Array()
-
-	if viper.GetInt("ROUND_ROBIN") == 1 {
+	if len(_nodes) == 0 {
+		return
+	}
+	if viper.GetInt("ROUND_ROBIN") != 1 {
 		n.BuildTree(_nodes)
 	} else {
 		n.BuildQueue(_nodes)
@@ -105,6 +125,52 @@ func (n *NetworkState) BuildTree(_nodes []gjson.Result) {
 	n.mux.Lock()
 	n.tree = newTree
 	n.mux.Unlock()
+}
+
+func incIP(ip net.IP) {
+	for j := len(ip) - 1; j >= 0; j-- {
+		ip[j]++
+		if ip[j] > 0 {
+			break
+		}
+	}
+}
+
+func HostsFromCIDR(cidr string) []net.IP {
+	ip, network, err := net.ParseCIDR(cidr)
+	if err != nil {
+		log.Fatal(err)
+	}
+	var ips []net.IP
+	for ip := ip.Mask(network.Mask); network.Contains(ip); incIP(ip) {
+		ipCopy := make(net.IP, len(ip))
+		copy(ipCopy, ip)
+		ips = append(ips, ipCopy)
+	}
+
+	return ips[1 : len(ips)-1]
+}
+
+func (n *NetworkState) BuildTestQueue(numNodes int, ipBase string) {
+	nodes := make([]*NetworkNode, 0)
+	nodesCreated := 0
+	for _, ip := range HostsFromCIDR(ipBase) {
+		if nodesCreated >= numNodes {
+			break
+		}
+		newNode := NewNetworkNode(0.0, 0.0, ip)
+		fmt.Printf("Added Node: %v      (%v, %v)\n", ip, 0.0, 0.0)
+		nodes = append(nodes, newNode)
+		nodesCreated++
+	}
+
+	n.mux.Lock()
+	defer n.mux.Unlock()
+	n.queue = ring.New(len(nodes))
+	for i := 0; i < n.queue.Len(); i++ {
+		n.queue.Value = nodes[i]
+		n.queue = n.queue.Next()
+	}
 }
 
 // BuildQueue creates a circular queue of NetworkNodes for use with round
@@ -146,12 +212,16 @@ func (n *NetworkState) GeolocateIP(ip net.IP) (long float64, lat float64, retErr
 
 // GetClosestNode searches the KD-Tree for the node nearest to the IP provided
 func (n *NetworkState) GetClosestNode(ip net.IP) (*NetworkNode, error) {
+	if n.tree == nil {
+		return nil, fmt.Errorf("Could not find closest node, no nodes are available")
+	}
 	long, lat, err := n.GeolocateIP(ip)
 	if err != nil {
 		return nil, fmt.Errorf("Error encountered when looking up coordinates for IP: %v\n\n%v", ip, err)
 	}
 	n.mux.Lock()
 	defer n.mux.Unlock()
+
 	// Find the closest neighboring node
 	neighbors := n.tree.KNN(NewNetworkNode(long, lat, ip), 1)
 	if len(neighbors) == 0 {
@@ -161,12 +231,15 @@ func (n *NetworkState) GetClosestNode(ip net.IP) (*NetworkNode, error) {
 }
 
 // GetNextNode returns the next NetworkNode in the queue for round robin node selection
-func (n *NetworkState) GetNextNode() *NetworkNode {
+func (n *NetworkState) GetNextNode() (*NetworkNode, error) {
 	n.mux.Lock()
 	defer n.mux.Unlock()
+	if n.queue == nil || n.queue.Len() == 0 {
+		return nil, fmt.Errorf("There are no nodes available to choose from")
+	}
 	node := n.queue.Value
-	n.queue.Next()
-	return node.(*NetworkNode)
+	n.queue = n.queue.Next()
+	return node.(*NetworkNode), nil
 }
 
 // RunningStateChanged returns a channel that updates when the running state
