@@ -68,44 +68,46 @@ func requestBuilder(hosts map[string]string, cachedRoutes, noCacheRoutes map[str
 	// The actual serving function
 	return func(ctx *fasthttp.RequestCtx) {
 		host := string(ctx.Host()[:])
-		// Make sure it's a recognized host
-		if hosts[host] != "" {
-			u, err := url.Parse(string(ctx.RequestURI()[:]))
-			if err != nil {
-				log.Fatal(err)
+		// If this host isn't recognized, break out
+		if hosts[host] == "" {
+			ctx.Error("Unsupported Host", fasthttp.StatusBadRequest)
+			return
+		}
+
+		u, err := url.Parse(string(ctx.RequestURI()[:]))
+		if err != nil {
+			log.Fatal(err)
+		}
+		path := u.RequestURI()
+
+		if cachedRoutes[host][path] { // The route is cached, return link to bundle
+			ip := ctx.RemoteIP().String()
+
+			var contentNode string
+			var nodeErr error
+
+			if viper.GetInt("ROUND_ROBIN") == 1 {
+				contentNode, nodeErr = getNextNode(networkState)
+				fmt.Printf("Serving from content node: %v\n", contentNode)
+			} else {
+				contentNode, nodeErr = getClosestNode(ip, networkState)
 			}
-			path := u.RequestURI()
 
-			if cachedRoutes[host][path] { // The route is cached, return link to bundle
-				ip := ctx.RemoteIP().String()
-
-				var contentNode string
-				var nodeErr error
-				if viper.GetInt("ROUND_ROBIN") == 1 {
-					contentNode, nodeErr = getNextNode(networkState)
-					fmt.Printf("Serving from content node: %v\n", contentNode)
-				} else {
-					contentNode, nodeErr = getClosestNode(ip, networkState)
-				}
-
-				if nodeErr != nil {
-					proxyRequest(ctx, hosts[host]+path)
-				} else {
-					route := "http://" + contentNode + ":8080/content?website=" + host + "&route=" + strings.Replace(path, "/", "%2f", -1)
-					withLink := strings.Replace(loaderHTML, "{EDGEHOST}", route, 1)
-					withLinkAndHash := strings.Replace(withLink, "{EXPECTEDHASH}", expectedHash[host][path], 1)
-					withLinkAndRoute := strings.Replace(withLinkAndHash, "{ROUTE}", strings.Replace(path, "/", "%2f", -1), 1)
-					ctx.SetContentType("text/html")
-					ctx.SetBody([]byte(withLinkAndRoute))
-				}
-			} else if noCacheRoutes[host][path] { // Route is not cached, proxy it
+			if nodeErr != nil {
 				proxyRequest(ctx, hosts[host]+path)
 			} else {
-				ctx.SetBody([]byte("404 Not found"))
-				ctx.SetStatusCode(fasthttp.StatusNotFound)
+				route := "http://" + contentNode + ":8080/content?website=" + host + "&route=" + strings.Replace(path, "/", "%2f", -1)
+				withLink := strings.Replace(loaderHTML, "{EDGEHOST}", route, 1)
+				withLinkAndHash := strings.Replace(withLink, "{EXPECTEDHASH}", expectedHash[host][path], 1)
+				withLinkAndRoute := strings.Replace(withLinkAndHash, "{ROUTE}", strings.Replace(path, "/", "%2f", -1), 1)
+				ctx.SetContentType("text/html")
+				ctx.SetBody([]byte(withLinkAndRoute))
 			}
+		} else if noCacheRoutes[host][path] { // Route is explicitly not cached, proxy it
+			proxyRequest(ctx, hosts[host]+path)
 		} else {
-			ctx.Error("Unsupported Host", fasthttp.StatusBadRequest)
+			ctx.SetBody([]byte("404 Not found"))
+			ctx.SetStatusCode(fasthttp.StatusNotFound)
 		}
 	}
 }
