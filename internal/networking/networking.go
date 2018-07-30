@@ -20,7 +20,7 @@ func StartProxy() {
 
 	fmt.Println("Loading route files")
 	// read the whole file at once
-	loaderHTML, err := ioutil.ReadFile("./html/loader.html")
+	loaderHTML, err := ioutil.ReadFile("./html/loader_v2.html")
 	if err != nil {
 		panic(err)
 	}
@@ -42,7 +42,7 @@ func StartProxy() {
 	noCacheRoutes["demo.gladius.io"]["/api/"] = true
 
 	expectedHash["demo.gladius.io"] = make(map[string]string)
-	expectedHash["demo.gladius.io"]["/"] = "734393B3DB3E33F71F4DA4AA4299D994409D5A69C6C7FE99973D7F8F19DEBB53"
+	expectedHash["demo.gladius.io"]["/"] = "8476da67667d0c127963bf46c3b637935961014ebe155812d6fc7d64a4a37c41"
 	expectedHash["demo.gladius.io"]["/anotherroute"] = "6F9ECF8D1FAD1D2B8FBF2DA3E2571AEC4267A7018DF0DBDE8889D875FBDE8D3F"
 
 	// Create new network state object to keep track of edge nodes
@@ -83,15 +83,8 @@ func requestBuilder(hosts map[string]string, cachedRoutes, noCacheRoutes map[str
 		if cachedRoutes[host][path] { // The route is cached, return link to bundle
 			ip := ctx.RemoteIP().String()
 
-			var contentNode string
-			var nodeErr error
-
-			if viper.GetInt("ROUND_ROBIN") == 1 {
-				contentNode, nodeErr = getNextNode(networkState)
-				fmt.Printf("Serving from content node: %v\n", contentNode)
-			} else {
-				contentNode, nodeErr = getClosestNode(ip, networkState)
-			}
+			// Determine which content node will serve the assets for this request
+			contentNode, nodeErr := chooseContentNode(ip, networkState)
 
 			if nodeErr != nil {
 				proxyRequest(ctx, hosts[host]+path)
@@ -110,6 +103,20 @@ func requestBuilder(hosts map[string]string, cachedRoutes, noCacheRoutes map[str
 			ctx.SetStatusCode(fasthttp.StatusNotFound)
 		}
 	}
+}
+
+func chooseContentNode(ipStr string, netState *state.NetworkState) (string, error) {
+	var contentNode string
+	var nodeErr error
+
+	if viper.GetInt("TEST_LOCAL") == 1 {
+		contentNode = "localhost"
+	} else if viper.GetInt("ROUND_ROBIN") == 1 {
+		contentNode, nodeErr = getNextNode(netState)
+	} else {
+		contentNode, nodeErr = getClosestNode(ipStr, netState)
+	}
+	return contentNode, nodeErr
 }
 
 func proxyRequest(ctx *fasthttp.RequestCtx, url string) {

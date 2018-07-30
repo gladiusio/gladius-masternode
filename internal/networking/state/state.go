@@ -34,6 +34,10 @@ type NetworkState struct {
 func NewNetworkState() *NetworkState {
 	state := &NetworkState{running: true, runChannel: make(chan bool)}
 
+	if viper.GetInt("TEST_LOCAL") == 1 {
+		return state
+	}
+
 	// If the round robin flag is not set, use GeoIP to lookup nodes
 	if viper.GetInt("ROUND_ROBIN") != 1 {
 		// Initialize the Geo IP database
@@ -78,6 +82,9 @@ func (n *NetworkState) SetNetworkRunState(runState bool) {
 
 // RefreshActiveNodes fetches the latest status of nodes in the pool
 func (n *NetworkState) RefreshActiveNodes() {
+	if viper.GetInt("TEST_LOCAL") == 1 {
+		return
+	}
 	// Make a request to controld for the currently active nodes
 	url := http.BuildControldEndpoint(fmt.Sprintf("/api/pool/%s/nodes/approved", viper.GetString("PoolEthAddress")))
 	responseBytes, err := http.GetJSONBytes(url)
