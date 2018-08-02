@@ -1,6 +1,8 @@
 package networking
 
 import (
+	"crypto/sha256"
+
 	"github.com/Workiva/go-datastructures/trie/ctrie"
 )
 
@@ -26,6 +28,11 @@ func (c *Cache) LookupHost(hostname string) *ProtectedHost {
 		return nil
 	}
 	return host.(*ProtectedHost)
+}
+
+// AddHost adds a new ProtectedHost pointer to the Cache's hosts
+func (c *Cache) AddHost(host *ProtectedHost) {
+	c.hosts.Insert([]byte(host.hostname), host)
 }
 
 /****************************************************************************************/
@@ -58,6 +65,15 @@ func (h *ProtectedHost) LookupRoute(routepath string) *Route {
 		return nil
 	}
 	return route.(*Route)
+}
+
+// CacheRoute adds a new route to the collection of cached routes
+// along with the sha256 hash of the content
+func (h *ProtectedHost) CacheRoute(content []byte, path string) {
+	// Get the hash of the content to cache
+	hash := sha256.Sum256(content)
+	// Add the route to the ProtectedHost's routes
+	h.AddRoute(newRoute(path, false, string(hash[:])))
 }
 
 /****************************************************************************************/
