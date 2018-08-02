@@ -36,13 +36,13 @@
   version = "v1.4.7"
 
 [[projects]]
-  branch = "master"
+  branch = "test_mn_local"
   name = "github.com/gladiusio/gladius-utils"
   packages = [
     "config",
     "init/manager"
   ]
-  revision = "2aa739be06829e7ba3232572581f2905c72fd1a2"
+  revision = "08d39dc2858a1dac48bcf75b065ac434b0942147"
 
 [[projects]]
   branch = "master"
@@ -261,6 +261,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "32f54123d184311d0887a5375f164d66bd61f319a7d3a309780eda987f2a3d57"
+  inputs-digest = "e04951d8f4305cd246c9f437e67cd6f5aac4aa0580cd4ab6706d1b2bf5f65a8b"
   solver-name = "gps-cdcl"
   solver-version = 1

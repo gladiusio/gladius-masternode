@@ -25,32 +25,15 @@ func StartProxy() {
 		panic(err)
 	}
 
-	// TODO: This needs to be a thread safe mapping that is loaded from the controld continually.
-	hosts := make(map[string]string) // websites we are protecting/hosting for
-	noCacheRoutes := make(map[string]map[string]bool)
-	cachedRoutes := make(map[string]map[string]bool)
-	expectedHash := make(map[string]map[string]string)
-
-	// Define accepted hosts
-	// TODO: will come from controld eventually (from p2p network)
-	hosts["demo.gladius.io"] = "http://172.217.7.228"
-	cachedRoutes["demo.gladius.io"] = make(map[string]bool)
-	cachedRoutes["demo.gladius.io"]["/"] = true
-	cachedRoutes["demo.gladius.io"]["/anotherroute"] = true
-
-	noCacheRoutes["demo.gladius.io"] = make(map[string]bool)
-	noCacheRoutes["demo.gladius.io"]["/api/"] = true
-
-	expectedHash["demo.gladius.io"] = make(map[string]string)
-	expectedHash["demo.gladius.io"]["/"] = "8476da67667d0c127963bf46c3b637935961014ebe155812d6fc7d64a4a37c41"
-	expectedHash["demo.gladius.io"]["/anotherroute"] = "6F9ECF8D1FAD1D2B8FBF2DA3E2571AEC4267A7018DF0DBDE8889D875FBDE8D3F"
+	cache := newCache()
+	initCache(cache)
 
 	// Create new network state object to keep track of edge nodes
 	netState := state.NewNetworkState()
 
 	go fasthttp.ListenAndServe(":8081", requestBuilder(hosts, cachedRoutes, noCacheRoutes, expectedHash, string(loaderHTML), netState))
 
-	if viper.GetString("MININET_CONFIG") == "" {
+	if viper.GetString("MININET_CONFIG") == "" && viper.GetInt("TEST_LOCAL") != 1 {
 		// Update network state every 30 seconds
 		ticker := time.NewTicker(time.Second * 30)
 		defer ticker.Stop()
@@ -63,13 +46,13 @@ func StartProxy() {
 	}
 }
 
-func requestBuilder(hosts map[string]string, cachedRoutes, noCacheRoutes map[string]map[string]bool,
-	expectedHash map[string]map[string]string, loaderHTML string, networkState *state.NetworkState) func(ctx *fasthttp.RequestCtx) {
+func requestBuilder(loaderHTML string, cache *Cache, networkState *state.NetworkState) func(ctx *fasthttp.RequestCtx) {
 	// The actual serving function
 	return func(ctx *fasthttp.RequestCtx) {
-		host := string(ctx.Host()[:])
+		hostname := string(ctx.Host()[:])
 		// If this host isn't recognized, break out
-		if hosts[host] == "" {
+		host := cache.LookupHost(hostname)
+		if host == nil {
 			ctx.Error("Unsupported Host", fasthttp.StatusBadRequest)
 			return
 		}
@@ -79,6 +62,22 @@ func requestBuilder(hosts map[string]string, cachedRoutes, noCacheRoutes map[str
 			log.Fatal(err)
 		}
 		path := u.RequestURI()
+
+		route := host.LookupRoute(path)
+
+		if route == nil || route.nocache {
+			// Fetch, reply, cache
+			code, content, err := proxyRequest(ctx, host.hostname+path)
+			if err != nil {
+				ctx.Error("Error handling request", code)
+				return
+			}
+			if !route.nocache {
+				go host.CacheRoute(content, path)
+			}
+			return
+		}
+		// Reply from cache
 
 		if cachedRoutes[host][path] { // The route is cached, return link to bundle
 			ip := ctx.RemoteIP().String()
@@ -99,16 +98,26 @@ func requestBuilder(hosts map[string]string, cachedRoutes, noCacheRoutes map[str
 		} else if noCacheRoutes[host][path] { // Route is explicitly not cached, proxy it
 			proxyRequest(ctx, hosts[host]+path)
 			return
-		} else {
-			ctx.SetBody([]byte("404 Not found"))
-			ctx.SetStatusCode(fasthttp.StatusNotFound)
+		} else { // Fetch this route from origin and cache it
+
+			// ctx.SetBody([]byte("404 Not found"))
+			// ctx.SetStatusCode(fasthttp.StatusNotFound)
 		}
 	}
 }
 
+func initCache(c *Cache) {
+	// Add the demo.gladius.io host
+	host := newProtectedHost("demo.gladius.io")
+	// Add routes to the host
+	host.AddRoute(newRoute("/", false, "8476da67667d0c127963bf46c3b637935961014ebe155812d6fc7d64a4a37c41"))
+	host.AddRoute(newRoute("/anotherroute", false, "6F9ECF8D1FAD1D2B8FBF2DA3E2571AEC4267A7018DF0DBDE8889D875FBDE8D3F"))
+	host.AddRoute(newRoute("/api/", true, ""))
+}
+
 // chooseContentNode will return the IP address of the appropriate content node
 // to serve content from
-func chooseContentNode(ipStr string, netState *state.NetworkState) (string, error) {
+func chooseContentNode(ipStr string, netState *state.NetworkState) (int, string, error) {
 	var contentNode string
 	var nodeErr error
 
@@ -119,19 +128,20 @@ func chooseContentNode(ipStr string, netState *state.NetworkState) (string, erro
 	} else {
 		contentNode, nodeErr = getClosestNode(ipStr, netState)
 	}
-	return contentNode, nodeErr
+	return 0, contentNode, nodeErr
 }
 
-func proxyRequest(ctx *fasthttp.RequestCtx, url string) {
+func proxyRequest(ctx *fasthttp.RequestCtx, url string) (int, []byte, error) {
 	c := &fasthttp.Client{}
 
 	// Transfer the header to a GET request
 	statusCode, body, err := c.Get([]byte(ctx.Request.Header.String()), url)
 	if err != nil {
-		log.Fatalf("Error proxying page: %s", err)
+		return nil, nil, fmt.Errorf("Error proxying page:\n%v", err)
 	}
 	ctx.SetBody(body)
 	ctx.SetStatusCode(statusCode)
+	return code, body, nil
 }
 
 // getClosestNode wraps the GetClosestNode function from the 'state'

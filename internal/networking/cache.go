@@ -4,6 +4,32 @@ import (
 	"github.com/Workiva/go-datastructures/trie/ctrie"
 )
 
+/****************************************************************************************/
+
+// Cache is the top-level struct used to maintain mappings of hostnames
+// to their routes
+type Cache struct {
+	hosts *ctrie.Ctrie
+}
+
+// Constructs and returns a pointer to a new Cache struct
+func newCache() *Cache {
+	return &Cache{ctrie.New(nil)}
+}
+
+// LookupHost attempts to lookup the ProtectedHost entry in the Cache
+// for a given hostname string. Returns the ProtectedHost struct pointer
+// if found, nil if not found.
+func (c *Cache) LookupHost(hostname string) *ProtectedHost {
+	host, exists := c.hosts.Lookup([]byte(hostname))
+	if !exists {
+		return nil
+	}
+	return host.(*ProtectedHost)
+}
+
+/****************************************************************************************/
+
 // ProtectedHost describes a host protected by this masternode as well as its routes
 type ProtectedHost struct {
 	hostname string       // The FQDN of the host to be protected, i.e. "demo.gladius.io"
@@ -18,6 +44,24 @@ func newProtectedHost(hostname string) *ProtectedHost {
 	}
 }
 
+// AddRoute inserts a pointer to a Route struct into the routes ctrie
+// of a ProtectedHost
+func (h *ProtectedHost) AddRoute(route *Route) {
+	h.routes.Insert([]byte(route.route), route)
+}
+
+// LookupRoute attempts to lookup the Route entry under a ProtectedHost.
+// Returns a pointer to the Route struct if it is found, nil otherwise.
+func (h *ProtectedHost) LookupRoute(routepath string) *Route {
+	route, exists := h.routes.Lookup([]byte(routepath))
+	if !exists {
+		return nil
+	}
+	return route.(*Route)
+}
+
+/****************************************************************************************/
+
 // Route describes a particular route that is known to exist for a
 // ProtectedHost
 type Route struct {
@@ -29,15 +73,4 @@ type Route struct {
 // Constructs and returns a pointer to a new Route struct
 func newRoute(route string, nocache bool, hash string) *Route {
 	return &Route{route, nocache, hash}
-}
-
-// Cache is the top-level struct used to maintain mappings of hostnames
-// to their routes
-type Cache struct {
-	hosts *ctrie.Ctrie
-}
-
-// Constructs and returns a pointer to a new Cache struct
-func newCache() *Cache {
-	return &Cache{ctrie.New(nil)}
 }
