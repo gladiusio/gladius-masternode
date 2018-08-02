@@ -98,6 +98,7 @@ func requestBuilder(hosts map[string]string, cachedRoutes, noCacheRoutes map[str
 			}
 		} else if noCacheRoutes[host][path] { // Route is explicitly not cached, proxy it
 			proxyRequest(ctx, hosts[host]+path)
+			return
 		} else {
 			ctx.SetBody([]byte("404 Not found"))
 			ctx.SetStatusCode(fasthttp.StatusNotFound)
@@ -105,6 +106,8 @@ func requestBuilder(hosts map[string]string, cachedRoutes, noCacheRoutes map[str
 	}
 }
 
+// chooseContentNode will return the IP address of the appropriate content node
+// to serve content from
 func chooseContentNode(ipStr string, netState *state.NetworkState) (string, error) {
 	var contentNode string
 	var nodeErr error

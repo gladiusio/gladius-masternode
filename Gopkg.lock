@@ -2,6 +2,15 @@
 
 
 [[projects]]
+  name = "github.com/Workiva/go-datastructures"
+  packages = [
+    "list",
+    "trie/ctrie"
+  ]
+  revision = "f338bf48899950e415caffa02222a7273fbdeaf6"
+  version = "v1.0.48"
+
+[[projects]]
   branch = "master"
   name = "github.com/dropbox/godropbox"
   packages = ["errors"]
@@ -252,6 +261,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "009141bba03ad1a39149cb4856a2561292c667443f7f6221df89af675a291396"
+  inputs-digest = "32f54123d184311d0887a5375f164d66bd61f319a7d3a309780eda987f2a3d57"
   solver-name = "gps-cdcl"
   solver-version = 1

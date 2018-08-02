@@ -56,3 +56,7 @@
 [[constraint]]
   branch = "master"
   name = "github.com/golang/geo"
+
+[[constraint]]
+  name = "github.com/Workiva/go-datastructures"
+  version = "1.0.48"
