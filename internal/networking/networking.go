@@ -51,6 +51,7 @@ func requestBuilder(loaderHTML string, cache *Cache, networkState *state.Network
 	return func(ctx *fasthttp.RequestCtx) {
 		hostname := string(ctx.Host()[:])
 		// If this host isn't recognized, break out
+		fmt.Printf("Looking up host: %s\n", hostname)
 		host := cache.LookupHost(hostname)
 		if host == nil {
 			ctx.Error("Unsupported Host", fasthttp.StatusBadRequest)
@@ -63,7 +64,6 @@ func requestBuilder(loaderHTML string, cache *Cache, networkState *state.Network
 		}
 		path := u.RequestURI()
 		route := host.LookupRoute(path)
-
 		if route == nil || route.nocache {
 			code, content, err := proxyRequest(ctx, host.hostname+path)
 			if err != nil {
