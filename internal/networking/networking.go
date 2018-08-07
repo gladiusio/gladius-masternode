@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/gladiusio/gladius-masternode/internal/http"
 	"github.com/gladiusio/gladius-masternode/internal/networking/state"
 	"github.com/spf13/viper"
 	"github.com/valyala/fasthttp"
@@ -87,12 +88,12 @@ func requestBuilder(loaderHTML string, cache *Cache, networkState *state.Network
 			return
 		}
 
-		contentRoute := "http://" + contentNode + ":8080/content?website=" + host.hostname + "&route=" + strings.Replace(path, "/", "%2f", -1)
+		contentRoute := http.JoinStrings("http://", contentNode, ":8080/content?website=", host.hostname, "&route=", strings.Replace(path, "/", "%2f", -1))
 		withLink := strings.Replace(loaderHTML, "{EDGEHOST}", contentRoute, 1)
 		withLinkAndHash := strings.Replace(withLink, "{EXPECTEDHASH}", host.LookupRoute(path).hash, 1)
 		withLinkAndRoute := strings.Replace(withLinkAndHash, "{ROUTE}", strings.Replace(path, "/", "%2f", -1), 1)
 		ctx.SetContentType("text/html")
-		ctx.SetBody([]byte(withLinkAndRoute))
+		ctx.SetBodyString(withLinkAndRoute)
 	}
 }
 
