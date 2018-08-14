@@ -21,7 +21,7 @@ func StartProxy() {
 
 	fmt.Println("Loading route files")
 	// read the whole file at once
-	loaderHTML, err := ioutil.ReadFile("./html/loader_v2.html")
+	loaderHTML, err := ioutil.ReadFile("./html/iframe_loader.html")
 	if err != nil {
 		panic(err)
 	}
