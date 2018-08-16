@@ -97,14 +97,15 @@
                 fr.readAsBinaryString(content)
                 fr.onloadend = function () {
                     if (sha256(fr.result).toUpperCase() === expectedHash.toUpperCase()) {
-                        // Start fetching all assets in content document
-                        // Parse content for assets
-                        // Create iframe
                         var iframe = document.getElementById("page");
-                        iframe.contentDocument.body.innerHTML = fr.result;
+                        iframeDoc = iframe.contentWindow.document;
+                        iframeDoc.open('text/html', 'replace');
+                        iframeDoc.write(fr.result);
+                        iframeDoc.close();
+
                         var assetPromises = [];
                         iframe.contentDocument.querySelectorAll("[gladiusID]").forEach(function(tag) {
-                            assetPromises = assetPromises.push(new Promise(function(resolve, reject) {
+                            assetPromises.push(new Promise(function(resolve, reject) {
                                 var gladiusID = tag.attributes["gladiusID"].value
                                 fetch(edgeHost + "&asset=" + gladiusID).then(function(response) {
                                     return response.blob()
@@ -115,7 +116,6 @@
                                         if (sha256(fr.result).toUpperCase() === gladiusID.toUpperCase()) {
                                             storeAsset(gladiusID, assetBlob);
                                             assignAssetBlob(gladiusID, tag);
-                                            console.log("resource loaded successfully")
                                         } else {
                                             console.log("Resource hash was not as expected!");
                                             reject()

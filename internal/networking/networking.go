@@ -103,6 +103,7 @@ func initCache(c *Cache) {
 	// Add routes to the host
 	host.AddRoute(newRoute("/", false, "8476da67667d0c127963bf46c3b637935961014ebe155812d6fc7d64a4a37c41"))
 	host.AddRoute(newRoute("/anotherroute", false, "6F9ECF8D1FAD1D2B8FBF2DA3E2571AEC4267A7018DF0DBDE8889D875FBDE8D3F"))
+	host.AddRoute(newRoute("/full", false, "63b988f91814fbe8edc0804b5039767942a0977a93aea3029b8255ee423bc2a0"))
 	host.AddRoute(newRoute("/api/", true, ""))
 	c.AddHost(host)
 }
