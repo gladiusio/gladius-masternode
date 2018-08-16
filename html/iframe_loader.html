@@ -36,7 +36,7 @@
             store.put({gladiusID: id, data: blob});
             console.log("Stored blob: " + id);
         };
-        var assignAssetBlob = function(gladiusID, element) {
+        var assignAssetBlob = function(gladiusID, element, attribute) {
             console.log("Retrieving blob: " + gladiusID);
             var db = open.result;
             var tx = db.transaction("AssetObjectStore", "readwrite");
@@ -45,7 +45,7 @@
                 var file = event.target.result.data;
                 var URL = window.URL || window.webkitURL;
                 var assetURL = URL.createObjectURL(file);
-                element.setAttribute("src", assetURL);
+                element.setAttribute(attribute, assetURL);
             };
         };
 
@@ -115,7 +115,13 @@
                                     fr.onloadend = function () {
                                         if (sha256(fr.result).toUpperCase() === gladiusID.toUpperCase()) {
                                             storeAsset(gladiusID, assetBlob);
-                                            assignAssetBlob(gladiusID, tag);
+                                            console.log(tag.tagName);
+                                            if (tag.tagName === "LINK") {
+                                                assignAssetBlob(gladiusID, tag, "href")
+                                            } else {
+                                                assignAssetBlob(gladiusID, tag, "src");
+                                            }
+                                            
                                         } else {
                                             console.log("Resource hash was not as expected!");
                                             reject()
