@@ -31,7 +31,7 @@
 
 [[constraint]]
     name = "github.com/gladiusio/gladius-utils"
-    branch = "test_mn_local"
+    branch = "master"
 
 [prune]
   go-tests = true
