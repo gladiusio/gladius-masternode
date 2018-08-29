@@ -87,10 +87,9 @@
 
         function getAndLoadEdgeContent() {
             var edgeHost = "{EDGEHOST}"
-            var route = "{ROUTE}"
             const expectedHash = "{EXPECTEDHASH}"
 
-            fetch(edgeHost + "&route=" + route).then(function(response) {
+            fetch(edgeHost + "&asset=" + expectedHash).then(function(response) {
                 return response.blob()
             }).then(function(content) {
                 var fr = new FileReader();

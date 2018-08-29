@@ -6,12 +6,14 @@ import (
 	"log"
 	"net"
 	"net/url"
+	"os"
 	"strings"
 	"time"
 
 	"github.com/gladiusio/gladius-masternode/internal/http"
 	"github.com/gladiusio/gladius-masternode/internal/networking/state"
 	"github.com/spf13/viper"
+	"github.com/tidwall/gjson"
 	"github.com/valyala/fasthttp"
 )
 
@@ -88,24 +90,47 @@ func requestBuilder(loaderHTML string, cache *Cache, networkState *state.Network
 			return
 		}
 
-		contentRoute := http.JoinStrings("http://", contentNode, ":8080/content?website=", host.hostname, "&route=", strings.Replace(path, "/", "%2f", -1))
+		contentRoute := http.JoinStrings("http://", contentNode, ":8080/content?website=", host.hostname)
 		withLink := strings.Replace(loaderHTML, "{EDGEHOST}", contentRoute, 1)
 		withLinkAndHash := strings.Replace(withLink, "{EXPECTEDHASH}", host.LookupRoute(path).hash, 1)
-		withLinkAndRoute := strings.Replace(withLinkAndHash, "{ROUTE}", strings.Replace(path, "/", "%2f", -1), 1)
 		ctx.SetContentType("text/html")
-		ctx.SetBodyString(withLinkAndRoute)
+		ctx.SetBodyString(withLinkAndHash)
 	}
 }
 
 func initCache(c *Cache) {
-	// Add the demo.gladius.io host
-	host := newProtectedHost("demo.gladius.io")
-	// Add routes to the host
-	host.AddRoute(newRoute("/", false, "8476da67667d0c127963bf46c3b637935961014ebe155812d6fc7d64a4a37c41"))
-	host.AddRoute(newRoute("/anotherroute", false, "6F9ECF8D1FAD1D2B8FBF2DA3E2571AEC4267A7018DF0DBDE8889D875FBDE8D3F"))
-	host.AddRoute(newRoute("/full", false, "63b988f91814fbe8edc0804b5039767942a0977a93aea3029b8255ee423bc2a0"))
-	host.AddRoute(newRoute("/api/", true, ""))
-	c.AddHost(host)
+	// // Add the demo.gladius.io host
+	// host := newProtectedHost("demo.gladius.io")
+	// // Add routes to the host
+	// host.AddRoute(newRoute("/", false, "8476da67667d0c127963bf46c3b637935961014ebe155812d6fc7d64a4a37c41"))
+	// host.AddRoute(newRoute("/anotherroute", false, "6F9ECF8D1FAD1D2B8FBF2DA3E2571AEC4267A7018DF0DBDE8889D875FBDE8D3F"))
+	// host.AddRoute(newRoute("/full", false, "63b988f91814fbe8edc0804b5039767942a0977a93aea3029b8255ee423bc2a0"))
+	// host.AddRoute(newRoute("/api/", true, ""))
+	// c.AddHost(host)
+
+	// Open cache primer file if given
+	primer := viper.GetString("CACHE_PRIMER")
+	if primer != "" {
+		jsonFile, err := os.Open(primer)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+		defer jsonFile.Close()
+		jsonBytes, err := ioutil.ReadAll(jsonFile)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+		hostname := gjson.GetBytes(jsonBytes, "hostname").String()
+		host := newProtectedHost(hostname)
+
+		routes := gjson.GetBytes(jsonBytes, "routes")
+		for _, route := range routes.Array() {
+			host.AddRoute(newRoute(route.Get("path").String(), false, route.Get("hash").String()))
+		}
+		c.AddHost(host)
+	}
 }
 
 // chooseContentNode will return the IP address of the appropriate content node
