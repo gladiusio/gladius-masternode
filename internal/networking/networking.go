@@ -54,7 +54,6 @@ func requestBuilder(loaderHTML string, cache *Cache, networkState *state.Network
 	return func(ctx *fasthttp.RequestCtx) {
 		hostname := string(ctx.Host()[:])
 		// If this host isn't recognized, break out
-		fmt.Printf("Looking up host: %s\n", hostname)
 		host := cache.LookupHost(hostname)
 		if host == nil {
 			ctx.Error("Unsupported Host", fasthttp.StatusBadRequest)
@@ -63,13 +62,15 @@ func requestBuilder(loaderHTML string, cache *Cache, networkState *state.Network
 
 		u, err := url.Parse(string(ctx.RequestURI()[:]))
 		if err != nil {
-			log.Fatal(err)
+			ctx.Error("Could not parse request URI", fasthttp.StatusBadRequest)
+			return
 		}
 		path := u.RequestURI()
 		route := host.LookupRoute(path)
 		if route == nil || route.nocache {
 			code, content, err := proxyRequest(ctx, host.hostname+path)
 			if err != nil {
+				log.Printf("Error proxying request: %v\n", err)
 				ctx.Error("Error handling request", code)
 				return
 			}
@@ -84,13 +85,13 @@ func requestBuilder(loaderHTML string, cache *Cache, networkState *state.Network
 		// Reply from cache
 		ip := ctx.RemoteIP().String()
 		// Determine which content node will serve the assets for this request
-		contentNode, nodeErr := chooseContentNode(ip, networkState)
+		contentNode, nodeErr := chooseContentNode(ip, http.JoinStrings(host.hostname, "/", route.hash), networkState)
 		if nodeErr != nil {
 			proxyRequest(ctx, host.hostname+path)
 			return
 		}
 
-		contentRoute := http.JoinStrings("http://", contentNode, ":8080/content?website=", host.hostname)
+		contentRoute := http.JoinStrings("http://", contentNode, "/content?website=", host.hostname)
 		withLink := strings.Replace(loaderHTML, "{EDGEHOST}", contentRoute, 1)
 		withLinkAndHash := strings.Replace(withLink, "{EXPECTEDHASH}", host.LookupRoute(path).hash, 1)
 		ctx.SetContentType("text/html")
@@ -99,15 +100,6 @@ func requestBuilder(loaderHTML string, cache *Cache, networkState *state.Network
 }
 
 func initCache(c *Cache) {
-	// // Add the demo.gladius.io host
-	// host := newProtectedHost("demo.gladius.io")
-	// // Add routes to the host
-	// host.AddRoute(newRoute("/", false, "8476da67667d0c127963bf46c3b637935961014ebe155812d6fc7d64a4a37c41"))
-	// host.AddRoute(newRoute("/anotherroute", false, "6F9ECF8D1FAD1D2B8FBF2DA3E2571AEC4267A7018DF0DBDE8889D875FBDE8D3F"))
-	// host.AddRoute(newRoute("/full", false, "63b988f91814fbe8edc0804b5039767942a0977a93aea3029b8255ee423bc2a0"))
-	// host.AddRoute(newRoute("/api/", true, ""))
-	// c.AddHost(host)
-
 	// Open cache primer file if given
 	primer := viper.GetString("CACHE_PRIMER")
 	if primer != "" {
@@ -135,7 +127,7 @@ func initCache(c *Cache) {
 
 // chooseContentNode will return the IP address of the appropriate content node
 // to serve content from
-func chooseContentNode(ipStr string, netState *state.NetworkState) (string, error) {
+func chooseContentNode(ipStr string, fileName string, netState *state.NetworkState) (string, error) {
 	var contentNode string
 	var nodeErr error
 
@@ -144,7 +136,8 @@ func chooseContentNode(ipStr string, netState *state.NetworkState) (string, erro
 	} else if viper.GetInt("ROUND_ROBIN") == 1 {
 		contentNode, nodeErr = getNextNode(netState)
 	} else {
-		contentNode, nodeErr = getClosestNode(ipStr, netState)
+		contentNode, nodeErr = getClosestServingNode(ipStr, fileName, netState)
+
 	}
 	return contentNode, nodeErr
 }
@@ -153,6 +146,7 @@ func proxyRequest(ctx *fasthttp.RequestCtx, url string) (int, []byte, error) {
 	c := &fasthttp.Client{}
 
 	// Transfer the header to a GET request
+	fmt.Printf("Proxying page: %s\n", ctx.Request.Header.String())
 	statusCode, body, err := c.Get([]byte(ctx.Request.Header.String()), url)
 	if err != nil {
 		return statusCode, nil, fmt.Errorf("Error proxying page:\n%v", err)
@@ -169,14 +163,43 @@ func getClosestNode(ipStr string, netState *state.NetworkState) (string, error) 
 	ip := net.ParseIP(ipStr)
 	if ip == nil {
 		log.Printf("Could not parse IP address: %v", ip)
-		return "localhost", fmt.Errorf("Could not parse IP address: %v", ip)
+		return "", fmt.Errorf("Could not parse IP address: %v", ip)
 	}
 	closestNode, err := netState.GetClosestNode(ip)
 	if err != nil {
 		log.Print(err)
-		return "localhost", err
+		return "", err
 	}
 	return closestNode.IP().String(), nil
+}
+
+// getClosestServingNode tries to find a nearby content node that is hosting
+// the desired file. If it does not find one, an error will be returned
+func getClosestServingNode(ipStr string, fileName string, netState *state.NetworkState) (string, error) {
+	ip := net.ParseIP(ipStr)
+	if ip == nil {
+		log.Printf("Could not parse IP address: %v", ip)
+		return "", fmt.Errorf("Could not parse IP address: %v", ip)
+	}
+	closestNodes, err := netState.GetNClosestNodes(ip, 5)
+	if err != nil {
+		log.Print(err)
+		return "", err
+	}
+	fmt.Printf("Found %d nearest nodes:\n\t%v\n", len(closestNodes), closestNodes)
+	// Check these nodes for the desired file
+	for _, node := range closestNodes {
+		fmt.Printf("Checking node: %v\n", node)
+		for _, file := range node.ContentFiles {
+			fmt.Printf("Found file: %v\n", file)
+			if file == fileName {
+				// Found the file in a node
+				fmt.Printf("Found file at: %s\n", node.StringAddress())
+				return node.StringAddress(), nil
+			}
+		}
+	}
+	return "", fmt.Errorf("Could not find the requested content on a nearby node: %v", fileName)
 }
 
 func getNextNode(netState *state.NetworkState) (string, error) {

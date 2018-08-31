@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net"
+	"strconv"
 	"strings"
 	"sync"
 
@@ -82,20 +83,18 @@ func (n *NetworkState) SetNetworkRunState(runState bool) {
 
 // RefreshActiveNodes fetches the latest status of nodes in the pool
 func (n *NetworkState) RefreshActiveNodes() {
+	fmt.Println("Refreshing nodes...")
 	if viper.GetInt("TEST_LOCAL") == 1 {
 		return
 	}
 	// Make a request to controld for the currently active nodes
-	url := http.BuildControldEndpoint(fmt.Sprintf("/api/pool/%s/nodes/approved", viper.GetString("PoolEthAddress")))
+	url := http.BuildControldEndpoint("/api/p2p/state")
 	responseBytes, err := http.GetJSONBytes(url)
 	if err != nil {
 		log.Fatal(err)
 	}
 	// Parse the 'response' field from the response data
-	_nodes := gjson.GetBytes(responseBytes, "response").Array()
-	if len(_nodes) == 0 {
-		return
-	}
+	_nodes := gjson.GetBytes(responseBytes, "response.node_data_map")
 	if viper.GetInt("ROUND_ROBIN") != 1 {
 		n.BuildTree(_nodes)
 	} else {
@@ -105,27 +104,42 @@ func (n *NetworkState) RefreshActiveNodes() {
 
 // BuildTree creates a KD Tree of NetworkNodes for use with GeoIP
 // node selection
-func (n *NetworkState) BuildTree(_nodes []gjson.Result) {
+func (n *NetworkState) BuildTree(_nodes gjson.Result) {
 	// Create NetworkNode structs from the list of nodes returned from controld
+	fmt.Println("BuildTree()")
 	nodes := make([]kdtree.Point, 0)
-	for i := 0; i < len(_nodes); i++ {
-		ipStr := strings.TrimSpace(_nodes[i].Get("data.ip").String())
+	_nodes.ForEach(func(key, value gjson.Result) bool {
+		fmt.Printf("Key: %v", key)
+		ipStr := strings.TrimSpace(value.Get("ip_address.data").String())
 		ip := net.ParseIP(ipStr)
 		if ip == nil {
-			log.Printf("Invalid IP Address found in node: %v", _nodes[i])
-			continue // Discard this node
+			log.Printf("Invalid IP Address found in node: %v", value)
+			return true
 		}
-
+		portStr := strings.TrimSpace(value.Get("content_port.data").String())
+		port, err := strconv.Atoi(portStr)
+		if err != nil {
+			log.Printf("Invalid port number found in node: %v", value)
+			return true
+		}
+		contentFiles := value.Get("disk_content.data").Array()
+		fmt.Println(contentFiles)
 		// Lookup approximate coordinates of this IP address
 		long, lat, err := n.GeolocateIP(ip)
 		if err != nil {
 			log.Printf("Error encountered when looking up coordinates for IP: %v\n\n%v", ip, err)
-			continue // Discard this node
+		} else {
+			newNode := NewNetworkNode(long, lat, ip, port)
+			files := make([]string, len(contentFiles))
+			for i := range contentFiles {
+				files[i] = contentFiles[i].String()
+			}
+			newNode.ContentFiles = files
+			fmt.Printf("Added Node: %v      (%v, %v)\n", ip, long, lat)
+			nodes = append(nodes, newNode)
 		}
-		newNode := NewNetworkNode(long, lat, ip)
-		fmt.Printf("Added Node: %v      (%v, %v)\n", ip, long, lat)
-		nodes = append(nodes, newNode)
-	}
+		return true
+	})
 
 	// Create a new KD-Tree with the new set of nodes
 	newTree := kdtree.NewKDTree(nodes)
@@ -165,7 +179,7 @@ func (n *NetworkState) BuildTestQueue(numNodes int, ipBase string) {
 		if nodesCreated >= numNodes {
 			break
 		}
-		newNode := NewNetworkNode(0.0, 0.0, ip)
+		newNode := NewNetworkNode(0.0, 0.0, ip, 0)
 		fmt.Printf("Added Node: %v      (%v, %v)\n", ip, 0.0, 0.0)
 		nodes = append(nodes, newNode)
 		nodesCreated++
@@ -182,20 +196,33 @@ func (n *NetworkState) BuildTestQueue(numNodes int, ipBase string) {
 
 // BuildQueue creates a circular queue of NetworkNodes for use with round
 // robin node selection
-func (n *NetworkState) BuildQueue(_nodes []gjson.Result) {
+func (n *NetworkState) BuildQueue(_nodes gjson.Result) {
 	// Create NetworkNode structs from the list of nodes returned form controld
 	nodes := make([]*NetworkNode, 0)
-	for i := 0; i < len(_nodes); i++ {
-		ipStr := strings.TrimSpace(_nodes[i].Get("data.ip").String())
+	_nodes.ForEach(func(key, value gjson.Result) bool {
+		ipStr := strings.TrimSpace(value.Get("ip_address.data").String())
 		ip := net.ParseIP(ipStr)
 		if ip == nil {
-			log.Printf("Invalid IP Address found in node: %v", _nodes[i])
-			continue // Discard this node
+			log.Printf("Invalid IP Address found in node: %v", value)
+			return true
 		}
-		newNode := NewNetworkNode(0.0, 0.0, ip)
-		fmt.Printf("Added Node: %v      (%v, %v)\n", ip, 0.0, 0.0)
-		nodes = append(nodes, newNode)
-	}
+		portStr := strings.TrimSpace(value.Get("content_port.data").String())
+		port, err := strconv.Atoi(portStr)
+		if err != nil {
+			log.Printf("Invalid port number found in node: %v", value)
+			return true
+		}
+		// Lookup approximate coordinates of this IP address
+		long, lat, err := n.GeolocateIP(ip)
+		if err != nil {
+			log.Printf("Error encountered when looking up coordinates for IP: %v\n\n%v", ip, err)
+		} else {
+			newNode := NewNetworkNode(long, lat, ip, port)
+			fmt.Printf("Added Node: %v      (%v, %v)\n", ip, long, lat)
+			nodes = append(nodes, newNode)
+		}
+		return true
+	})
 	n.mux.Lock()
 	defer n.mux.Unlock()
 	n.queue = ring.New(len(nodes))
@@ -230,11 +257,34 @@ func (n *NetworkState) GetClosestNode(ip net.IP) (*NetworkNode, error) {
 	defer n.mux.Unlock()
 
 	// Find the closest neighboring node
-	neighbors := n.tree.KNN(NewNetworkNode(long, lat, ip), 1)
+	neighbors := n.tree.KNN(NewNetworkNode(long, lat, ip, 0), 1)
 	if len(neighbors) == 0 {
 		return nil, fmt.Errorf("Error: No neighbors were found in nearest neighbor search")
 	}
 	return neighbors[0].(*NetworkNode), nil
+}
+
+func (net *NetworkState) GetNClosestNodes(ip net.IP, n int) ([]*NetworkNode, error) {
+	if net.tree == nil {
+		return nil, fmt.Errorf("Could not find closest node, no nodes are available")
+	}
+	long, lat, err := net.GeolocateIP(ip)
+	if err != nil {
+		return nil, fmt.Errorf("Error encountered when looking up coordinates for IP: %v\n\n%v", ip, err)
+	}
+	net.mux.Lock()
+	defer net.mux.Unlock()
+
+	// Find the closest neighboring node
+	neighbors := net.tree.KNN(NewNetworkNode(long, lat, ip, 0), 1)
+	if len(neighbors) == 0 {
+		return nil, fmt.Errorf("Error: No neighbors were found in nearest neighbor search")
+	}
+	nodes := make([]*NetworkNode, len(neighbors))
+	for i := range neighbors {
+		nodes[i] = neighbors[i].(*NetworkNode)
+	}
+	return nodes, nil
 }
 
 // GetNextNode returns the next NetworkNode in the queue for round robin node selection
@@ -259,17 +309,23 @@ func (n *NetworkState) RunningStateChanged() chan (bool) {
 type NetworkNode struct {
 	kdtree.Point // Implements Point interface
 
-	geoLocation s2.LatLng
-	ip          net.IP
+	geoLocation  s2.LatLng
+	ip           net.IP
+	port         int
+	ContentFiles []string
 }
 
 // NewNetworkNode returns a new NetworkNode struct
-func NewNetworkNode(lat, long float64, ip net.IP) *NetworkNode {
-	return &NetworkNode{geoLocation: s2.LatLngFromDegrees(lat, long), ip: ip}
+func NewNetworkNode(lat, long float64, ip net.IP, port int) *NetworkNode {
+	return &NetworkNode{geoLocation: s2.LatLngFromDegrees(lat, long), ip: ip, port: port}
 }
 
 func (n *NetworkNode) String() string {
 	return fmt.Sprintf("%v [%v, %v]", n.ip, n.geoLocation.Lat.Degrees(), n.geoLocation.Lng.Degrees())
+}
+
+func (n *NetworkNode) StringAddress() string {
+	return fmt.Sprintf("%s:%d", n.ip, n.port)
 }
 
 // IP returns the IP address of the NetworkNode
