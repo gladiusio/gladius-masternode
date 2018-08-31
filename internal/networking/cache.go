@@ -2,6 +2,7 @@ package networking
 
 import (
 	"crypto/sha256"
+	"strings"
 
 	"github.com/Workiva/go-datastructures/trie/ctrie"
 )
@@ -88,5 +89,7 @@ type Route struct {
 
 // Constructs and returns a pointer to a new Route struct
 func newRoute(route string, nocache bool, hash string) *Route {
+	route = strings.Replace(route, "index.html", "", 1)
+	route = strings.Replace(route, ".html", "", 1)
 	return &Route{route, nocache, hash}
 }
