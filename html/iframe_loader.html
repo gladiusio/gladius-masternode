@@ -120,7 +120,7 @@
                                             } else {
                                                 assignAssetBlob(gladiusID, tag, "src");
                                             }
-                                            
+                                            resolve()
                                         } else {
                                             console.log("Resource hash was not as expected!");
                                             reject()
@@ -133,7 +133,7 @@
                             console.log("Done loading assets")
                             
                         }).catch(function(values) {
-                            
+                            console.log("Problem with loading assets")
                         });
                     } else {
                         document.getElementById("page").innerHTML = "Something went wrong loading content."
