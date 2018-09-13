@@ -186,15 +186,12 @@ func getClosestServingNode(ipStr string, fileName string, netState *state.Networ
 		log.Print(err)
 		return "", err
 	}
-	fmt.Printf("Found %d nearest nodes:\n\t%v\n", len(closestNodes), closestNodes)
+
 	// Check these nodes for the desired file
 	for _, node := range closestNodes {
-		fmt.Printf("Checking node: %v\n", node)
 		for _, file := range node.ContentFiles {
-			fmt.Printf("Found file: %v\n", file)
 			if file == fileName {
 				// Found the file in a node
-				fmt.Printf("Found file at: %s\n", node.StringAddress())
 				return node.StringAddress(), nil
 			}
 		}

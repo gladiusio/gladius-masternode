@@ -83,7 +83,6 @@ func (n *NetworkState) SetNetworkRunState(runState bool) {
 
 // RefreshActiveNodes fetches the latest status of nodes in the pool
 func (n *NetworkState) RefreshActiveNodes() {
-	fmt.Println("Refreshing nodes...")
 	if viper.GetInt("TEST_LOCAL") == 1 {
 		return
 	}
@@ -106,10 +105,8 @@ func (n *NetworkState) RefreshActiveNodes() {
 // node selection
 func (n *NetworkState) BuildTree(_nodes gjson.Result) {
 	// Create NetworkNode structs from the list of nodes returned from controld
-	fmt.Println("BuildTree()")
 	nodes := make([]kdtree.Point, 0)
 	_nodes.ForEach(func(key, value gjson.Result) bool {
-		fmt.Printf("Key: %v", key)
 		ipStr := strings.TrimSpace(value.Get("ip_address.data").String())
 		ip := net.ParseIP(ipStr)
 		if ip == nil {
@@ -123,7 +120,6 @@ func (n *NetworkState) BuildTree(_nodes gjson.Result) {
 			return true
 		}
 		contentFiles := value.Get("disk_content.data").Array()
-		fmt.Println(contentFiles)
 		// Lookup approximate coordinates of this IP address
 		long, lat, err := n.GeolocateIP(ip)
 		if err != nil {
@@ -135,7 +131,6 @@ func (n *NetworkState) BuildTree(_nodes gjson.Result) {
 				files[i] = contentFiles[i].String()
 			}
 			newNode.ContentFiles = files
-			fmt.Printf("Added Node: %v      (%v, %v)\n", ip, long, lat)
 			nodes = append(nodes, newNode)
 		}
 		return true
@@ -218,7 +213,6 @@ func (n *NetworkState) BuildQueue(_nodes gjson.Result) {
 			log.Printf("Error encountered when looking up coordinates for IP: %v\n\n%v", ip, err)
 		} else {
 			newNode := NewNetworkNode(long, lat, ip, port)
-			fmt.Printf("Added Node: %v      (%v, %v)\n", ip, long, lat)
 			nodes = append(nodes, newNode)
 		}
 		return true
