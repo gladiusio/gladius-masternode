@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/gladiusio/gladius-masternode/internal/http"
 	"github.com/golang/geo/s2"
@@ -107,6 +108,12 @@ func (n *NetworkState) BuildTree(_nodes gjson.Result) {
 	// Create NetworkNode structs from the list of nodes returned from controld
 	nodes := make([]kdtree.Point, 0)
 	_nodes.ForEach(func(key, value gjson.Result) bool {
+		heartbeat := value.Get("heartbeat.data").Int()
+		dif := time.Now().Unix() - heartbeat
+		if dif > 5 {
+			fmt.Printf("Ignoring node with old heartbeat. Difference: %v seconds old\n", dif)
+			return true
+		}
 		ipStr := strings.TrimSpace(value.Get("ip_address.data").String())
 		ip := net.ParseIP(ipStr)
 		if ip == nil {
