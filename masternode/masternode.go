@@ -1,15 +1,23 @@
 package masternode
 
 import (
+	"github.com/gladiusio/gladius-masternode/config"
 	"github.com/gladiusio/gladius-masternode/internal/networking"
-	"github.com/gladiusio/gladius-utils/config"
+	gconfig "github.com/gladiusio/gladius-utils/config"
 	"github.com/gladiusio/gladius-utils/init/manager"
+	log "github.com/sirupsen/logrus"
 )
 
 // Run the Gladius Masternode
 func Run() {
+	base, err := gconfig.GetGladiusBase()
+	if err != nil {
+		log.WithFields(log.Fields{
+			"err": err,
+		}).Fatal("Couldn't get Gladius base")
+	}
 	// Setup config handling
-	config.SetupConfig("gladius-masternode", config.MasterNodeDefaults())
+	config.SetupConfig(base)
 
 	// Define some variables
 	name, displayName, description :=
