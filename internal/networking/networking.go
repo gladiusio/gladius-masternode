@@ -36,15 +36,13 @@ func StartProxy() {
 
 	go fasthttp.ListenAndServe(":8081", requestBuilder(string(loaderHTML), cache, netState))
 
-	if viper.GetString("MININET_CONFIG") == "" && viper.GetInt("TEST_LOCAL") != 1 {
-		// Update network state every 30 seconds
-		ticker := time.NewTicker(time.Second * 30)
-		defer ticker.Stop()
-		for {
-			select {
-			case <-ticker.C:
-				netState.RefreshActiveNodes()
-			}
+	// Update network state every 30 seconds
+	ticker := time.NewTicker(time.Second * 30)
+	defer ticker.Stop()
+	for {
+		select {
+		case <-ticker.C:
+			netState.RefreshActiveNodes()
 		}
 	}
 }
@@ -128,17 +126,8 @@ func initCache(c *Cache) {
 // chooseContentNode will return the IP address of the appropriate content node
 // to serve content from
 func chooseContentNode(ipStr string, fileName string, netState *state.NetworkState) (string, error) {
-	var contentNode string
-	var nodeErr error
+	contentNode, nodeErr := getClosestServingNode(ipStr, fileName, netState)
 
-	if viper.GetInt("TEST_LOCAL") == 1 {
-		contentNode = "localhost"
-	} else if viper.GetInt("ROUND_ROBIN") == 1 {
-		contentNode, nodeErr = getNextNode(netState)
-	} else {
-		contentNode, nodeErr = getClosestServingNode(ipStr, fileName, netState)
-
-	}
 	return contentNode, nodeErr
 }
 
@@ -197,12 +186,4 @@ func getClosestServingNode(ipStr string, fileName string, netState *state.Networ
 		}
 	}
 	return "", fmt.Errorf("Could not find the requested content on a nearby node: %v", fileName)
-}
-
-func getNextNode(netState *state.NetworkState) (string, error) {
-	nextNode, err := netState.GetNextNode()
-	if err != nil {
-		return "", err
-	}
-	return nextNode.IP().String(), nil
 }

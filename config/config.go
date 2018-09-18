@@ -46,6 +46,8 @@ func SetupConfig(configFilePath string) {
 	ConfigOption("GeoIPDatabaseMD5URL", "http://geolite.maxmind.com/download/geoip/database/GeoLite2-City.tar.gz.md5")
 	ConfigOption("GeoIPDatabaseURL", "http://geolite.maxmind.com/download/geoip/database/GeoLite2-City.tar.gz")
 
+	ConfigOption("DisableGeoip", false)
+
 	// Setup logging level
 	switch loglevel := viper.GetString("LogLevel"); loglevel {
 	case "debug":

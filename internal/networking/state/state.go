@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"github.com/gladiusio/gladius-masternode/internal/http"
-	"github.com/golang/geo/s2"
 	"github.com/hongshibao/go-kdtree"
 	"github.com/oschwald/geoip2-golang"
 	"github.com/spf13/viper"
@@ -34,16 +33,14 @@ type NetworkState struct {
 func NewNetworkState() *NetworkState {
 	state := &NetworkState{running: true, runChannel: make(chan bool)}
 
-	if viper.GetInt("TEST_LOCAL") == 1 {
-		return state
-	}
-
 	// Initialize the Geo IP database
-	db, err := InitGeoIP()
-	if err != nil {
-		log.Fatal(err)
+	if viper.GetBool("DisableGeoip") == true {
+		db, err := InitGeoIP()
+		if err != nil {
+			log.Fatal(err)
+		}
+		state.geoIP = db
 	}
-	state.geoIP = db
 
 	// Initialize nodes
 	state.RefreshActiveNodes()
@@ -63,9 +60,6 @@ func (n *NetworkState) SetNetworkRunState(runState bool) {
 
 // RefreshActiveNodes fetches the latest status of nodes in the pool
 func (n *NetworkState) RefreshActiveNodes() {
-	if viper.GetInt("TEST_LOCAL") == 1 {
-		return
-	}
 	// Make a request to controld for the currently active nodes
 	url := http.BuildControldEndpoint("/api/p2p/state")
 	responseBytes, err := http.GetJSONBytes(url)
@@ -74,9 +68,9 @@ func (n *NetworkState) RefreshActiveNodes() {
 	}
 	// Parse the 'response' field from the response data
 	_nodes := gjson.GetBytes(responseBytes, "response.node_data_map")
-	if viper.GetInt("ROUND_ROBIN") != 1 {
-		n.BuildTree(_nodes)
-	}
+
+	// Update set of active nodes
+	n.BuildTree(_nodes)
 }
 
 // BuildTree creates a KD Tree of NetworkNodes for use with GeoIP
@@ -210,62 +204,4 @@ func (net *NetworkState) GetNClosestNodes(ip net.IP, n int) ([]*NetworkNode, err
 // is changed
 func (n *NetworkState) RunningStateChanged() chan (bool) {
 	return n.runChannel
-}
-
-// NetworkNode is a struct representing an edge node in a pool
-type NetworkNode struct {
-	kdtree.Point // Implements Point interface
-
-	geoLocation  s2.LatLng
-	ip           net.IP
-	port         int
-	ContentFiles []string
-}
-
-// NewNetworkNode returns a new NetworkNode struct
-func NewNetworkNode(lat, long float64, ip net.IP, port int) *NetworkNode {
-	return &NetworkNode{geoLocation: s2.LatLngFromDegrees(lat, long), ip: ip, port: port}
-}
-
-func (n *NetworkNode) String() string {
-	return fmt.Sprintf("%v [%v, %v]", n.ip, n.geoLocation.Lat.Degrees(), n.geoLocation.Lng.Degrees())
-}
-
-func (n *NetworkNode) StringAddress() string {
-	return fmt.Sprintf("%s:%d", n.ip, n.port)
-}
-
-// IP returns the IP address of the NetworkNode
-func (n *NetworkNode) IP() net.IP {
-	return n.ip
-}
-
-// Dim returns the number of dimensions the KD-Tree splits on
-func (n *NetworkNode) Dim() int {
-	return 2
-}
-
-// GetValue returns the value associated with the provided dimension
-func (n *NetworkNode) GetValue(dim int) float64 {
-	if dim == 0 {
-		return n.geoLocation.Lat.Degrees()
-	}
-	return n.geoLocation.Lng.Degrees()
-}
-
-// Distance returns the calculated distance between two nodes
-func (n *NetworkNode) Distance(other kdtree.Point) float64 {
-	return n.geoLocation.Distance(other.(*NetworkNode).geoLocation).Radians()
-}
-
-// PlaneDistance returns the distance between the point and the specified
-// plane
-func (n *NetworkNode) PlaneDistance(val float64, dim int) float64 {
-	var plane s2.LatLng
-	if dim == 0 {
-		plane = s2.LatLngFromDegrees(val, 0)
-	} else {
-		plane = s2.LatLngFromDegrees(0, val)
-	}
-	return n.geoLocation.Distance(plane).Radians()
 }
