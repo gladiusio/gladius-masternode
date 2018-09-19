@@ -1,10 +1,17 @@
-package networking
+package state
 
 import (
 	"crypto/sha256"
+	"fmt"
+	"io/ioutil"
+	"os"
 	"strings"
 
+	"github.com/hongshibao/go-kdtree"
+
 	"github.com/Workiva/go-datastructures/trie/ctrie"
+	"github.com/spf13/viper"
+	"github.com/tidwall/gjson"
 )
 
 /****************************************************************************************/
@@ -12,12 +19,39 @@ import (
 // Cache is the top-level struct used to maintain mappings of hostnames
 // to their routes
 type Cache struct {
+	// A collection of ProtectedHost structs representing websites under this node's protection
 	hosts *ctrie.Ctrie
 }
 
 // Constructs and returns a pointer to a new Cache struct
 func newCache() *Cache {
 	return &Cache{ctrie.New(nil)}
+}
+
+func initCache(c *Cache) {
+	// Open cache primer file if given
+	primer := viper.GetString("CACHE_PRIMER")
+	if primer != "" {
+		jsonFile, err := os.Open(primer)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+		defer jsonFile.Close()
+		jsonBytes, err := ioutil.ReadAll(jsonFile)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+		hostname := gjson.GetBytes(jsonBytes, "hostname").String()
+		host := newProtectedHost(hostname)
+
+		routes := gjson.GetBytes(jsonBytes, "routes")
+		for _, route := range routes.Array() {
+			host.AddRoute(newRoute(route.Get("path").String(), false, route.Get("hash").String()))
+		}
+		c.AddHost(host)
+	}
 }
 
 // LookupHost attempts to lookup the ProtectedHost entry in the Cache
@@ -79,17 +113,20 @@ func (h *ProtectedHost) CacheRoute(content []byte, path string) {
 
 /****************************************************************************************/
 
-// Route describes a particular route that is known to exist for a
+// Route describes a particular route or asset that is known to exist for a
 // ProtectedHost
 type Route struct {
-	route   string // The route string, i.e. "/products"
+	route   string // The route string, i.e. "/products" or "/images/foo.jpg"
 	nocache bool   // Set to true if this route should never be cached
 	hash    string // The hash of the object stored at this route
+
+	seeders *kdtree.KDTree // KD-Tree of nodes that have this content
 }
 
 // Constructs and returns a pointer to a new Route struct
 func newRoute(route string, nocache bool, hash string) *Route {
+	// Temporary route modifying logic
 	route = strings.Replace(route, "index.html", "", 1)
 	route = strings.Replace(route, ".html", "", 1)
-	return &Route{route, nocache, hash}
+	return &Route{route, nocache, hash, nil}
 }

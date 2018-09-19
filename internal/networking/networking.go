@@ -6,14 +6,11 @@ import (
 	"log"
 	"net"
 	"net/url"
-	"os"
 	"strings"
 	"time"
 
 	"github.com/gladiusio/gladius-masternode/internal/http"
 	"github.com/gladiusio/gladius-masternode/internal/networking/state"
-	"github.com/spf13/viper"
-	"github.com/tidwall/gjson"
 	"github.com/valyala/fasthttp"
 )
 
@@ -28,9 +25,6 @@ func StartProxy() {
 		panic(err)
 	}
 
-	cache := newCache()
-	initCache(cache)
-
 	// Create new network state object to keep track of edge nodes
 	netState := state.NewNetworkState()
 
@@ -42,7 +36,7 @@ func StartProxy() {
 	for {
 		select {
 		case <-ticker.C:
-			netState.RefreshActiveNodes()
+			netState.RefreshNetworkState()
 		}
 	}
 }
@@ -89,37 +83,12 @@ func requestBuilder(loaderHTML string, cache *Cache, networkState *state.Network
 			return
 		}
 
+		// Hydrate the bootstrap HTML document we serve
 		contentRoute := http.JoinStrings("http://", contentNode, "/content?website=", host.hostname)
 		withLink := strings.Replace(loaderHTML, "{EDGEHOST}", contentRoute, 1)
 		withLinkAndHash := strings.Replace(withLink, "{EXPECTEDHASH}", host.LookupRoute(path).hash, 1)
 		ctx.SetContentType("text/html")
 		ctx.SetBodyString(withLinkAndHash)
-	}
-}
-
-func initCache(c *Cache) {
-	// Open cache primer file if given
-	primer := viper.GetString("CACHE_PRIMER")
-	if primer != "" {
-		jsonFile, err := os.Open(primer)
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-		defer jsonFile.Close()
-		jsonBytes, err := ioutil.ReadAll(jsonFile)
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-		hostname := gjson.GetBytes(jsonBytes, "hostname").String()
-		host := newProtectedHost(hostname)
-
-		routes := gjson.GetBytes(jsonBytes, "routes")
-		for _, route := range routes.Array() {
-			host.AddRoute(newRoute(route.Get("path").String(), false, route.Get("hash").String()))
-		}
-		c.AddHost(host)
 	}
 }
 
@@ -143,23 +112,6 @@ func proxyRequest(ctx *fasthttp.RequestCtx, url string) (int, []byte, error) {
 	ctx.SetBody(body)
 	ctx.SetStatusCode(statusCode)
 	return statusCode, body, nil
-}
-
-// getClosestNode wraps the GetClosestNode function from the 'state'
-// package to lookup the geographically closest content node to a
-// given IP address
-func getClosestNode(ipStr string, netState *state.NetworkState) (string, error) {
-	ip := net.ParseIP(ipStr)
-	if ip == nil {
-		log.Printf("Could not parse IP address: %v", ip)
-		return "", fmt.Errorf("Could not parse IP address: %v", ip)
-	}
-	closestNode, err := netState.GetClosestNode(ip)
-	if err != nil {
-		log.Print(err)
-		return "", err
-	}
-	return closestNode.IP().String(), nil
 }
 
 // getClosestServingNode tries to find a nearby content node that is hosting

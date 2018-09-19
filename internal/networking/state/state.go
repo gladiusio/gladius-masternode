@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"github.com/gladiusio/gladius-masternode/internal/http"
-	"github.com/hongshibao/go-kdtree"
 	"github.com/oschwald/geoip2-golang"
 	"github.com/spf13/viper"
 	"github.com/tidwall/gjson"
@@ -19,8 +18,9 @@ import (
 // NetworkState is a struct containing a K-D tree representation of the edge node pool
 // associated with this masternode
 type NetworkState struct {
-	nodeSet map[*NetworkNode]bool
-	tree    *kdtree.KDTree // K-D Tree to store network node structs
+	nodeSet map[*NetworkNode]bool // Set of all connected edge nodes
+
+	cache *Cache // Pointer to the content cache manager
 
 	geoIP *geoip2.Reader // Geo IP database reference
 
@@ -34,7 +34,7 @@ func NewNetworkState() *NetworkState {
 	state := &NetworkState{running: true, runChannel: make(chan bool)}
 
 	// Initialize the Geo IP database
-	if viper.GetBool("DisableGeoip") == true {
+	if viper.GetBool("DisableGeoip") != true {
 		db, err := InitGeoIP()
 		if err != nil {
 			log.Fatal(err)
@@ -42,8 +42,13 @@ func NewNetworkState() *NetworkState {
 		state.geoIP = db
 	}
 
-	// Initialize nodes
-	state.RefreshActiveNodes()
+	// Setup
+	cache := newCache()
+	initCache(cache)
+	state.cache = cache
+
+	// Initialize nodes and content
+	state.RefreshNetworkState()
 
 	return state
 }
@@ -58,8 +63,17 @@ func (n *NetworkState) SetNetworkRunState(runState bool) {
 	}
 }
 
+func (n *NetworkState) RefreshNetworkState() {
+	n.refreshActiveNodes()
+	n.refreshContentTrees()
+}
+
+func (n *NetworkState) refreshContentTrees() {
+
+}
+
 // RefreshActiveNodes fetches the latest status of nodes in the pool
-func (n *NetworkState) RefreshActiveNodes() {
+func (n *NetworkState) refreshActiveNodes() {
 	// Make a request to controld for the currently active nodes
 	url := http.BuildControldEndpoint("/api/p2p/state")
 	responseBytes, err := http.GetJSONBytes(url)
@@ -70,14 +84,7 @@ func (n *NetworkState) RefreshActiveNodes() {
 	_nodes := gjson.GetBytes(responseBytes, "response.node_data_map")
 
 	// Update set of active nodes
-	n.BuildTree(_nodes)
-}
-
-// BuildTree creates a KD Tree of NetworkNodes for use with GeoIP
-// node selection
-func (n *NetworkState) BuildTree(_nodes gjson.Result) {
-	// Create NetworkNode structs from the list of nodes returned from controld
-	nodes := make([]kdtree.Point, 0)
+	newNodeSet := make(map[*NetworkNode]bool)
 	_nodes.ForEach(func(key, value gjson.Result) bool {
 		heartbeat := value.Get("heartbeat.data").Int()
 		dif := time.Now().Unix() - heartbeat
@@ -109,15 +116,12 @@ func (n *NetworkState) BuildTree(_nodes gjson.Result) {
 				files[i] = contentFiles[i].String()
 			}
 			newNode.ContentFiles = files
-			nodes = append(nodes, newNode)
+			newNodeSet[newNode] = true
 		}
 		return true
 	})
-
-	// Create a new KD-Tree with the new set of nodes
-	newTree := kdtree.NewKDTree(nodes)
 	n.mux.Lock()
-	n.tree = newTree
+	n.nodeSet = newNodeSet
 	n.mux.Unlock()
 }
 
@@ -157,39 +161,21 @@ func (n *NetworkState) GeolocateIP(ip net.IP) (long float64, lat float64, retErr
 	return city.Location.Longitude, city.Location.Latitude, nil
 }
 
-// GetClosestNode searches the KD-Tree for the node nearest to the IP provided
-func (n *NetworkState) GetClosestNode(ip net.IP) (*NetworkNode, error) {
-	if n.tree == nil {
-		return nil, fmt.Errorf("Could not find closest node, no nodes are available")
-	}
-	long, lat, err := n.GeolocateIP(ip)
-	if err != nil {
-		return nil, fmt.Errorf("Error encountered when looking up coordinates for IP: %v\n\n%v", ip, err)
-	}
-	n.mux.Lock()
-	defer n.mux.Unlock()
+// GetNClosestNodes takes a given IP address and cached asset name and attempts to lookup
+// the nearest n nodes to it.
+func (net *NetworkState) GetNClosestNodes(ip net.IP, asset string, n int) ([]*NetworkNode, error) {
 
-	// Find the closest neighboring node
-	neighbors := n.tree.KNN(NewNetworkNode(long, lat, ip, 0), 1)
-	if len(neighbors) == 0 {
-		return nil, fmt.Errorf("Error: No neighbors were found in nearest neighbor search")
-	}
-	return neighbors[0].(*NetworkNode), nil
-}
+	// Check that we know about this asset
 
-func (net *NetworkState) GetNClosestNodes(ip net.IP, n int) ([]*NetworkNode, error) {
-	if net.tree == nil {
-		return nil, fmt.Errorf("Could not find closest node, no nodes are available")
-	}
+	// Check that this asset is cached on at least one node
+
 	long, lat, err := net.GeolocateIP(ip)
 	if err != nil {
 		return nil, fmt.Errorf("Error encountered when looking up coordinates for IP: %v\n\n%v", ip, err)
 	}
-	net.mux.Lock()
-	defer net.mux.Unlock()
 
 	// Find the closest neighboring node
-	neighbors := net.tree.KNN(NewNetworkNode(long, lat, ip, 0), 1)
+	neighbors := net.tree.KNN(NewNetworkNode(long, lat, ip, 0), n)
 	if len(neighbors) == 0 {
 		return nil, fmt.Errorf("Error: No neighbors were found in nearest neighbor search")
 	}
