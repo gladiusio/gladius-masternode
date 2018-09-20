@@ -24,6 +24,32 @@ func GetJSONBytes(url string) ([]byte, error) {
 	return bytes, nil
 }
 
+func PostJSON(url string, body []byte) ([]byte, error) {
+	req := fasthttp.AcquireRequest()
+	res := fasthttp.AcquireResponse()
+
+	req.Header.SetMethod("POST")
+	req.Header.Add("Accept", "application/json")
+
+	req.SetRequestURI(url)
+	req.SetBody(body)
+
+	err := fasthttp.DoTimeout(req, res, 30*time.Second)
+	if err != nil {
+		return nil, err
+	}
+
+	bytes := res.Body()
+
+	if !gjson.ValidBytes(bytes) {
+		return nil, fmt.Errorf("Received invalid JSON data from: %s", url)
+	}
+
+	fasthttp.ReleaseRequest(req)
+	fasthttp.ReleaseResponse(res)
+	return bytes, nil
+}
+
 // GetBytes queries an HTTP endpoint and returns the raw []byte response
 func GetBytes(url string) ([]byte, error) {
 	statusCode, body, err := fasthttp.GetTimeout(nil, url, 30*time.Second)

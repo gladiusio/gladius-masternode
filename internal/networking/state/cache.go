@@ -20,7 +20,7 @@ import (
 // to their routes
 type Cache struct {
 	// A collection of ProtectedHost structs representing websites under this node's protection
-	hosts *ctrie.Ctrie
+	Hosts *ctrie.Ctrie
 }
 
 // Constructs and returns a pointer to a new Cache struct
@@ -58,7 +58,7 @@ func initCache(c *Cache) {
 // for a given hostname string. Returns the ProtectedHost struct pointer
 // if found, nil if not found.
 func (c *Cache) LookupHost(hostname string) *ProtectedHost {
-	host, exists := c.hosts.Lookup([]byte(hostname))
+	host, exists := c.Hosts.Lookup([]byte(hostname))
 	if !exists {
 		return nil
 	}
@@ -67,35 +67,35 @@ func (c *Cache) LookupHost(hostname string) *ProtectedHost {
 
 // AddHost adds a new ProtectedHost pointer to the Cache's hosts
 func (c *Cache) AddHost(host *ProtectedHost) {
-	c.hosts.Insert([]byte(host.hostname), host)
+	c.Hosts.Insert([]byte(host.Hostname), host)
 }
 
 /****************************************************************************************/
 
 // ProtectedHost describes a host protected by this masternode as well as its routes
 type ProtectedHost struct {
-	hostname string       // The FQDN of the host to be protected, i.e. "demo.gladius.io"
-	routes   *ctrie.Ctrie // The routes known for this host
+	Hostname string       // The FQDN of the host to be protected, i.e. "demo.gladius.io"
+	Routes   *ctrie.Ctrie // The routes known for this host
 }
 
 // Constructs and returns a pointer to a new ProtectedHost struct
 func newProtectedHost(hostname string) *ProtectedHost {
 	return &ProtectedHost{
-		hostname: hostname,
-		routes:   ctrie.New(nil),
+		Hostname: hostname,
+		Routes:   ctrie.New(nil),
 	}
 }
 
 // AddRoute inserts a pointer to a Route struct into the routes ctrie
 // of a ProtectedHost
 func (h *ProtectedHost) AddRoute(route *Route) {
-	h.routes.Insert([]byte(route.route), route)
+	h.Routes.Insert([]byte(route.Route), route)
 }
 
 // LookupRoute attempts to lookup the Route entry under a ProtectedHost.
 // Returns a pointer to the Route struct if it is found, nil otherwise.
 func (h *ProtectedHost) LookupRoute(routepath string) *Route {
-	route, exists := h.routes.Lookup([]byte(routepath))
+	route, exists := h.Routes.Lookup([]byte(routepath))
 	if !exists {
 		return nil
 	}
@@ -116,11 +116,11 @@ func (h *ProtectedHost) CacheRoute(content []byte, path string) {
 // Route describes a particular route or asset that is known to exist for a
 // ProtectedHost
 type Route struct {
-	route   string // The route string, i.e. "/products" or "/images/foo.jpg"
-	nocache bool   // Set to true if this route should never be cached
-	hash    string // The hash of the object stored at this route
+	Route   string // The route string, i.e. "/products" or "/images/foo.jpg"
+	Nocache bool   // Set to true if this route should never be cached
+	Hash    string // The hash of the object stored at this route
 
-	seeders *kdtree.KDTree // KD-Tree of nodes that have this content
+	Seeders *kdtree.KDTree // KD-Tree of nodes that have this content
 }
 
 // Constructs and returns a pointer to a new Route struct

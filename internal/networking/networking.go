@@ -28,7 +28,7 @@ func StartProxy() {
 	// Create new network state object to keep track of edge nodes
 	netState := state.NewNetworkState()
 
-	go fasthttp.ListenAndServe(":8081", requestBuilder(string(loaderHTML), cache, netState))
+	go fasthttp.ListenAndServe(":8081", requestBuilder(string(loaderHTML), netState))
 
 	// Update network state every 30 seconds
 	ticker := time.NewTicker(time.Second * 30)
@@ -41,12 +41,12 @@ func StartProxy() {
 	}
 }
 
-func requestBuilder(loaderHTML string, cache *Cache, networkState *state.NetworkState) func(ctx *fasthttp.RequestCtx) {
+func requestBuilder(loaderHTML string, networkState *state.NetworkState) func(ctx *fasthttp.RequestCtx) {
 	// The actual serving function
 	return func(ctx *fasthttp.RequestCtx) {
 		hostname := string(ctx.Host()[:])
 		// If this host isn't recognized, break out
-		host := cache.LookupHost(hostname)
+		host := networkState.Cache.LookupHost(hostname)
 		if host == nil {
 			ctx.Error("Unsupported Host", fasthttp.StatusBadRequest)
 			return
@@ -59,14 +59,14 @@ func requestBuilder(loaderHTML string, cache *Cache, networkState *state.Network
 		}
 		path := u.RequestURI()
 		route := host.LookupRoute(path)
-		if route == nil || route.nocache {
-			code, content, err := proxyRequest(ctx, host.hostname+path)
+		if route == nil || route.Nocache {
+			code, content, err := proxyRequest(ctx, host.Hostname+path)
 			if err != nil {
 				log.Printf("Error proxying request: %v\n", err)
 				ctx.Error("Error handling request", code)
 				return
 			}
-			if !route.nocache {
+			if !route.Nocache {
 				go func() {
 					host.CacheRoute(content, path) // Cache this new content
 					// TODO (ALEX): Notify the p2p network of new content
@@ -77,16 +77,16 @@ func requestBuilder(loaderHTML string, cache *Cache, networkState *state.Network
 		// Reply from cache
 		ip := ctx.RemoteIP().String()
 		// Determine which content node will serve the assets for this request
-		contentNode, nodeErr := chooseContentNode(ip, http.JoinStrings(host.hostname, "/", route.hash), networkState)
+		contentNode, nodeErr := chooseContentNode(ip, http.JoinStrings(host.Hostname, "/", route.Hash), networkState)
 		if nodeErr != nil {
-			proxyRequest(ctx, host.hostname+path)
+			proxyRequest(ctx, host.Hostname+path)
 			return
 		}
 
 		// Hydrate the bootstrap HTML document we serve
-		contentRoute := http.JoinStrings("http://", contentNode, "/content?website=", host.hostname)
+		contentRoute := http.JoinStrings("http://", contentNode, "/content?website=", host.Hostname)
 		withLink := strings.Replace(loaderHTML, "{EDGEHOST}", contentRoute, 1)
-		withLinkAndHash := strings.Replace(withLink, "{EXPECTEDHASH}", host.LookupRoute(path).hash, 1)
+		withLinkAndHash := strings.Replace(withLink, "{EXPECTEDHASH}", host.LookupRoute(path).Hash, 1)
 		ctx.SetContentType("text/html")
 		ctx.SetBodyString(withLinkAndHash)
 	}
@@ -122,7 +122,7 @@ func getClosestServingNode(ipStr string, fileName string, netState *state.Networ
 		log.Printf("Could not parse IP address: %v", ip)
 		return "", fmt.Errorf("Could not parse IP address: %v", ip)
 	}
-	closestNodes, err := netState.GetNClosestNodes(ip, 5)
+	closestNodes, err := netState.GetNClosestNodes(ip, fileName, 5)
 	if err != nil {
 		log.Print(err)
 		return "", err

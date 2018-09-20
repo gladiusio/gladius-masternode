@@ -20,7 +20,7 @@ import (
 type NetworkState struct {
 	nodeSet map[*NetworkNode]bool // Set of all connected edge nodes
 
-	cache *Cache // Pointer to the content cache manager
+	Cache *Cache // Pointer to the content cache manager
 
 	geoIP *geoip2.Reader // Geo IP database reference
 
@@ -45,7 +45,7 @@ func NewNetworkState() *NetworkState {
 	// Setup
 	cache := newCache()
 	initCache(cache)
-	state.cache = cache
+	state.Cache = cache
 
 	// Initialize nodes and content
 	state.RefreshNetworkState()
@@ -81,6 +81,7 @@ func (n *NetworkState) refreshActiveNodes() {
 		log.Fatal(err)
 	}
 	// Parse the 'response' field from the response data
+
 	_nodes := gjson.GetBytes(responseBytes, "response.node_data_map")
 
 	// Update set of active nodes
@@ -123,6 +124,24 @@ func (n *NetworkState) refreshActiveNodes() {
 	n.mux.Lock()
 	n.nodeSet = newNodeSet
 	n.mux.Unlock()
+
+	// get list of required files (done above)
+	poolData := gjson.GetBytes(responseBytes, "response.pool_data.required_content.data")
+	fmt.Printf("REQUIRED CONTENT:\n%v\n", poolData)
+
+	// ask controld content_links endpoint for where to find all these files (have to modify controld code for new endpoint to return structs describing nodes instead of urls)
+	url = http.BuildControldEndpoint("/api/p2p/state/content_links")
+	responseBytes, err = http.PostJSON(url, []byte("{\"content\":[]}"))
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Printf("%v\n", gjson.ParseBytes(responseBytes))
+
+	// build kd-tree for each content file with the nodes returned by above ^ endpoint
+	// do so by looking up the nodes by their IP and port from the nodeSet already created earlier in this function
+
 }
 
 func incIP(ip net.IP) {
@@ -165,25 +184,26 @@ func (n *NetworkState) GeolocateIP(ip net.IP) (long float64, lat float64, retErr
 // the nearest n nodes to it.
 func (net *NetworkState) GetNClosestNodes(ip net.IP, asset string, n int) ([]*NetworkNode, error) {
 
-	// Check that we know about this asset
+	// // Check that we know about this asset
 
-	// Check that this asset is cached on at least one node
+	// // Check that this asset is cached on at least one node
 
-	long, lat, err := net.GeolocateIP(ip)
-	if err != nil {
-		return nil, fmt.Errorf("Error encountered when looking up coordinates for IP: %v\n\n%v", ip, err)
-	}
+	// long, lat, err := net.GeolocateIP(ip)
+	// if err != nil {
+	// 	return nil, fmt.Errorf("Error encountered when looking up coordinates for IP: %v\n\n%v", ip, err)
+	// }
 
-	// Find the closest neighboring node
-	neighbors := net.tree.KNN(NewNetworkNode(long, lat, ip, 0), n)
-	if len(neighbors) == 0 {
-		return nil, fmt.Errorf("Error: No neighbors were found in nearest neighbor search")
-	}
-	nodes := make([]*NetworkNode, len(neighbors))
-	for i := range neighbors {
-		nodes[i] = neighbors[i].(*NetworkNode)
-	}
-	return nodes, nil
+	// // Find the closest neighboring node
+	// neighbors := net.tree.KNN(NewNetworkNode(long, lat, ip, 0), n)
+	// if len(neighbors) == 0 {
+	// 	return nil, fmt.Errorf("Error: No neighbors were found in nearest neighbor search")
+	// }
+	// nodes := make([]*NetworkNode, len(neighbors))
+	// for i := range neighbors {
+	// 	nodes[i] = neighbors[i].(*NetworkNode)
+	// }
+	// return nodes, nil
+	return nil, nil
 }
 
 // RunningStateChanged returns a channel that updates when the running state
