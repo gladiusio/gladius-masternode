@@ -130,7 +130,7 @@ func (n *NetworkState) refreshActiveNodes() {
 	fmt.Printf("REQUIRED CONTENT:\n%v\n", poolData)
 
 	// ask controld content_links endpoint for where to find all these files (have to modify controld code for new endpoint to return structs describing nodes instead of urls)
-	url = http.BuildControldEndpoint("/api/p2p/state/content_links")
+	url = http.BuildControldEndpoint("/api/p2p/state/content_locations")
 	responseBytes, err = http.PostJSON(url, []byte("{\"content\":[]}"))
 
 	if err != nil {
