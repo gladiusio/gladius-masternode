@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"strings"
 
 	"github.com/hongshibao/go-kdtree"
 
@@ -125,8 +124,5 @@ type Route struct {
 
 // Constructs and returns a pointer to a new Route struct
 func newRoute(route string, nocache bool, hash string) *Route {
-	// Temporary route modifying logic
-	route = strings.Replace(route, "index.html", "", 1)
-	route = strings.Replace(route, ".html", "", 1)
 	return &Route{route, nocache, hash, nil}
 }
