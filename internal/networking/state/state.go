@@ -18,7 +18,7 @@ import (
 // NetworkState is a struct containing a K-D tree representation of the edge node pool
 // associated with this masternode
 type NetworkState struct {
-	nodeSet map[*NetworkNode]bool // Set of all connected edge nodes
+	nodeMap map[string]*NetworkNode // Map of all connected edge nodes. maps ethereum address to node pointer
 
 	Cache *Cache // Pointer to the content cache manager
 
@@ -85,7 +85,7 @@ func (n *NetworkState) refreshActiveNodes() {
 	_nodes := gjson.GetBytes(responseBytes, "response.node_data_map")
 
 	// Update set of active nodes
-	newNodeSet := make(map[*NetworkNode]bool)
+	newNodeMap := make(map[string]*NetworkNode)
 	_nodes.ForEach(func(key, value gjson.Result) bool {
 		heartbeat := value.Get("heartbeat.data").Int()
 		dif := time.Now().Unix() - heartbeat
@@ -117,12 +117,12 @@ func (n *NetworkState) refreshActiveNodes() {
 				files[i] = contentFiles[i].String()
 			}
 			newNode.ContentFiles = files
-			newNodeSet[newNode] = true
+			newNodeMap[key.String()] = newNode
 		}
 		return true
 	})
 	n.mux.Lock()
-	n.nodeSet = newNodeSet
+	n.nodeMap = newNodeMap
 	n.mux.Unlock()
 
 	// get list of required files (done above)
@@ -131,7 +131,7 @@ func (n *NetworkState) refreshActiveNodes() {
 
 	// ask controld content_links endpoint for where to find all these files (have to modify controld code for new endpoint to return structs describing nodes instead of urls)
 	url = http.BuildControldEndpoint("/api/p2p/state/content_locations")
-	responseBytes, err = http.PostJSON(url, []byte("{\"content\":[]}"))
+	responseBytes, err = http.PostJSON(url, []byte("{\"content\":"+poolData.String()+"}"))
 
 	if err != nil {
 		log.Fatal(err)
