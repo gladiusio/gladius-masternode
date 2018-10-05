@@ -147,30 +147,6 @@ func (n *NetworkState) refreshActiveNodes() {
 
 }
 
-func incIP(ip net.IP) {
-	for j := len(ip) - 1; j >= 0; j-- {
-		ip[j]++
-		if ip[j] > 0 {
-			break
-		}
-	}
-}
-
-func HostsFromCIDR(cidr string) []net.IP {
-	ip, network, err := net.ParseCIDR(cidr)
-	if err != nil {
-		log.Fatal(err)
-	}
-	var ips []net.IP
-	for ip := ip.Mask(network.Mask); network.Contains(ip); incIP(ip) {
-		ipCopy := make(net.IP, len(ip))
-		copy(ipCopy, ip)
-		ips = append(ips, ipCopy)
-	}
-
-	return ips[1 : len(ips)-1]
-}
-
 // GeolocateIP looks up the coordinates for a given ip address
 func (n *NetworkState) GeolocateIP(ip net.IP) (long float64, lat float64, retErr error) {
 	n.mux.Lock()
