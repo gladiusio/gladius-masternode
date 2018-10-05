@@ -1,6 +1,7 @@
 package http
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
@@ -22,6 +23,10 @@ func GetJSONBytes(url string) ([]byte, error) {
 	}
 
 	return bytes, nil
+}
+
+type ContentRequest struct {
+	Content json.RawMessage `json:"content"`
 }
 
 func PostJSON(url string, body []byte) ([]byte, error) {

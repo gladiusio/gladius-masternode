@@ -1,6 +1,7 @@
 package state
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"net"
@@ -131,8 +132,13 @@ func (n *NetworkState) refreshActiveNodes() {
 
 	// ask controld content_links endpoint for where to find all these files (have to modify controld code for new endpoint to return structs describing nodes instead of urls)
 	url = http.BuildControldEndpoint("/api/p2p/state/content_locations")
-	responseBytes, err = http.PostJSON(url, []byte("{\"content\":"+poolData.String()+"}"))
+	contentRequestJSON := http.ContentRequest{Content: []byte(poolData.String())}
+	payload, err := json.Marshal(contentRequestJSON)
+	if err != nil {
+		log.Printf("Encountered an error when parsing JSON to request locations of content: %v\n", err)
+	}
 
+	responseBytes, err = http.PostJSON(url, payload)
 	if err != nil {
 		log.Fatal(err)
 	}
