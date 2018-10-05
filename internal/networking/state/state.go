@@ -140,7 +140,7 @@ func (n *NetworkState) refreshActiveNodes() {
 
 	responseBytes, err = http.PostJSON(url, payload)
 	if err != nil {
-		log.Fatal(err)
+		fmt.Printf("Encountered an error when requesting locations of content from the controld: %v\n", err)
 	}
 
 	fmt.Printf("%v\n", gjson.ParseBytes(responseBytes))
