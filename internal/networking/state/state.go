@@ -128,7 +128,6 @@ func (n *NetworkState) refreshActiveNodes() {
 
 	// get list of required files (done above)
 	poolData := gjson.GetBytes(responseBytes, "response.pool_data.required_content.data")
-	fmt.Printf("REQUIRED CONTENT:\n%v\n", poolData)
 
 	// ask controld content_links endpoint for where to find all these files (have to modify controld code for new endpoint to return structs describing nodes instead of urls)
 	url = http.BuildControldEndpoint("/api/p2p/state/content_locations")
@@ -142,8 +141,6 @@ func (n *NetworkState) refreshActiveNodes() {
 	if err != nil {
 		fmt.Printf("Encountered an error when requesting locations of content from the controld: %v\n", err)
 	}
-
-	fmt.Printf("%v\n", gjson.ParseBytes(responseBytes))
 
 	// build kd-tree for each content file with the nodes returned by above ^ endpoint
 	// do so by looking up the nodes by their IP and port from the nodeSet already created earlier in this function
