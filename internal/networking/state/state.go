@@ -143,8 +143,12 @@ func (n *NetworkState) refreshActiveNodes() {
 	}
 
 	// build kd-tree for each content file with the nodes returned by above ^ endpoint
-	// do so by looking up the nodes by their IP and port from the nodeSet already created earlier in this function
-
+	contentInfo := gjson.GetBytes(responseBytes, "response")
+	contentInfo.ForEach(func(key, value gjson.Result) bool {
+		fmt.Println(key)
+		
+		return true
+	})
 }
 
 // GeolocateIP looks up the coordinates for a given ip address
