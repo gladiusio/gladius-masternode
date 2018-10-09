@@ -65,25 +65,23 @@ func (n *NetworkState) SetNetworkRunState(runState bool) {
 }
 
 func (n *NetworkState) RefreshNetworkState() {
-	n.refreshActiveNodes()
-	n.refreshContentTrees()
-}
-
-func (n *NetworkState) refreshContentTrees() {
-
-}
-
-// RefreshActiveNodes fetches the latest status of nodes in the pool
-func (n *NetworkState) refreshActiveNodes() {
-	// Make a request to controld for the currently active nodes
+	// Make a request to controld for the current p2p network state
 	url := http.BuildControldEndpoint("/api/p2p/state")
 	responseBytes, err := http.GetJSONBytes(url)
 	if err != nil {
-		log.Fatal(err)
+		log.Printf("Encountered an error when fetching p2p state from controld: \n%v\n", err)
+		return
 	}
-	// Parse the 'response' field from the response data
 
-	_nodes := gjson.GetBytes(responseBytes, "response.node_data_map")
+	n.refreshActiveNodes(responseBytes)
+	n.refreshContentTrees(responseBytes)
+}
+
+// RefreshActiveNodes fetches the latest status of nodes in the pool
+func (n *NetworkState) refreshActiveNodes(stateBytes []byte) {
+
+	// Parse the 'response' field from the response data
+	_nodes := gjson.GetBytes(stateBytes, "response.node_data_map")
 
 	// Update set of active nodes
 	newNodeMap := make(map[string]*NetworkNode)
@@ -125,28 +123,38 @@ func (n *NetworkState) refreshActiveNodes() {
 	n.mux.Lock()
 	n.nodeMap = newNodeMap
 	n.mux.Unlock()
+}
 
+func (n *NetworkState) refreshContentTrees(stateBytes []byte) {
 	// get list of required files (done above)
-	poolData := gjson.GetBytes(responseBytes, "response.pool_data.required_content.data")
+	poolData := gjson.GetBytes(stateBytes, "response.pool_data.required_content.data")
 
 	// ask controld content_links endpoint for where to find all these files (have to modify controld code for new endpoint to return structs describing nodes instead of urls)
-	url = http.BuildControldEndpoint("/api/p2p/state/content_locations")
+	url := http.BuildControldEndpoint("/api/p2p/state/content_locations")
 	contentRequestJSON := http.ContentRequest{Content: []byte(poolData.String())}
 	payload, err := json.Marshal(contentRequestJSON)
 	if err != nil {
 		log.Printf("Encountered an error when parsing JSON to request locations of content: %v\n", err)
 	}
 
-	responseBytes, err = http.PostJSON(url, payload)
+	responseBytes, err := http.PostJSON(url, payload)
 	if err != nil {
-		fmt.Printf("Encountered an error when requesting locations of content from the controld: %v\n", err)
+		log.Printf("Encountered an error when requesting locations of content from the controld: %v\n", err)
 	}
 
-	// build kd-tree for each content file with the nodes returned by above ^ endpoint
+	// build kd-tree for each content file
 	contentInfo := gjson.GetBytes(responseBytes, "response")
 	contentInfo.ForEach(func(key, value gjson.Result) bool {
 		fmt.Println(key)
-		
+		substrs := strings.SplitN(key.String(), "/", 1)
+		hostname := substrs[0]
+		file := substrs[1]
+		host := n.Cache.LookupHost(hostname)
+		if host == nil {
+			log.Printf("Could not find host in cache when building kd-tree for asset: %s\n", key.String())
+			return true
+		}
+
 		return true
 	})
 }
