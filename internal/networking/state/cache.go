@@ -73,15 +73,17 @@ func (c *Cache) AddHost(host *ProtectedHost) {
 
 // ProtectedHost describes a host protected by this masternode as well as its routes
 type ProtectedHost struct {
-	Hostname string       // The FQDN of the host to be protected, i.e. "demo.gladius.io"
-	Routes   *ctrie.Ctrie // The routes known for this host
+	Hostname   string       // The FQDN of the host to be protected, i.e. "demo.gladius.io"
+	Routes     *ctrie.Ctrie // The set of routes known for this host map as http route : *route struct
+	FileLookup *ctrie.Ctrie // A lookup table for finding routes based on their asset name
 }
 
 // Constructs and returns a pointer to a new ProtectedHost struct
 func newProtectedHost(hostname string) *ProtectedHost {
 	return &ProtectedHost{
-		Hostname: hostname,
-		Routes:   ctrie.New(nil),
+		Hostname:   hostname,
+		Routes:     ctrie.New(nil),
+		FileLookup: ctrie.New(nil),
 	}
 }
 
@@ -89,12 +91,24 @@ func newProtectedHost(hostname string) *ProtectedHost {
 // of a ProtectedHost
 func (h *ProtectedHost) AddRoute(route *Route) {
 	h.Routes.Insert([]byte(route.Route), route)
+	h.FileLookup.Insert([]byte(h.Hostname+"/"+route.Hash), route)
 }
 
 // LookupRoute attempts to lookup the Route entry under a ProtectedHost.
 // Returns a pointer to the Route struct if it is found, nil otherwise.
 func (h *ProtectedHost) LookupRoute(routepath string) *Route {
 	route, exists := h.Routes.Lookup([]byte(routepath))
+	if !exists {
+		return nil
+	}
+	return route.(*Route)
+}
+
+// LookupRouteByFile attempts to lookup the Route entry under a ProtectedHost
+// by its file name.
+// Returns a pointer to the Route struct if it is found, nil otherwise.
+func (h *ProtectedHost) LookupRouteByFile(filename string) *Route {
+	route, exists := h.FileLookup.Lookup([]byte(filename))
 	if !exists {
 		return nil
 	}

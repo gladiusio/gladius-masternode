@@ -150,6 +150,7 @@ func (n *NetworkState) refreshContentTrees(stateBytes []byte) {
 		hostname := substrs[0]
 		file := substrs[1]
 		host := n.Cache.LookupHost(hostname)
+		route := host.LookupRouteByFile(file)
 		if host == nil {
 			log.Printf("Could not find host in cache when building kd-tree for asset: %s\n", key.String())
 			return true
