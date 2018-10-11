@@ -86,7 +86,7 @@ func requestBuilder(loaderHTML string, networkState *state.NetworkState) func(ct
 		// Hydrate the bootstrap HTML document we serve
 		contentRoute := http.JoinStrings("http://", contentNode, "/content?website=", host.Hostname)
 		withLink := strings.Replace(loaderHTML, "{EDGEHOST}", contentRoute, 1)
-		withLinkAndHash := strings.Replace(withLink, "{EXPECTEDHASH}", host.LookupRoute(path).Hash, 1)
+		withLinkAndHash := strings.Replace(withLink, "{EXPECTEDHASH}", route.Hash, 1)
 		ctx.SetContentType("text/html")
 		ctx.SetBodyString(withLinkAndHash)
 	}
