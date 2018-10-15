@@ -31,6 +31,7 @@ func initCache(c *Cache) {
 	// Open cache primer file if given
 	primer := viper.GetString("CACHE_PRIMER")
 	if primer != "" {
+		fmt.Println("Loading cache from primer file...")
 		jsonFile, err := os.Open(primer)
 		if err != nil {
 			fmt.Println(err)
@@ -91,7 +92,7 @@ func newProtectedHost(hostname string) *ProtectedHost {
 // of a ProtectedHost
 func (h *ProtectedHost) AddRoute(route *Route) {
 	h.Routes.Insert([]byte(route.Route), route)
-	h.FileLookup.Insert([]byte(h.Hostname+"/"+route.Hash), route)
+	h.FileLookup.Insert([]byte(route.Hash), route)
 }
 
 // LookupRoute attempts to lookup the Route entry under a ProtectedHost.
@@ -140,3 +141,7 @@ type Route struct {
 func newRoute(route string, nocache bool, hash string) *Route {
 	return &Route{route, nocache, hash, nil}
 }
+
+// func (r *Route) MakeSeedersTree() {
+
+// }
