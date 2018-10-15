@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"sync"
 
 	"github.com/hongshibao/go-kdtree"
 
@@ -134,14 +135,29 @@ type Route struct {
 	Nocache bool   // Set to true if this route should never be cached
 	Hash    string // The hash of the object stored at this route
 
-	Seeders *kdtree.KDTree // KD-Tree of nodes that have this content
+	Seeders    *kdtree.KDTree // KD-Tree of nodes that have this content
+	seedersMux sync.Mutex
 }
 
 // Constructs and returns a pointer to a new Route struct
 func newRoute(route string, nocache bool, hash string) *Route {
-	return &Route{route, nocache, hash, nil}
+	return &Route{
+		Route:   route,
+		Nocache: nocache,
+		Hash:    hash,
+		Seeders: nil,
+	}
 }
 
-// func (r *Route) MakeSeedersTree() {
-
-// }
+// MakeSeedersTree takes an array of *NetworkNode's and creates
+// a KD-tree of them to store in the Route struct
+func (r *Route) MakeSeedersTree(seeders []*NetworkNode) {
+	nodesAsPoints := make([]kdtree.Point, len(seeders))
+	for i := range seeders {
+		nodesAsPoints[i] = seeders[i]
+	}
+	newTree := kdtree.NewKDTree(nodesAsPoints)
+	r.seedersMux.Lock()
+	r.Seeders = newTree
+	r.seedersMux.Unlock()
+}

@@ -2,7 +2,6 @@ package state
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 	"net"
 	"strconv"
@@ -36,7 +35,6 @@ func NewNetworkState() *NetworkState {
 
 	// Initialize the Geo IP database
 	if viper.GetBool("DISABLE_GEOIP") != true {
-		fmt.Println("DisableGeoip not true")
 		db, err := InitGeoIP()
 		if err != nil {
 			log.Fatal(err)
@@ -88,11 +86,10 @@ func (n *NetworkState) refreshActiveNodes(stateBytes []byte) {
 	newNodeMap := make(map[string]*NetworkNode)
 	_nodes.ForEach(func(key, value gjson.Result) bool {
 		if viper.GetBool("IGNORE_HEARTBEAT") != true {
-			fmt.Println("ignore heartbeat not true")
 			heartbeat := value.Get("heartbeat.data").Int()
 			dif := time.Now().Unix() - heartbeat
 			if dif > 5 {
-				fmt.Printf("Ignoring node with old heartbeat. %v seconds old\n", dif)
+				log.Printf("Ignoring node with old heartbeat. %v seconds old\n", dif)
 				return true
 			}
 		}
@@ -121,7 +118,6 @@ func (n *NetworkState) refreshActiveNodes(stateBytes []byte) {
 			}
 			newNode.ContentFiles = files
 			newNodeMap[key.String()] = newNode
-			fmt.Println("added node to nodemap")
 		}
 		return true
 	})
@@ -166,15 +162,12 @@ func (n *NetworkState) refreshContentTrees(stateBytes []byte) {
 		}
 
 		// lookup nodes by address in nodeMap
-		seeders := make([]*NetworkNode, len(value.Array()))
-		fmt.Printf("Nodemap: %v\n", n.nodeMap)
+		seeders := make([]*NetworkNode, 0)
 		value.ForEach(func(key, value gjson.Result) bool {
-			fmt.Printf("Found this address in JSON: %v\n", value.Get("address").String())
-
 			seeders = append(seeders, n.nodeMap[value.Get("address").String()])
 			return true
 		})
-		//route.MakeSeedersTree()
+		route.MakeSeedersTree(seeders)
 
 		return true
 	})
