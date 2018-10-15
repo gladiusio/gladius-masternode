@@ -35,7 +35,8 @@ func NewNetworkState() *NetworkState {
 	state := &NetworkState{running: true, runChannel: make(chan bool)}
 
 	// Initialize the Geo IP database
-	if viper.GetBool("DisableGeoip") != true {
+	if viper.GetBool("DISABLE_GEOIP") != true {
+		fmt.Println("DisableGeoip not true")
 		db, err := InitGeoIP()
 		if err != nil {
 			log.Fatal(err)
@@ -86,11 +87,14 @@ func (n *NetworkState) refreshActiveNodes(stateBytes []byte) {
 	// Update set of active nodes
 	newNodeMap := make(map[string]*NetworkNode)
 	_nodes.ForEach(func(key, value gjson.Result) bool {
-		heartbeat := value.Get("heartbeat.data").Int()
-		dif := time.Now().Unix() - heartbeat
-		if dif > 5 {
-			fmt.Printf("Ignoring node with old heartbeat. Difference: %v seconds old\n", dif)
-			return true
+		if viper.GetBool("IGNORE_HEARTBEAT") != true {
+			fmt.Println("ignore heartbeat not true")
+			heartbeat := value.Get("heartbeat.data").Int()
+			dif := time.Now().Unix() - heartbeat
+			if dif > 5 {
+				fmt.Printf("Ignoring node with old heartbeat. %v seconds old\n", dif)
+				return true
+			}
 		}
 		ipStr := strings.TrimSpace(value.Get("ip_address.data").String())
 		ip := net.ParseIP(ipStr)
@@ -117,6 +121,7 @@ func (n *NetworkState) refreshActiveNodes(stateBytes []byte) {
 			}
 			newNode.ContentFiles = files
 			newNodeMap[key.String()] = newNode
+			fmt.Println("added node to nodemap")
 		}
 		return true
 	})
@@ -145,16 +150,31 @@ func (n *NetworkState) refreshContentTrees(stateBytes []byte) {
 	// build kd-tree for each content file
 	contentInfo := gjson.GetBytes(responseBytes, "response")
 	contentInfo.ForEach(func(key, value gjson.Result) bool {
-		fmt.Println(key)
-		substrs := strings.SplitN(key.String(), "/", 1)
+		substrs := strings.SplitN(key.String(), "/", 2)
 		hostname := substrs[0]
 		file := substrs[1]
 		host := n.Cache.LookupHost(hostname)
-		route := host.LookupRouteByFile(file)
 		if host == nil {
-			log.Printf("Could not find host in cache when building kd-tree for asset: %s\n", key.String())
+			log.Printf("Could not find host \"%s\" in cache when building kd-tree for asset: %s\n", hostname, key.String())
 			return true
 		}
+		// see if a route exists for this file
+		route := host.LookupRouteByFile(file)
+		if route == nil { // Ignore this file. Potentially malicious
+			log.Printf("Encountered a file on the p2p network that the masternode did not know about: %s\n", key.String())
+			return true
+		}
+
+		// lookup nodes by address in nodeMap
+		seeders := make([]*NetworkNode, len(value.Array()))
+		fmt.Printf("Nodemap: %v\n", n.nodeMap)
+		value.ForEach(func(key, value gjson.Result) bool {
+			fmt.Printf("Found this address in JSON: %v\n", value.Get("address").String())
+
+			seeders = append(seeders, n.nodeMap[value.Get("address").String()])
+			return true
+		})
+		//route.MakeSeedersTree()
 
 		return true
 	})
@@ -162,6 +182,9 @@ func (n *NetworkState) refreshContentTrees(stateBytes []byte) {
 
 // GeolocateIP looks up the coordinates for a given ip address
 func (n *NetworkState) GeolocateIP(ip net.IP) (long float64, lat float64, retErr error) {
+	if viper.GetBool("DISABLE_GEOIP") == true {
+		return 0.0, 0.0, nil
+	}
 	n.mux.Lock()
 	defer n.mux.Unlock()
 	city, err := n.geoIP.City(ip)
