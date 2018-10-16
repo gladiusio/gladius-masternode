@@ -59,25 +59,34 @@ func requestBuilder(loaderHTML string, networkState *state.NetworkState) func(ct
 		}
 		path := u.RequestURI()
 		route := host.LookupRoute(path)
-		if route == nil || route.Nocache {
-			code, content, err := proxyRequest(ctx, host.Hostname+path)
+
+		if route == nil { // If we haven't seen this route yet
+			code, content, err := proxyRequest(ctx, host.Hostname+path) // Proxy the request
 			if err != nil {
 				log.Printf("Error proxying request: %v\n", err)
 				ctx.Error("Error handling request", code)
 				return
 			}
-			if !route.Nocache {
-				go func() {
-					host.CacheRoute(content, path) // Cache this new content
-					// TODO (ALEX): Notify the p2p network of new content
-				}()
+			go func() {
+				host.CacheRoute(content, path) // Cache this new content
+				// TODO: create HTML template for this content
+				// TODO (ALEX): Notify the p2p network of new content
+			}()
+			return
+		} else if route.Nocache { // If we know that this route is explicitly not to be cached
+			code, content, err := proxyRequest(ctx, host.Hostname+path) // Proxy it
+			if err != nil {
+				log.Printf("Error proxying request: %v\n", err)
+				ctx.Error("Error handling request", code)
 			}
 			return
 		}
+
 		// Reply from cache
 		ip := ctx.RemoteIP().String()
 		// Determine which content node will serve the assets for this request
 		contentNode, nodeErr := chooseContentNode(ip, http.JoinStrings(host.Hostname, "/", route.Hash), networkState)
+		contentNodes, nodeErr := chooseContentNodes(ip, host, route, networkState)
 		if nodeErr != nil {
 			proxyRequest(ctx, host.Hostname+path)
 			return
@@ -99,6 +108,8 @@ func chooseContentNode(ipStr string, fileName string, netState *state.NetworkSta
 
 	return contentNode, nodeErr
 }
+
+//func chooseContentNodes(ipStr string, host)
 
 func proxyRequest(ctx *fasthttp.RequestCtx, url string) (int, []byte, error) {
 	c := &fasthttp.Client{}
