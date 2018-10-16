@@ -11,6 +11,7 @@ import (
 
 	"github.com/gladiusio/gladius-masternode/internal/http"
 	"github.com/gladiusio/gladius-masternode/internal/networking/state"
+	"github.com/spf13/viper"
 	"github.com/valyala/fasthttp"
 )
 
@@ -83,10 +84,9 @@ func requestBuilder(loaderHTML string, networkState *state.NetworkState) func(ct
 		}
 
 		// Reply from cache
-		ip := ctx.RemoteIP().String()
-		// Determine which content node will serve the assets for this request
-		contentNode, nodeErr := chooseContentNode(ip, http.JoinStrings(host.Hostname, "/", route.Hash), networkState)
-		contentNodes, nodeErr := chooseContentNodes(ip, host, route, networkState)
+		ip := ctx.RemoteIP()
+		// Determine which content nodes will serve the assets for this request
+		contentNodes, nodeErr := chooseContentNodes(ip, route, networkState)
 		if nodeErr != nil {
 			proxyRequest(ctx, host.Hostname+path)
 			return
@@ -101,15 +101,24 @@ func requestBuilder(loaderHTML string, networkState *state.NetworkState) func(ct
 	}
 }
 
-// chooseContentNode will return the IP address of the appropriate content node
-// to serve content from
-func chooseContentNode(ipStr string, fileName string, netState *state.NetworkState) (string, error) {
-	contentNode, nodeErr := getClosestServingNode(ipStr, fileName, netState)
-
-	return contentNode, nodeErr
+func chooseContentNodes(ip net.IP, route *state.Route, netState *state.NetworkState) ([]string, error) {
+	long, lat := 0.0, 0.0
+	if viper.GetBool("DISABLE_GEOIP") != true {
+		long, lat, err := netState.GeolocateIP(ip)
+		if err != nil {
+			return nil, fmt.Errorf("Error encountered when looking up coordinates for IP: %v\n\n%v", ip, err)
+		}
+	}
+	nearestNeighbors, err := route.GetNearestNSeeders(5, state.NewNetworkNode(long, lat, ip, 0))
+	if err != nil {
+		return nil, err
+	}
+	nodeAddresses := make([]string, len(nearestNeighbors))
+	for i, node := range nearestNeighbors {
+		nodeAddresses[i] = node.StringAddress()
+	}
+	return nodeAddresses, nil
 }
-
-//func chooseContentNodes(ipStr string, host)
 
 func proxyRequest(ctx *fasthttp.RequestCtx, url string) (int, []byte, error) {
 	c := &fasthttp.Client{}
@@ -123,30 +132,4 @@ func proxyRequest(ctx *fasthttp.RequestCtx, url string) (int, []byte, error) {
 	ctx.SetBody(body)
 	ctx.SetStatusCode(statusCode)
 	return statusCode, body, nil
-}
-
-// getClosestServingNode tries to find a nearby content node that is hosting
-// the desired file. If it does not find one, an error will be returned
-func getClosestServingNode(ipStr string, fileName string, netState *state.NetworkState) (string, error) {
-	ip := net.ParseIP(ipStr)
-	if ip == nil {
-		log.Printf("Could not parse IP address: %v", ip)
-		return "", fmt.Errorf("Could not parse IP address: %v", ip)
-	}
-	closestNodes, err := netState.GetNClosestNodes(ip, fileName, 5)
-	if err != nil {
-		log.Print(err)
-		return "", err
-	}
-
-	// Check these nodes for the desired file
-	for _, node := range closestNodes {
-		for _, file := range node.ContentFiles {
-			if file == fileName {
-				// Found the file in a node
-				return node.StringAddress(), nil
-			}
-		}
-	}
-	return "", fmt.Errorf("Could not find the requested content on a nearby node: %v", fileName)
 }

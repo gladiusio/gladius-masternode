@@ -153,11 +153,27 @@ func newRoute(route string, nocache bool, hash string) *Route {
 // a KD-tree of them to store in the Route struct
 func (r *Route) MakeSeedersTree(seeders []*NetworkNode) {
 	nodesAsPoints := make([]kdtree.Point, len(seeders))
-	for i := range seeders {
-		nodesAsPoints[i] = seeders[i]
+	for i, node := range seeders {
+		nodesAsPoints[i] = node
 	}
 	newTree := kdtree.NewKDTree(nodesAsPoints)
 	r.seedersMux.Lock()
 	r.Seeders = newTree
 	r.seedersMux.Unlock()
+}
+
+// GetNearestNSeeders takes an integer n and a node (representing a user sending a request)
+// and returns the nearest n seed nodes to them.
+func (r *Route) GetNearestNSeeders(n int, node *NetworkNode) ([]*NetworkNode, error) {
+	r.seedersMux.Lock()
+	nearestSeeders := r.Seeders.KNN(node, n)
+	r.seedersMux.Unlock()
+	if len(nearestSeeders) == 0 {
+		return nil, fmt.Errorf("Error: No seed nodes were found in nearest neighbor search")
+	}
+	seedNodes := make([]*NetworkNode, len(nearestSeeders))
+	for i, node := range nearestSeeders {
+		seedNodes[i] = node.(*NetworkNode)
+	}
+	return seedNodes, nil
 }

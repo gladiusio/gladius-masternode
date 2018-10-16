@@ -188,32 +188,6 @@ func (n *NetworkState) GeolocateIP(ip net.IP) (long float64, lat float64, retErr
 	return city.Location.Longitude, city.Location.Latitude, nil
 }
 
-// GetNClosestNodes takes a given IP address and cached asset name and attempts to lookup
-// the nearest n nodes to it.
-func (net *NetworkState) GetNClosestNodes(ip net.IP, asset string, n int) ([]*NetworkNode, error) {
-
-	// // Check that we know about this asset
-
-	// // Check that this asset is cached on at least one node
-
-	// long, lat, err := net.GeolocateIP(ip)
-	// if err != nil {
-	// 	return nil, fmt.Errorf("Error encountered when looking up coordinates for IP: %v\n\n%v", ip, err)
-	// }
-
-	// // Find the closest neighboring node
-	// neighbors := net.tree.KNN(NewNetworkNode(long, lat, ip, 0), n)
-	// if len(neighbors) == 0 {
-	// 	return nil, fmt.Errorf("Error: No neighbors were found in nearest neighbor search")
-	// }
-	// nodes := make([]*NetworkNode, len(neighbors))
-	// for i := range neighbors {
-	// 	nodes[i] = neighbors[i].(*NetworkNode)
-	// }
-	// return nodes, nil
-	return nil, nil
-}
-
 // RunningStateChanged returns a channel that updates when the running state
 // is changed
 func (n *NetworkState) RunningStateChanged() chan (bool) {
