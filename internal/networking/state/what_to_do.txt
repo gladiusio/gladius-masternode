@@ -5,6 +5,14 @@ when a request is made for an unknown route:
     continue proxying the requests for the same resource until the next network state refresh provides the nodes that are hosting the content.
 
 
-when updating the network and content state:
-    ask controld for map of which nodes have what files
-    lookup file in the cache by host and file hash (name) to see if it exists. if so, recreate the kd-tree. if it does not exist, ignore it
+(done) when updating the network and content state:
+    (done) ask controld for map of which nodes have what files
+    (done) lookup file in the cache by host and file hash (name) to see if it exists. if so, recreate the kd-tree. if it does not exist, ignore it
+
+
+node failover:
+    need some kind of list in the iframe to store possible nodes to retry fetching content from if a request fails
+
+
+    !!! subsequent asset requests after the initial html page load need a way to have a list of failover seed nodes that have the desired content as well
+        -might have to lookup all of these nodes per asset on the initial page render

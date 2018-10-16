@@ -1,0 +1,13 @@
+{
+    "routes": [
+        {
+            "path": "123",
+            "hash": "123"
+        },
+        {
+            "path": "456",
+            "hash": "456"
+        }
+    ],
+    "hostname": "abc.com"
+}
