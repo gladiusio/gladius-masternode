@@ -1,7 +1,7 @@
 package state
 
 import (
-	"encoding/json"
+	"fmt"
 	"log"
 	"net"
 	"strconv"
@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/gladiusio/gladius-masternode/internal/http"
+	kdtree "github.com/hongshibao/go-kdtree"
 	"github.com/oschwald/geoip2-golang"
 	"github.com/spf13/viper"
 	"github.com/tidwall/gjson"
@@ -19,6 +20,7 @@ import (
 // associated with this masternode
 type NetworkState struct {
 	nodeMap map[string]*NetworkNode // Map of all connected edge nodes. maps ethereum address to node pointer
+	tree    *kdtree.KDTree          // K-D Tree to store network node structs
 
 	Cache *Cache // Pointer to the content cache manager
 
@@ -73,7 +75,6 @@ func (n *NetworkState) RefreshNetworkState() {
 	}
 
 	n.refreshActiveNodes(responseBytes)
-	n.refreshContentTrees(responseBytes)
 }
 
 // RefreshActiveNodes fetches the latest status of nodes in the pool
@@ -81,14 +82,13 @@ func (n *NetworkState) refreshActiveNodes(stateBytes []byte) {
 
 	// Parse the 'response' field from the response data
 	_nodes := gjson.GetBytes(stateBytes, "response.node_data_map")
-
-	// Update set of active nodes
-	newNodeMap := make(map[string]*NetworkNode)
+	// Create NetworkNode structs from the list of nodes returned from controld
+	nodes := make([]kdtree.Point, 0)
 	_nodes.ForEach(func(key, value gjson.Result) bool {
 		if viper.GetBool("IGNORE_HEARTBEAT") != true {
 			heartbeat := value.Get("heartbeat.data").Int()
 			dif := time.Now().Unix() - heartbeat
-			if dif > 5 {
+			if dif > 10 {
 				log.Printf("Ignoring node with old heartbeat. %v seconds old\n", dif)
 				return true
 			}
@@ -117,60 +117,40 @@ func (n *NetworkState) refreshActiveNodes(stateBytes []byte) {
 				files[i] = contentFiles[i].String()
 			}
 			newNode.ContentFiles = files
-			newNodeMap[key.String()] = newNode
 		}
 		return true
 	})
+
+	// Create a new KD-Tree with the new set of nodes
+	newTree := kdtree.NewKDTree(nodes)
 	n.mux.Lock()
-	n.nodeMap = newNodeMap
+	n.tree = newTree
 	n.mux.Unlock()
 }
 
-func (n *NetworkState) refreshContentTrees(stateBytes []byte) {
-	// get list of required files (done above)
-	poolData := gjson.GetBytes(stateBytes, "response.pool_data.required_content.data")
-
-	// ask controld content_links endpoint for where to find all these files (have to modify controld code for new endpoint to return structs describing nodes instead of urls)
-	url := http.BuildControldEndpoint("/api/p2p/state/content_locations")
-	contentRequestJSON := http.ContentRequest{Content: []byte(poolData.String())}
-	payload, err := json.Marshal(contentRequestJSON)
+// GetNClosestNodes takes an IP address and returns the n nearest NetworkNodes
+// found in proximity to that IP address using geoip lookup.
+func (net *NetworkState) GetNClosestNodes(ip net.IP, n int) ([]*NetworkNode, error) {
+	if net.tree == nil {
+		return nil, fmt.Errorf("Could not find closest node, no nodes are available")
+	}
+	long, lat, err := net.GeolocateIP(ip)
 	if err != nil {
-		log.Printf("Encountered an error when parsing JSON to request locations of content: %v\n", err)
+		return nil, fmt.Errorf("Error encountered when looking up coordinates for IP: %v\n\n%v", ip, err)
 	}
 
-	responseBytes, err := http.PostJSON(url, payload)
-	if err != nil {
-		log.Printf("Encountered an error when requesting locations of content from the controld: %v\n", err)
+	// Find the closest neighboring node
+	net.mux.Lock()
+	neighbors := net.tree.KNN(NewNetworkNode(long, lat, ip, 0), 1)
+	net.mux.Unlock()
+	if len(neighbors) == 0 {
+		return nil, fmt.Errorf("Error: No neighbors were found in nearest neighbor search")
 	}
-
-	// build kd-tree for each content file
-	contentInfo := gjson.GetBytes(responseBytes, "response")
-	contentInfo.ForEach(func(key, value gjson.Result) bool {
-		substrs := strings.SplitN(key.String(), "/", 2)
-		hostname := substrs[0]
-		file := substrs[1]
-		host := n.Cache.LookupHost(hostname)
-		if host == nil {
-			log.Printf("Could not find host \"%s\" in cache when building kd-tree for asset: %s\n", hostname, key.String())
-			return true
-		}
-		// see if a route exists for this file
-		route := host.LookupRouteByFile(file)
-		if route == nil { // Ignore this file. Potentially malicious
-			log.Printf("Encountered a file on the p2p network that the masternode did not know about: %s\n", key.String())
-			return true
-		}
-
-		// lookup nodes by address in nodeMap
-		seeders := make([]*NetworkNode, 0)
-		value.ForEach(func(key, value gjson.Result) bool {
-			seeders = append(seeders, n.nodeMap[value.Get("address").String()])
-			return true
-		})
-		route.MakeSeedersTree(seeders)
-
-		return true
-	})
+	nodes := make([]*NetworkNode, len(neighbors))
+	for i := range neighbors {
+		nodes[i] = neighbors[i].(*NetworkNode)
+	}
+	return nodes, nil
 }
 
 // GeolocateIP looks up the coordinates for a given ip address

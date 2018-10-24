@@ -2,16 +2,12 @@ package networking
 
 import (
 	"fmt"
-	"io/ioutil"
 	"log"
 	"net"
 	"net/url"
-	"strings"
 	"time"
 
-	"github.com/gladiusio/gladius-masternode/internal/http"
 	"github.com/gladiusio/gladius-masternode/internal/networking/state"
-	"github.com/spf13/viper"
 	"github.com/valyala/fasthttp"
 )
 
@@ -19,17 +15,10 @@ import (
 func StartProxy() {
 	fmt.Println("Starting...")
 
-	fmt.Println("Loading route files")
-	// read the whole file at once
-	loaderHTML, err := ioutil.ReadFile("./html/iframe_loader.html")
-	if err != nil {
-		panic(err)
-	}
-
 	// Create new network state object to keep track of edge nodes
 	netState := state.NewNetworkState()
 
-	go fasthttp.ListenAndServe(":8081", requestBuilder(string(loaderHTML), netState))
+	go fasthttp.ListenAndServe(":8081", requestBuilder(netState))
 
 	// Update network state every 30 seconds
 	ticker := time.NewTicker(time.Second * 30)
@@ -42,7 +31,7 @@ func StartProxy() {
 	}
 }
 
-func requestBuilder(loaderHTML string, networkState *state.NetworkState) func(ctx *fasthttp.RequestCtx) {
+func requestBuilder(networkState *state.NetworkState) func(ctx *fasthttp.RequestCtx) {
 	// The actual serving function
 	return func(ctx *fasthttp.RequestCtx) {
 		hostname := string(ctx.Host()[:])
@@ -75,7 +64,7 @@ func requestBuilder(loaderHTML string, networkState *state.NetworkState) func(ct
 			}()
 			return
 		} else if route.Nocache { // If we know that this route is explicitly not to be cached
-			code, content, err := proxyRequest(ctx, host.Hostname+path) // Proxy it
+			code, _, err := proxyRequest(ctx, host.Hostname+path) // Proxy it
 			if err != nil {
 				log.Printf("Error proxying request: %v\n", err)
 				ctx.Error("Error handling request", code)
@@ -84,32 +73,19 @@ func requestBuilder(loaderHTML string, networkState *state.NetworkState) func(ct
 		}
 
 		// Reply from cache
-		ip := ctx.RemoteIP()
+		//ip := ctx.RemoteIP()
 		// Determine which content nodes will serve the assets for this request
-		contentNodes, nodeErr := chooseContentNodes(ip, route, networkState)
-		if nodeErr != nil {
-			proxyRequest(ctx, host.Hostname+path)
-			return
-		}
-
-		// Hydrate the bootstrap HTML document we serve
-		contentRoute := http.JoinStrings("http://", contentNode, "/content?website=", host.Hostname)
-		withLink := strings.Replace(loaderHTML, "{EDGEHOST}", contentRoute, 1)
-		withLinkAndHash := strings.Replace(withLink, "{EXPECTEDHASH}", route.Hash, 1)
-		ctx.SetContentType("text/html")
-		ctx.SetBodyString(withLinkAndHash)
+		// (later to be injected along with the service worker code to index pages)
+		// contentNodes, nodeErr := chooseContentNodes(ip, networkState)
+		// if nodeErr != nil {
+		// 	proxyRequest(ctx, host.Hostname+path)
+		// 	return
+		// }
 	}
 }
 
-func chooseContentNodes(ip net.IP, route *state.Route, netState *state.NetworkState) ([]string, error) {
-	long, lat := 0.0, 0.0
-	if viper.GetBool("DISABLE_GEOIP") != true {
-		long, lat, err := netState.GeolocateIP(ip)
-		if err != nil {
-			return nil, fmt.Errorf("Error encountered when looking up coordinates for IP: %v\n\n%v", ip, err)
-		}
-	}
-	nearestNeighbors, err := route.GetNearestNSeeders(5, state.NewNetworkNode(long, lat, ip, 0))
+func chooseContentNodes(ip net.IP, netState *state.NetworkState) ([]string, error) {
+	nearestNeighbors, err := netState.GetNClosestNodes(ip, 5)
 	if err != nil {
 		return nil, err
 	}
