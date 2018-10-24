@@ -59,7 +59,6 @@ func requestBuilder(networkState *state.NetworkState) func(ctx *fasthttp.Request
 			}
 			go func() {
 				host.CacheRoute(content, path) // Cache this new content
-				// TODO: create HTML template for this content
 				// TODO (ALEX): Notify the p2p network of new content
 			}()
 			return
