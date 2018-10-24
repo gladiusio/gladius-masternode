@@ -42,7 +42,7 @@ clean:
 # dependency management
 dependencies:
 	# install go packages
-	dep ensure
+	GO111MODULE=on go mod vendor
 
 test: $(MN_SRC)
 	$(GOTEST) ./...

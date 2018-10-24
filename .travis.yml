@@ -9,12 +9,10 @@ notifications:
   email: false
 
 before_install:
-  # Setup dependency management tool "dep"
-  - curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
   - go get -v gopkg.in/alecthomas/gometalinter.v2
 
 install:
-  - dep ensure
+  - make dependencies
   - gometalinter.v2 --install
 
 before_script:
