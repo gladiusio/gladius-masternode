@@ -1,16 +1,16 @@
 package masternode
 
 import (
+	"github.com/gladiusio/gladius-common/pkg/manager"
+	common "github.com/gladiusio/gladius-common/pkg/utils"
 	"github.com/gladiusio/gladius-masternode/config"
 	"github.com/gladiusio/gladius-masternode/internal/networking"
-	gconfig "github.com/gladiusio/gladius-utils/config"
-	"github.com/gladiusio/gladius-utils/init/manager"
 	log "github.com/sirupsen/logrus"
 )
 
 // Run the Gladius Masternode
 func Run() {
-	base, err := gconfig.GetGladiusBase()
+	base, err := common.GetGladiusBase()
 	if err != nil {
 		log.WithFields(log.Fields{
 			"err": err,

@@ -88,10 +88,10 @@ func BuildURL(protocol string, host string, port string, route string) string {
 	return builder.String()
 }
 
-// BuildControldEndpoint builds a URL for a controld endpoint
-func BuildControldEndpoint(route string) string {
-	protocol := viper.GetString("ControldProtocol")
-	host := viper.GetString("ControldHostname")
-	port := viper.GetString("ControldPort")
+// BuildNetworkGatewayEndpoint builds a URL for an endpoint at the Network Gateway
+func BuildNetworkGatewayEndpoint(route string) string {
+	protocol := viper.GetString("NetworkGatewayProtocol")
+	host := viper.GetString("NetworkGatewayHostname")
+	port := viper.GetString("NetworkGatewayPort")
 	return BuildURL(protocol, host, port, route)
 }
