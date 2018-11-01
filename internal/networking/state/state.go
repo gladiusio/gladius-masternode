@@ -66,11 +66,11 @@ func (n *NetworkState) SetNetworkRunState(runState bool) {
 }
 
 func (n *NetworkState) RefreshNetworkState() {
-	// Make a request to controld for the current p2p network state
-	url := http.BuildControldEndpoint("/api/p2p/state")
+	// Make a request to the network gateway for the current p2p network state
+	url := http.BuildNetworkGatewayEndpoint("/api/p2p/state")
 	responseBytes, err := http.GetJSONBytes(url)
 	if err != nil {
-		log.Printf("Encountered an error when fetching p2p state from controld: \n%v\n", err)
+		log.Printf("Encountered an error when fetching p2p state from network gateway: \n%v\n", err)
 		return
 	}
 
@@ -82,7 +82,7 @@ func (n *NetworkState) refreshActiveNodes(stateBytes []byte) {
 
 	// Parse the 'response' field from the response data
 	_nodes := gjson.GetBytes(stateBytes, "response.node_data_map")
-	// Create NetworkNode structs from the list of nodes returned from controld
+	// Create NetworkNode structs from the list of nodes returned from network gateway
 	nodes := make([]kdtree.Point, 0)
 	_nodes.ForEach(func(key, value gjson.Result) bool {
 		if viper.GetBool("IGNORE_HEARTBEAT") != true {

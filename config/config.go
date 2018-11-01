@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	gconfig "github.com/gladiusio/gladius-utils/config"
+	common "github.com/gladiusio/gladius-common/pkg/utils"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 )
@@ -25,7 +25,7 @@ func SetupConfig(configFilePath string) {
 		log.Warn(fmt.Errorf("error reading config file: %s, using defaults", err))
 	}
 
-	base, err := gconfig.GetGladiusBase()
+	base, err := common.GetGladiusBase()
 	if err != nil {
 		log.WithFields(log.Fields{
 			"err": err,
@@ -37,9 +37,9 @@ func SetupConfig(configFilePath string) {
 
 	ConfigOption("PoolEthAddress", "0xDAcd582c3Ba1A90567Da0fC3f1dBB638D9438e06")
 
-	ConfigOption("ControldHostname", "localhost")
-	ConfigOption("ControldPort", "3001")
-	ConfigOption("ControldProtocol", "http")
+	ConfigOption("NetworkGatewayHostname", "localhost")
+	ConfigOption("NetworkGatewayPort", "3001")
+	ConfigOption("NetworkGatewayProtocol", "http")
 
 	ConfigOption("GeoIPDatabaseDir", filepath.Join(base, "geoip"))
 	ConfigOption("GeoIPDatabaseFile", "GeoLite2-City.mmdb")
