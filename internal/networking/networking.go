@@ -35,13 +35,14 @@ func requestBuilder(networkState *state.NetworkState) func(ctx *fasthttp.Request
 	// The actual serving function
 	return func(ctx *fasthttp.RequestCtx) {
 		hostname := string(ctx.Host()[:])
-		// If this host isn't recognized, break out
+		// If this host isn't under our protection, break out
 		host := networkState.Cache.LookupHost(hostname)
 		if host == nil {
 			ctx.Error("Unsupported Host", fasthttp.StatusBadRequest)
 			return
 		}
 
+		// Grab the URL so we can inspect it
 		u, err := url.Parse(string(ctx.RequestURI()[:]))
 		if err != nil {
 			ctx.Error("Could not parse request URI", fasthttp.StatusBadRequest)
