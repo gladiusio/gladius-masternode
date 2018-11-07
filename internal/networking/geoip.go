@@ -1,4 +1,4 @@
-package state
+package networking
 
 import (
 	"fmt"
@@ -7,10 +7,9 @@ import (
 	"path/filepath"
 
 	"github.com/mholt/archiver"
-	"github.com/valyala/fasthttp"
-
 	"github.com/oschwald/geoip2-golang"
 	"github.com/spf13/viper"
+	"github.com/valyala/fasthttp"
 )
 
 // InitGeoIP opens the GeoIP database and returns a pointer

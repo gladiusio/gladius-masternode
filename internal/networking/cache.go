@@ -1,4 +1,4 @@
-package cache
+package networking
 
 import (
 	"crypto/sha256"
@@ -8,7 +8,6 @@ import (
 	"sync"
 
 	"github.com/Workiva/go-datastructures/trie/ctrie"
-	"github.com/gladiusio/gladius-masternode/internal/networking"
 	"github.com/hongshibao/go-kdtree"
 	"github.com/spf13/viper"
 	"github.com/tidwall/gjson"
@@ -21,12 +20,13 @@ import (
 type Cache struct {
 	// A collection of ProtectedHost structs representing websites under this node's protection
 	Hosts *ctrie.Ctrie
-	// Disk storage strategy
+	// Cache access strategy
+	accessor AccessStrategy
 }
 
 // Constructs and returns a pointer to a new Cache struct
 func newCache() *Cache {
-	return &Cache{ctrie.New(nil)}
+	return &Cache{ctrie.New(nil), nil}
 }
 
 func initCache(c *Cache) {
@@ -148,33 +148,4 @@ func newRoute(route string, nocache bool, hash string) *Route {
 		Hash:    hash,
 		Seeders: nil,
 	}
-}
-
-// MakeSeedersTree takes an array of *NetworkNode's and creates
-// a KD-tree of them to store in the Route struct
-func (r *Route) MakeSeedersTree(seeders []*networking.NetworkNode) {
-	nodesAsPoints := make([]kdtree.Point, len(seeders))
-	for i, node := range seeders {
-		nodesAsPoints[i] = node
-	}
-	newTree := kdtree.NewKDTree(nodesAsPoints)
-	r.seedersMux.Lock()
-	r.Seeders = newTree
-	r.seedersMux.Unlock()
-}
-
-// GetNearestNSeeders takes an integer n and a node (representing a user sending a request)
-// and returns the nearest n seed nodes to them.
-func (r *Route) GetNearestNSeeders(n int, node *networking.NetworkNode) ([]*networking.NetworkNode, error) {
-	r.seedersMux.Lock()
-	nearestSeeders := r.Seeders.KNN(node, n)
-	r.seedersMux.Unlock()
-	if len(nearestSeeders) == 0 {
-		return nil, fmt.Errorf("Error: No seed nodes were found in nearest neighbor search")
-	}
-	seedNodes := make([]*networking.NetworkNode, len(nearestSeeders))
-	for i, node := range nearestSeeders {
-		seedNodes[i] = node.(*networking.NetworkNode)
-	}
-	return seedNodes, nil
 }

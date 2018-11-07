@@ -1,4 +1,4 @@
-package state
+package networking
 
 import (
 	"net"

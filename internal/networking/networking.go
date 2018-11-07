@@ -7,7 +7,6 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/gladiusio/gladius-masternode/internal/networking/state"
 	"github.com/valyala/fasthttp"
 )
 
@@ -16,7 +15,7 @@ func StartProxy() {
 	fmt.Println("Starting...")
 
 	// Create new network state object to keep track of edge nodes
-	netState := state.NewNetworkState()
+	netState := NewNetworkState()
 
 	go fasthttp.ListenAndServe(":8081", requestBuilder(netState))
 
@@ -31,7 +30,7 @@ func StartProxy() {
 	}
 }
 
-func requestBuilder(networkState *state.NetworkState) func(ctx *fasthttp.RequestCtx) {
+func requestBuilder(networkState *NetworkState) func(ctx *fasthttp.RequestCtx) {
 	// The actual serving function
 	return func(ctx *fasthttp.RequestCtx) {
 		hostname := string(ctx.Host()[:])
@@ -84,7 +83,7 @@ func requestBuilder(networkState *state.NetworkState) func(ctx *fasthttp.Request
 	}
 }
 
-func chooseContentNodes(ip net.IP, netState *state.NetworkState) ([]string, error) {
+func chooseContentNodes(ip net.IP, netState *NetworkState) ([]string, error) {
 	nearestNeighbors, err := netState.GetNClosestNodes(ip, 5)
 	if err != nil {
 		return nil, err
