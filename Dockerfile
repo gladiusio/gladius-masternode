@@ -23,3 +23,5 @@ RUN sed -i 's/\(LIBS="$LIBS $BOOST.*\)"/\1 -ldl -levent_core -lssl"/' proxygen/c
     sed -i 's/\(LIBS="$LIBS -ldouble.*\)"/\1 -lboost_context -lboost_regex -lboost_filesystem -lsodium"/' proxygen/configure.ac
 WORKDIR /proxygen/proxygen
 RUN ./deps.sh -j $(printf %.0f $(echo "$(nproc) * 1.5" | bc -l))
+
+ENV LD_LIBRARY_PATH /usr/local/lib
