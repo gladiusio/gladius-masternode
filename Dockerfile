@@ -1,28 +1,24 @@
-FROM golang:1.10 AS builder
+FROM ubuntu:16.04
 
-ADD https://github.com/golang/dep/releases/download/v0.4.1/dep-linux-amd64 /usr/bin/dep
-RUN chmod +x /usr/bin/dep
+RUN apt-get update && apt-get upgrade -y
+RUN apt-get install -y \
+        apt-utils \
+        git \
+        sudo \
+        bc
+RUN useradd -m docker && echo "docker:docker" | chpasswd && adduser docker sudo
 
-WORKDIR $GOPATH/src/github.com/gladiusio/gladius-masternode
-COPY . ./
-COPY ./html /html
-RUN make dependencies
-RUN make docker
+COPY . /app
+WORKDIR /app/proxygen
+RUN sed -i 's/\(LIBS="$LIBS $BOOST.*\)"/\1 -ldl -levent_core -lssl"/' proxygen/configure.ac && \
+    sed -i 's/\(LIBS="$LIBS -ldouble.*\)"/\1 -lboost_context -lboost_regex -lboost_filesystem -lsodium"/' proxygen/configure.ac
+WORKDIR /app/proxygen/proxygen
+RUN ./deps.sh -j $(printf %.0f $(echo "$(nproc) * 1.5" | bc -l))
+
 
 ENV GLADIUSBASE=/gladius
 RUN mkdir -p ${GLADIUSBASE}/wallet
 RUN mkdir -p ${GLADIUSBASE}/keys
 RUN touch ${GLADIUSBASE}/gladius-masternode.toml
-RUN echo 'ControldHostname = "gladius-controld-masternode"' > ${GLADIUSBASE}/gladius-masternode.toml
 
-########################################
 
-FROM ubuntu
-ENV GLADIUSBASE=/gladius
-COPY --from=builder ${GLADIUSBASE}/wallet ${GLADIUSBASE}/wallet
-COPY --from=builder ${GLADIUSBASE}/keys ${GLADIUSBASE}/keys
-COPY --from=builder ${GLADIUSBASE}/gladius-masternode.toml ${GLADIUSBASE}/gladius-masternode.toml
-COPY --from=builder ./html /html
-
-COPY --from=builder /gladius-masternode ./
-ENTRYPOINT ["./gladius-masternode"]
