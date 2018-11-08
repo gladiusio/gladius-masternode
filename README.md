@@ -11,7 +11,14 @@ to the geographically nearest edge node.
 
 
 
-## Building
+# Building
+
+## Build the base image
 ```shell
-docker build .
+docker build -t gladiusio/masternode-base .
+```
+
+## Run a container with local source files mounted
+```shell
+docker run -v $PWD:/src -it gladiusio/masternode-base
 ```

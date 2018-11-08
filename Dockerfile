@@ -1,3 +1,7 @@
+# This Dockerfile downloads, builds, and installs ProxyGen and all 
+# necessary dependencies. It could be used to base other containers off of
+# that will run the Gladius Masternode application.
+
 FROM ubuntu:16.04
 
 RUN apt-get update && apt-get upgrade -y
@@ -13,6 +17,8 @@ RUN git clone https://github.com/facebook/proxygen.git && \
     git checkout 5f95b45182018f71b5c43af4035b236eaf88cb89
 
 WORKDIR /proxygen
+
+# Tweak the build libraries to get it passing
 RUN sed -i 's/\(LIBS="$LIBS $BOOST.*\)"/\1 -ldl -levent_core -lssl"/' proxygen/configure.ac && \
     sed -i 's/\(LIBS="$LIBS -ldouble.*\)"/\1 -lboost_context -lboost_regex -lboost_filesystem -lsodium"/' proxygen/configure.ac
 WORKDIR /proxygen/proxygen
