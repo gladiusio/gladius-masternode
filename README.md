@@ -13,6 +13,5 @@ to the geographically nearest edge node.
 
 ## Building
 ```shell
-git clone git@github.com:facebook/proxygen.git
 docker build .
 ```
