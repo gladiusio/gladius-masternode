@@ -50,7 +50,7 @@ func requestBuilder(networkState *NetworkState) func(ctx *fasthttp.RequestCtx) {
 		path := u.RequestURI()
 		route := host.LookupRoute(path)
 
-		if route == nil { // If we haven't seen this route yet
+		if route == nil { // If we don't know anything about this route
 			code, content, err := proxyRequest(ctx, host.Hostname+path) // Proxy the request
 			if err != nil {
 				log.Printf("Error proxying request: %v\n", err)
