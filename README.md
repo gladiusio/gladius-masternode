@@ -22,3 +22,9 @@ docker build -t gladiusio/masternode-base .
 ```shell
 docker run -v $PWD:/src -it gladiusio/masternode-base
 ```
+
+## Build Masternode inside the container
+```shell
+cd /src/src
+g++ -std=c++14 -o masternode masternode.cpp ProxyHandler.cpp -lproxygenhttpserver -lfolly -lglog -pthread
+```
