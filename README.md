@@ -18,6 +18,12 @@ to the geographically nearest edge node.
 docker build -t gladiusio/masternode-base .
 ```
 
+## Copy library headers to host for IntelliSense purposes
+```shell
+docker cp <container id>:/usr/local/include <path to put header files>
+```
+Then configure your IDE to include the path you copied the headers to.
+
 ## Run a container with local source files mounted
 ```shell
 docker run -v $PWD:/src -it gladiusio/masternode-base
