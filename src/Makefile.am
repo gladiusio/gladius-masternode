@@ -1,3 +1,4 @@
+AUTOMAKE_OPTIONS = foreign
 bin_PROGRAMS = masternode
 masternode_LDADD = -lproxygenhttpserver -lfolly -lglog
 masternode_LDFLAGS = -pthread
