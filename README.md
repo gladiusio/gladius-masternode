@@ -29,7 +29,7 @@ docker cp <container id>:/usr/include <path on host to put header files>
 ```
 Then configure your IDE to include the path you copied the headers to.
 
-## Build the Proxygen docs
+## Build the Proxygen docs (optional)
 ```shell
 docker exec -it <container id> /bin/bash
 sudo apt-get install doxygen

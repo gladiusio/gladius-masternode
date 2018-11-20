@@ -1,10 +1,18 @@
-# Binaries for programs and plugins
-*.exe
-*.dll
-*.so
-*.dylib
+*.o
 
 # Build folder
 build/
 
 .vscode/
+
+aclocal.m4
+config.log
+config.status
+configure
+Makefile.in
+Makefile
+autom4te.cache/
+depcomp
+install-sh
+missing
+.deps/
