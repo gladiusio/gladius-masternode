@@ -12,17 +12,22 @@ to the geographically nearest edge node.
 
 # Building
 
-## Build the base image
+## Build the first stage of the docker container (proxygen environment)
 ```shell
-docker build -t gladiusio/masternode-base .
+docker build --target proxygen-env -t gladiusio/proxygen-env .
 ```
 
-## Run a container with local source files mounted
+## Build the second stage of the docker container (builds the masternode binary)
 ```shell
-docker run -v $PWD:/src -it gladiusio/masternode-base
+docker build --target masternode-builder -t gladiusio/masternode-builder .
 ```
 
-## Copy library headers to host for IntelliSense purposes (optional)
+## Build the full container that runs the masternode
+```shell
+docker build -t gladiusio/masternode .
+```
+
+## Copy library headers to your host machine for IntelliSense purposes (optional)
 ```shell
 docker cp <container id>:/usr/local/include <path on host to put header files>
 docker cp <container id>:/usr/include <path on host to put header files>
@@ -38,10 +43,4 @@ doxygen Doxyfile
 
 (from another host terminal session)
 docker cp <container id>:/proxygen/html <path on host to put docs>
-```
-
-## Build Masternode inside the container
-```shell
-cd /src/src
-g++ -std=c++14 -o masternode masternode.cpp ProxyHandler.cpp -lproxygenhttpserver -lfolly -lglog -pthread
 ```
