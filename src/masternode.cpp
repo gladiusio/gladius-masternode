@@ -35,7 +35,7 @@ int main(int argc, char *argv[]) {
   size_t threads = sysconf(_SC_NPROCESSORS_ONLN);
 
   std::vector<HTTPServer::IPConfig> IPs = {
-      {folly::SocketAddress("localhost", 3000, true),
+      {folly::SocketAddress("0.0.0.0", 80, true),
        HTTPServer::Protocol::HTTP}};
 
   HTTPServerOptions options;
