@@ -4,12 +4,14 @@
 
 FROM ubuntu:16.04 as proxygen-env
 
-RUN apt-get update && apt-get upgrade -y
-RUN apt-get install -y \
-        apt-utils \
-        git \
-        sudo \
-        bc
+RUN apt-get update && \
+        apt-get upgrade -y && \
+        apt-get install -y \
+                apt-utils \
+                git \
+                sudo \
+                bc
+
 RUN useradd -m docker && echo "docker:docker" | chpasswd && adduser docker sudo
 
 # Clone the ProxyGen library
@@ -59,6 +61,10 @@ RUN make
 FROM proxygen-env as production
 
 WORKDIR /app
+
 COPY --from=masternode-builder /app/build/masternode .
+
+EXPOSE 80
+
 CMD ./masternode
 

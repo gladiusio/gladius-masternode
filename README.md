@@ -7,8 +7,6 @@ This application runs as a the main connection point in the beta network. All
 connections are routed through one master node, and then the client is connected
 to the geographically nearest edge node.
 
-## Running the Software
-
 
 # Building
 
@@ -43,4 +41,10 @@ doxygen Doxyfile
 
 (from another host terminal session)
 docker cp <container id>:/proxygen/html <path on host to put docs>
+```
+
+
+## Running the Software
+```shell
+docker run -p 80:80 -it gladiusio/masternode
 ```
