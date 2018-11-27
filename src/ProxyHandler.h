@@ -110,8 +110,10 @@ namespace masternode {
             // Handles connection lifecycle events between origin servers and us
             OriginTransactionHandler originHandler_;
 
+            // HTTP transaction used to get content from an origin server
             proxygen::HTTPTransaction* originTxn_{nullptr};
 
+            // Incoming request
             std::unique_ptr<proxygen::HTTPMessage> request_;
 
             folly::CPUThreadPoolExecutor *cpuPool_;
