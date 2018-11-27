@@ -36,11 +36,14 @@ namespace masternode {
 
         // Stop listening for data from the client while we contact the origin
         downstream_->pauseIngress();
+
         auto evb = folly::EventBaseManager::get()->getEventBase();
         // TODO: use a connection pool
         const folly::AsyncSocket::OptionMap opts {
             {{SOL_SOCKET, SO_REUSEADDR}, 1}
         };
+
+        // Make a connection to the origin server
         connector_.connect(evb, addr, std::chrono::milliseconds(60000), opts);
     }
     void ProxyHandler::onBody(std::unique_ptr<folly::IOBuf> body) noexcept {}
@@ -72,7 +75,9 @@ namespace masternode {
             .sendWithEOM();
     }
 
-    // HTTPTransactionHandler delegated methods
+    /////////////////////////////////////////////////////////////
+    // Start: HTTPTransactionHandler delegated methods
+
     void ProxyHandler::originSetTransaction(proxygen::HTTPTransaction* txn) noexcept {
         originTxn_ = txn;
     }
@@ -98,21 +103,14 @@ namespace masternode {
         downstream_->sendChunkTerminator();
     }
 
-    void ProxyHandler::originOnTrailers(std::unique_ptr<proxygen::HTTPHeaders> trailers) noexcept {
-
-    }
+    void ProxyHandler::originOnTrailers(std::unique_ptr<proxygen::HTTPHeaders> trailers) noexcept {}
 
     void ProxyHandler::originOnEOM() noexcept {
         downstream_->sendEOM();
     }
 
-    void ProxyHandler::originOnUpgrade(proxygen::UpgradeProtocol protocol) noexcept {
-
-    }
-
-    void ProxyHandler::originOnError(const proxygen::HTTPException& error) noexcept {
-
-    }
+    void ProxyHandler::originOnUpgrade(proxygen::UpgradeProtocol protocol) noexcept {}
+    void ProxyHandler::originOnError(const proxygen::HTTPException& error) noexcept {}
 
     void ProxyHandler::originOnEgressPaused() noexcept {
         originTxn_->pauseIngress();
@@ -122,7 +120,7 @@ namespace masternode {
         originTxn_->resumeIngress();
     }
 
-    void ProxyHandler::originOnPushedTransaction(proxygen::HTTPTransaction *txn) noexcept {
-
-    }
+    void ProxyHandler::originOnPushedTransaction(proxygen::HTTPTransaction *txn) noexcept {}
+    // End: HTTPTransactionHandler delegated methods
+    /////////////////////////////////////////////////////////////
 }

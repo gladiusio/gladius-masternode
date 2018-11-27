@@ -113,9 +113,10 @@ namespace masternode {
             // HTTP transaction used to get content from an origin server
             proxygen::HTTPTransaction* originTxn_{nullptr};
 
-            // Incoming request
+            // Incoming request (headers)
             std::unique_ptr<proxygen::HTTPMessage> request_;
 
+            // Thread pool for running cpu-bound tasks off of the main event threads
             folly::CPUThreadPoolExecutor *cpuPool_;
     }; 
 }
