@@ -12,23 +12,39 @@
 using namespace proxygen;
 using namespace masternode;
 
+using folly::HHWheelTimer;
+
 class ProxyHandlerFactory : public RequestHandlerFactory {
-public:
-  ProxyHandlerFactory(size_t size)
-      : cpuPool_(std::make_unique<folly::CPUThreadPoolExecutor>(size)) {}
+  public:
+    ProxyHandlerFactory(size_t size)
+        : cpuPool_(std::make_unique<folly::CPUThreadPoolExecutor>(size)) {}
 
-  ~ProxyHandlerFactory() {}
+    ~ProxyHandlerFactory() {}
 
-  void onServerStart(folly::EventBase *evb) noexcept override {}
+    void onServerStart(folly::EventBase *evb) noexcept override {
+      timer_->timer = HHWheelTimer::newTimer(
+        evb,
+        std::chrono::milliseconds(HHWheelTimer::DEFAULT_TICK_INTERVAL),
+        folly::AsyncTimeout::InternalEnum::NORMAL,
+        std::chrono::seconds(60000));
+    }
 
-  void onServerStop() noexcept override {}
+    void onServerStop() noexcept override {
+      timer_->timer.reset();
+    }
 
-  RequestHandler *onRequest(RequestHandler *, HTTPMessage *) noexcept override {
-    return new ProxyHandler(cpuPool_.get());
-  }
+    RequestHandler *onRequest(RequestHandler *, HTTPMessage *) noexcept override {
+      return new ProxyHandler(cpuPool_.get(), timer_->timer.get());
+    }
 
-protected:
-  std::unique_ptr<folly::CPUThreadPoolExecutor> cpuPool_;
+  protected:
+    std::unique_ptr<folly::CPUThreadPoolExecutor> cpuPool_;
+
+  private:
+    struct TimerWrapper {
+      HHWheelTimer::UniquePtr timer;
+    };
+    folly::ThreadLocal<TimerWrapper> timer_;
 };
 
 int main(int argc, char *argv[]) {
