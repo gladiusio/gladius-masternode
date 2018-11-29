@@ -4,10 +4,13 @@ CachedRoute::CachedRoute(std::string url,
     std::unique_ptr<folly::IOBuf> data,
     std::shared_ptr<proxygen::HTTPMessage> headers) {
     url_ = std::move(url);
-    std::cout << "Created CachedRoute with url: " << url_ << "\n";
     content_ = std::move(data);
     headers_ = std::move(headers);
     // TODO: take the sha256 hash of the content_ and assign it to the sha256 member here
+    auto out = std::vector<uint8_t>(32);
+    folly::ssl::OpenSSLHash::sha256(folly::range(out), *(content_.get()));
+    sha256_ = folly::hexlify(out);
+    std::cout << sha256_ << "\n";
 }
 
 CachedRoute::~CachedRoute() {
@@ -31,7 +34,6 @@ std::shared_ptr<proxygen::HTTPMessage> CachedRoute::getHeaders() {
 std::shared_ptr<CachedRoute> MemoryCache::getCachedRoute(std::string url) {
     folly::Optional<std::shared_ptr<CachedRoute>> cached = cache_.get(url);
     if (cached) {
-        std::cout << "retrieved cached copy\n";
         return cached.value();
     }
     return nullptr;
@@ -40,15 +42,12 @@ std::shared_ptr<CachedRoute> MemoryCache::getCachedRoute(std::string url) {
 void MemoryCache::addCachedRoute(std::string url,
     std::unique_ptr<folly::IOBuf> chain,
     std::shared_ptr<proxygen::HTTPMessage> headers) {
-    std::cout << "adding url to cache: " << url << "\n";
 
     // Create a new CachedRoute class
     std::shared_ptr<CachedRoute> newEntry = std::make_shared<CachedRoute>(url, chain.get()->clone(), std::move(headers));
     
     // Insert the CachedRoute class into the cache
     cache_.put(url, newEntry);
-
-    std::cout << "size of cache: " << cache_.size() << "\n";
 }
 
 size_t MemoryCache::size() const { return cache_.size(); }

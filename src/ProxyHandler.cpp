@@ -31,7 +31,6 @@ namespace masternode {
         auto cachedRoute = cache_->getCachedRoute(url.getUrl());
         // if we have it cached, reply to client
         if (cachedRoute) {
-            std::cout << "served request from cache!!!!!\n";
             ResponseBuilder(downstream_)
                 .status(200, "OK")
                 .header("Content-Type", cachedRoute.get()->getHeaders().get()->getHeaders().rawGet("Content-Type"))
