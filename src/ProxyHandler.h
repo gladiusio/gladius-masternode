@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Cache.h"
+
 #include <folly/Memory.h>
 #include <folly/executors/IOThreadPoolExecutor.h>
 #include <folly/executors/CPUThreadPoolExecutor.h>
@@ -14,7 +16,9 @@ namespace masternode {
     class ProxyHandler : public proxygen::RequestHandler,
                             private proxygen::HTTPConnector::Callback {
         public:
-            ProxyHandler(folly::CPUThreadPoolExecutor *cpuPool, folly::HHWheelTimer* timer);
+            ProxyHandler(folly::CPUThreadPoolExecutor *cpuPool,
+                folly::HHWheelTimer *timer,
+                MemoryCache *cache);
             ~ProxyHandler() override;
 
             // RequestHandler methods
@@ -118,5 +122,13 @@ namespace masternode {
 
             // Thread pool for running cpu-bound tasks off of the main event threads
             folly::CPUThreadPoolExecutor *cpuPool_;
+
+            // Content received from the origin. Used to collect data as it
+            // comes in from the origin and later pass in to the cache once
+            // all the data is there.
+            std::unique_ptr<folly::IOBuf> contentBody_{nullptr};
+
+            // HTTP content cache
+            MemoryCache *cache_;
     }; 
 }

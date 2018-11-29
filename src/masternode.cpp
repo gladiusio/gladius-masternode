@@ -17,7 +17,8 @@ using folly::HHWheelTimer;
 class ProxyHandlerFactory : public RequestHandlerFactory {
   public:
     ProxyHandlerFactory(size_t size)
-        : cpuPool_(std::make_unique<folly::CPUThreadPoolExecutor>(size)) {}
+        : cpuPool_(std::make_unique<folly::CPUThreadPoolExecutor>(size)),
+          cache_(std::make_shared<MemoryCache>(0)) {}
 
     ~ProxyHandlerFactory() {}
 
@@ -34,12 +35,12 @@ class ProxyHandlerFactory : public RequestHandlerFactory {
     }
 
     RequestHandler *onRequest(RequestHandler *, HTTPMessage *) noexcept override {
-      return new ProxyHandler(cpuPool_.get(), timer_->timer.get());
+      return new ProxyHandler(cpuPool_.get(), timer_->timer.get(), cache_.get());
     }
 
   protected:
     std::unique_ptr<folly::CPUThreadPoolExecutor> cpuPool_;
-
+    std::shared_ptr<MemoryCache> cache_;
   private:
     struct TimerWrapper {
       HHWheelTimer::UniquePtr timer;

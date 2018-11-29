@@ -12,10 +12,13 @@
 using namespace proxygen;
 
 namespace masternode {
-    ProxyHandler::ProxyHandler(folly::CPUThreadPoolExecutor *cpuPool, folly::HHWheelTimer* timer):
-        cpuPool_(cpuPool),
-        connector_{this, timer},
-        originHandler_(*this){}
+    ProxyHandler::ProxyHandler(folly::CPUThreadPoolExecutor *cpuPool,
+        folly::HHWheelTimer *timer,
+        MemoryCache *cache):
+            cpuPool_(cpuPool),
+            connector_{this, timer},
+            originHandler_(*this),
+            cache_(cache){}
 
     ProxyHandler::~ProxyHandler() {}
     
@@ -23,6 +26,19 @@ namespace masternode {
     void ProxyHandler::onRequest(std::unique_ptr<HTTPMessage> headers) noexcept {
         request_ = std::move(headers);
         proxygen::URL url(request_->getURL());
+
+        // check the cache for this url
+        auto cachedRoute = cache_->getCachedRoute(url.getUrl());
+        // if we have it cached, reply to client
+        if (cachedRoute) {
+            std::cout << "served request from cache!!!!!\n";
+            ResponseBuilder(downstream_)
+                .status(200, "OK")
+                .body(cachedRoute.get()->getContent())
+                .sendWithEOM();
+            return;
+        }
+        // otherwise, connect to origin server to fetch content
 
         folly::SocketAddress addr;
         try {
@@ -56,7 +72,15 @@ namespace masternode {
             originTxn_->sendEOM();
         }
     }
-    void ProxyHandler::requestComplete() noexcept { delete this; }
+    void ProxyHandler::requestComplete() noexcept {
+        // If we stored new content to cache
+        if (contentBody_) {
+            proxygen::URL url(request_->getURL()); 
+            cache_->addCachedRoute(url.getUrl(), contentBody_.get()->clone()); // may want to do this asynchronously
+        }
+        
+        delete this;
+    }
     void ProxyHandler::onError(ProxygenError err) noexcept { delete this; }
 
     // HTTPConnector::Callback methods
@@ -91,7 +115,17 @@ namespace masternode {
         downstream_->sendHeaders(*(msg.get()));
     }
 
+    // Called when the masternode receives body content from the origin server
+    // (can be called multiple times for one request as content comes through)
     void ProxyHandler::originOnBody(std::unique_ptr<folly::IOBuf> chain) noexcept {
+        proxygen::URL url(request_->getURL());
+        // If we've already received some body content
+        if (contentBody_) {
+            contentBody_->prependChain(chain.get()->clone());
+        } else {
+            contentBody_ = chain.get()->clone();
+        }
+        
         downstream_->sendBody(std::move(chain));
     }
 
