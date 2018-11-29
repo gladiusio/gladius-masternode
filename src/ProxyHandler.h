@@ -128,6 +128,9 @@ namespace masternode {
             // all the data is there.
             std::unique_ptr<folly::IOBuf> contentBody_{nullptr};
 
+            // Origin response headers
+            std::shared_ptr<proxygen::HTTPMessage> contentHeaders_{nullptr};
+
             // HTTP content cache
             MemoryCache *cache_;
     }; 

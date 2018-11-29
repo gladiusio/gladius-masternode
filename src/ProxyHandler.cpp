@@ -34,6 +34,8 @@ namespace masternode {
             std::cout << "served request from cache!!!!!\n";
             ResponseBuilder(downstream_)
                 .status(200, "OK")
+                .header("Content-Type", cachedRoute.get()->getHeaders().get()->getHeaders().rawGet("Content-Type"))
+                .header("Content-Encoding", cachedRoute.get()->getHeaders().get()->getHeaders().rawGet("Content-Encoding"))
                 .body(cachedRoute.get()->getContent())
                 .sendWithEOM();
             return;
@@ -74,9 +76,9 @@ namespace masternode {
     }
     void ProxyHandler::requestComplete() noexcept {
         // If we stored new content to cache
-        if (contentBody_) {
+        if (contentBody_ && contentHeaders_) {
             proxygen::URL url(request_->getURL()); 
-            cache_->addCachedRoute(url.getUrl(), contentBody_.get()->clone()); // may want to do this asynchronously
+            cache_->addCachedRoute(url.getUrl(), contentBody_.get()->clone(), contentHeaders_); // may want to do this asynchronously
         }
         
         delete this;
@@ -113,6 +115,7 @@ namespace masternode {
 
     void ProxyHandler::originOnHeadersComplete(std::unique_ptr<proxygen::HTTPMessage> msg) noexcept {
         downstream_->sendHeaders(*(msg.get()));
+        contentHeaders_ = std::move(msg);
     }
 
     // Called when the masternode receives body content from the origin server

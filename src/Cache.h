@@ -7,17 +7,22 @@
 #include <wangle/client/persistence/SharedMutexCacheLockGuard.h>
 
 #include <proxygen/lib/utils/URL.h>
+#include <proxygen/lib/http/HTTPMessage.h>
 
 class CachedRoute {
     public:
-        CachedRoute(std::string, std::unique_ptr<folly::IOBuf> data);
+        CachedRoute(std::string url,
+            std::unique_ptr<folly::IOBuf> data,
+            std::shared_ptr<proxygen::HTTPMessage> headers);
         ~CachedRoute();
         std::string getURL();
         std::unique_ptr<folly::IOBuf> getContent();
+        std::shared_ptr<proxygen::HTTPMessage> getHeaders();
     private:
         std::string sha256_;
         std::string url_;
         std::unique_ptr<folly::IOBuf> content_;
+        std::shared_ptr<proxygen::HTTPMessage> headers_;
 };
 
 class MemoryCache {
@@ -28,7 +33,7 @@ class MemoryCache {
         std::shared_ptr<CachedRoute> getCachedRoute(std::string);
 
         // Add a new CachedRoute entry to the memory cache
-        void addCachedRoute(std::string, std::unique_ptr<folly::IOBuf> chain);
+        void addCachedRoute(std::string, std::unique_ptr<folly::IOBuf> chain, std::shared_ptr<proxygen::HTTPMessage> headers);
 
         size_t size() const;
 

@@ -1,9 +1,12 @@
 #include "Cache.h"
 
-CachedRoute::CachedRoute(std::string url, std::unique_ptr<folly::IOBuf> data) {
+CachedRoute::CachedRoute(std::string url,
+    std::unique_ptr<folly::IOBuf> data,
+    std::shared_ptr<proxygen::HTTPMessage> headers) {
     url_ = std::move(url);
     std::cout << "Created CachedRoute with url: " << url_ << "\n";
     content_ = std::move(data);
+    headers_ = std::move(headers);
     // TODO: take the sha256 hash of the content_ and assign it to the sha256 member here
 }
 
@@ -19,6 +22,10 @@ std::unique_ptr<folly::IOBuf> CachedRoute::getContent() {
     return content_.get()->clone();
 }
 
+std::shared_ptr<proxygen::HTTPMessage> CachedRoute::getHeaders() {
+    return headers_;
+}
+
 /////////////////////////////////////////////////////////////////////////
 
 std::shared_ptr<CachedRoute> MemoryCache::getCachedRoute(std::string url) {
@@ -31,11 +38,12 @@ std::shared_ptr<CachedRoute> MemoryCache::getCachedRoute(std::string url) {
 }
 
 void MemoryCache::addCachedRoute(std::string url,
-    std::unique_ptr<folly::IOBuf> chain) {
+    std::unique_ptr<folly::IOBuf> chain,
+    std::shared_ptr<proxygen::HTTPMessage> headers) {
     std::cout << "adding url to cache: " << url << "\n";
 
     // Create a new CachedRoute class
-    std::shared_ptr<CachedRoute> newEntry = std::make_shared<CachedRoute>(url, chain.get()->clone());
+    std::shared_ptr<CachedRoute> newEntry = std::make_shared<CachedRoute>(url, chain.get()->clone(), std::move(headers));
     
     // Insert the CachedRoute class into the cache
     cache_.put(url, newEntry);
