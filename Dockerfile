@@ -53,7 +53,7 @@ WORKDIR /app/build
 RUN ../configure
 
 # Build the masternode
-RUN make
+RUN make -j $(printf %.0f $(echo "$(nproc) * 1.5" | bc -l))
 
 # ###################################################
 # # Use a separate stage to deliver the binary

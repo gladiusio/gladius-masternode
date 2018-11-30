@@ -21,9 +21,13 @@ DEFINE_int32(port, 80, "Port to listen for HTTP requests on");
 
 class ProxyHandlerFactory : public RequestHandlerFactory {
   public:
-    ProxyHandlerFactory(size_t size): cache_(std::make_shared<MemoryCache>(0)) {}
+    ProxyHandlerFactory(size_t size): cache_(std::make_shared<MemoryCache>(0)) {
+      LOG(INFO) << "Constructing a new ProxyHandlerFactory\n";
+    }
 
-    ~ProxyHandlerFactory() {}
+    ~ProxyHandlerFactory() {
+      LOG(INFO) << "Destroying a ProxyHandlerFactory\n";
+    }
 
     void onServerStart(folly::EventBase *evb) noexcept override {
       timer_->timer = HHWheelTimer::newTimer(
