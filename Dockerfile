@@ -64,6 +64,8 @@ WORKDIR /app
 
 COPY --from=masternode-builder /app/build/masternode .
 
+RUN mkdir -p /home/.gladius/content/blog.gladius.io
+
 EXPOSE 80
 
 CMD ./masternode --logtostderr=1

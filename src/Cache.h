@@ -3,6 +3,7 @@
 
 #include <folly/io/IOBuf.h>
 #include <folly/ssl/OpenSSLHash.h>
+#include <folly/gen/File.h>
 
 #include <wangle/client/persistence/LRUInMemoryCache.h>
 #include <wangle/client/persistence/SharedMutexCacheLockGuard.h>
@@ -17,6 +18,7 @@ class CachedRoute {
             std::shared_ptr<proxygen::HTTPMessage> headers);
         ~CachedRoute();
 
+        std::string getHash();
         std::string getURL();
         std::unique_ptr<folly::IOBuf> getContent();
         std::shared_ptr<proxygen::HTTPMessage> getHeaders();

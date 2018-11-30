@@ -16,6 +16,10 @@ CachedRoute::~CachedRoute() {
     LOG(INFO) << "Destroyed a CachedRoute object\n";
 }
 
+std::string CachedRoute::getHash() {
+    return sha256_;
+}
+
 std::string CachedRoute::getURL() {
     return url_;
 }
@@ -47,8 +51,14 @@ void MemoryCache::addCachedRoute(std::string url,
     
     // Insert the CachedRoute class into the cache
     cache_.put(url, newEntry);
-
+    LOG(INFO) << "Route byte size: " << newEntry.get()->getContent().get()->length() << "\n";
+    LOG(INFO) << "Route chain byte size: " << newEntry.get()->getContent().get()->computeChainDataLength() << "\n";
     LOG(INFO) << "Added new cached route: " << url << "\n";
+
+    // write bytes to file
+    folly::File f("/home/.gladius/content/blog.gladius.io/" + newEntry.get()->getHash(), O_WRONLY | O_CREAT | O_TRUNC, 0666);
+    folly::gen::from(*newEntry.get()->getContent().get()) | folly::gen::toFile(folly::File(f.fd()), newEntry.get()->getContent().get()->computeChainDataLength());
+
 }
 
 size_t MemoryCache::size() const { return cache_.size(); }
