@@ -14,11 +14,14 @@ using namespace masternode;
 
 using folly::HHWheelTimer;
 
+
+DEFINE_string(ip, "0.0.0.0", "IP/Hostname to bind to");
+DEFINE_int32(port, 80, "Port to listen for HTTP requests on");
+
+
 class ProxyHandlerFactory : public RequestHandlerFactory {
   public:
-    ProxyHandlerFactory(size_t size)
-        : cpuPool_(std::make_unique<folly::CPUThreadPoolExecutor>(size)),
-          cache_(std::make_shared<MemoryCache>(0)) {}
+    ProxyHandlerFactory(size_t size): cache_(std::make_shared<MemoryCache>(0)) {}
 
     ~ProxyHandlerFactory() {}
 
@@ -28,18 +31,21 @@ class ProxyHandlerFactory : public RequestHandlerFactory {
         std::chrono::milliseconds(HHWheelTimer::DEFAULT_TICK_INTERVAL),
         folly::AsyncTimeout::InternalEnum::NORMAL,
         std::chrono::seconds(60000));
+
+        LOG(INFO) << "Server thread now started and listening for requests!\n";
     }
 
     void onServerStop() noexcept override {
       timer_->timer.reset();
+
+      LOG(INFO) << "Server stopped\n";
     }
 
     RequestHandler *onRequest(RequestHandler *, HTTPMessage *) noexcept override {
-      return new ProxyHandler(cpuPool_.get(), timer_->timer.get(), cache_.get());
+      return new ProxyHandler(timer_->timer.get(), cache_.get());
     }
 
   protected:
-    std::unique_ptr<folly::CPUThreadPoolExecutor> cpuPool_;
     std::shared_ptr<MemoryCache> cache_;
   private:
     struct TimerWrapper {
@@ -49,11 +55,17 @@ class ProxyHandlerFactory : public RequestHandlerFactory {
 };
 
 int main(int argc, char *argv[]) {
+  gflags::ParseCommandLineFlags(&argc, &argv, true);
+  google::InitGoogleLogging(argv[0]);
+  google::InstallFailureSignalHandler();
+
   size_t threads = sysconf(_SC_NPROCESSORS_ONLN);
+  LOG(INFO) << "Configuring server to use " << threads << " I/O threads...\n";
 
   std::vector<HTTPServer::IPConfig> IPs = {
-      {folly::SocketAddress("0.0.0.0", 80, true),
+      {folly::SocketAddress(FLAGS_ip, FLAGS_port, true),
        HTTPServer::Protocol::HTTP}};
+  LOG(INFO) << "Binding to " << FLAGS_ip << ":" << FLAGS_port << "\n";
 
   HTTPServerOptions options;
   options.threads = threads;
@@ -71,6 +83,8 @@ int main(int argc, char *argv[]) {
   std::thread t([&]() { server.start(); });
 
   t.join();
+
+  LOG(INFO) << "Process exiting now\n";
 
   return 0;
 }

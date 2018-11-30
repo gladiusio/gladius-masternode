@@ -66,5 +66,5 @@ COPY --from=masternode-builder /app/build/masternode .
 
 EXPOSE 80
 
-CMD ./masternode
+CMD ./masternode --logtostderr=1
 

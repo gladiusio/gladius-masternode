@@ -12,10 +12,8 @@
 using namespace proxygen;
 
 namespace masternode {
-    ProxyHandler::ProxyHandler(folly::CPUThreadPoolExecutor *cpuPool,
-        folly::HHWheelTimer *timer,
+    ProxyHandler::ProxyHandler(folly::HHWheelTimer *timer,
         MemoryCache *cache):
-            cpuPool_(cpuPool),
             connector_{this, timer},
             originHandler_(*this),
             cache_(cache){}
@@ -24,6 +22,7 @@ namespace masternode {
     
     // RequestHandler methods
     void ProxyHandler::onRequest(std::unique_ptr<HTTPMessage> headers) noexcept {
+        LOG(INFO) << "Received new request from " << headers.get()->getClientIP() << "\n";
         request_ = std::move(headers);
         proxygen::URL url(request_->getURL());
 
@@ -31,6 +30,7 @@ namespace masternode {
         auto cachedRoute = cache_->getCachedRoute(url.getUrl());
         // if we have it cached, reply to client
         if (cachedRoute) {
+            LOG(INFO) << "Serving from cache for " << url.getUrl() << "\n";
             ResponseBuilder(downstream_)
                 .status(200, "OK")
                 .header("Content-Type", cachedRoute.get()->getHeaders().get()->getHeaders().rawGet("Content-Type"))
@@ -61,6 +61,7 @@ namespace masternode {
         };
 
         // Make a connection to the origin server
+        LOG(INFO) << "Connecting to origin server...\n";
         connector_.connect(evb, addr, std::chrono::milliseconds(60000), opts);
     }
     void ProxyHandler::onBody(std::unique_ptr<folly::IOBuf> body) noexcept {}
@@ -68,28 +69,37 @@ namespace masternode {
 
     // Called when the client sends their EOM to the masternode
     void ProxyHandler::onEOM() noexcept {
+        LOG(INFO) << "Client sent EOM\n";
         if (originTxn_) {
             // Forward the client's EOM to the origin server
             originTxn_->sendEOM();
+            LOG(INFO) << "Sending EOM to origin\n";
         }
     }
     void ProxyHandler::requestComplete() noexcept {
+        LOG(INFO) << "Completed request\n";
         // If we stored new content to cache
         if (contentBody_ && contentHeaders_) {
-            proxygen::URL url(request_->getURL()); 
+            proxygen::URL url(request_->getURL());
+            LOG(INFO) << "Adding " << url.getUrl() << " to memory cache\n";
             cache_->addCachedRoute(url.getUrl(), contentBody_.get()->clone(), contentHeaders_); // may want to do this asynchronously
         }
-        
+        LOG(INFO) << "Deleting RequestHandler now...\n";
         delete this;
     }
-    void ProxyHandler::onError(ProxygenError err) noexcept { delete this; }
+    void ProxyHandler::onError(ProxygenError err) noexcept {
+        LOG(ERROR) << "Request Handler encounted an error:\n" << getErrorString(err) << "\n";
+        delete this; 
+    }
 
     // HTTPConnector::Callback methods
 
     // Called when the masternode connects to an origin server
     void ProxyHandler::connectSuccess(proxygen::HTTPUpstreamSession* session) noexcept {
+        LOG(INFO) << "Connected to origin server\n";
         originTxn_ = session->newTransaction(&originHandler_);
         originTxn_->sendHeaders(*request_);
+        LOG(INFO) << "Sent headers to origin server\n";
         downstream_->resumeIngress();
     }
 
@@ -98,6 +108,7 @@ namespace masternode {
         ResponseBuilder(downstream_)
             .status(502, "Bad Gateway")
             .sendWithEOM();
+        LOG(ERROR) << "Encountered an error when connecting to the origin server\n";
     }
 
     /////////////////////////////////////////////////////////////
@@ -105,10 +116,12 @@ namespace masternode {
 
     void ProxyHandler::originSetTransaction(proxygen::HTTPTransaction* txn) noexcept {
         originTxn_ = txn;
+        LOG(INFO) << "Set the origin transaction in request handler\n";
     }
 
     void ProxyHandler::originDetachTransaction() noexcept {
         originTxn_ = nullptr;
+        LOG(INFO) << "Detached origin transaction\n";
         // TODO: add code to check for conditions to delete this handler here
     }
 
@@ -129,6 +142,7 @@ namespace masternode {
         }
         
         downstream_->sendBody(std::move(chain));
+        LOG(INFO) << "Sent body content from origin to client\n";
     }
 
     void ProxyHandler::originOnChunkHeader(size_t length) noexcept {
@@ -143,6 +157,7 @@ namespace masternode {
 
     void ProxyHandler::originOnEOM() noexcept {
         downstream_->sendEOM();
+        LOG(INFO) << "Sent EOM from origin to client\n";
     }
 
     void ProxyHandler::originOnUpgrade(proxygen::UpgradeProtocol protocol) noexcept {}

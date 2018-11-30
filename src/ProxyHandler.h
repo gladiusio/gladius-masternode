@@ -16,8 +16,7 @@ namespace masternode {
     class ProxyHandler : public proxygen::RequestHandler,
                             private proxygen::HTTPConnector::Callback {
         public:
-            ProxyHandler(folly::CPUThreadPoolExecutor *cpuPool,
-                folly::HHWheelTimer *timer,
+            ProxyHandler(folly::HHWheelTimer *timer,
                 MemoryCache *cache);
             ~ProxyHandler() override;
 

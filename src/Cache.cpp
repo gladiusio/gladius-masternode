@@ -6,15 +6,14 @@ CachedRoute::CachedRoute(std::string url,
     url_ = std::move(url);
     content_ = std::move(data);
     headers_ = std::move(headers);
-    // TODO: take the sha256 hash of the content_ and assign it to the sha256 member here
     auto out = std::vector<uint8_t>(32);
     folly::ssl::OpenSSLHash::sha256(folly::range(out), *(content_.get()));
     sha256_ = folly::hexlify(out);
-    std::cout << sha256_ << "\n";
+    LOG(INFO) << "Created a CachedRoute object\n";
 }
 
 CachedRoute::~CachedRoute() {
-    std::cout << "CachedRoute deleted\n";
+    LOG(INFO) << "Destroyed a CachedRoute object\n";
 }
 
 std::string CachedRoute::getURL() {
@@ -48,6 +47,8 @@ void MemoryCache::addCachedRoute(std::string url,
     
     // Insert the CachedRoute class into the cache
     cache_.put(url, newEntry);
+
+    LOG(INFO) << "Added new cached route: " << url << "\n";
 }
 
 size_t MemoryCache::size() const { return cache_.size(); }
