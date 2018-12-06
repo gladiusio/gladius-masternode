@@ -25,7 +25,7 @@ std::string CachedRoute::getURL() {
 }
 
 std::unique_ptr<folly::IOBuf> CachedRoute::getContent() {
-    return content_.get()->clone();
+    return content_->clone();
 }
 
 std::shared_ptr<proxygen::HTTPMessage> CachedRoute::getHeaders() {
@@ -47,17 +47,20 @@ void MemoryCache::addCachedRoute(std::string url,
     std::shared_ptr<proxygen::HTTPMessage> headers) {
 
     // Create a new CachedRoute class
-    std::shared_ptr<CachedRoute> newEntry = std::make_shared<CachedRoute>(url, chain.get()->clone(), std::move(headers));
+    std::shared_ptr<CachedRoute> newEntry = 
+        std::make_shared<CachedRoute>(url, chain->clone(), std::move(headers));
     
     // Insert the CachedRoute class into the cache
     cache_.put(url, newEntry);
-    LOG(INFO) << "Route byte size: " << newEntry.get()->getContent().get()->length() << "\n";
-    LOG(INFO) << "Route chain byte size: " << newEntry.get()->getContent().get()->computeChainDataLength() << "\n";
+    LOG(INFO) << "Route byte size: " << newEntry->getContent()->length() << "\n";
+    LOG(INFO) << "Route chain byte size: " << newEntry->getContent()->computeChainDataLength() << "\n";
     LOG(INFO) << "Added new cached route: " << url << "\n";
 
     // write bytes to file
-    folly::File f("/home/.gladius/content/blog.gladius.io/" + newEntry.get()->getHash(), O_WRONLY | O_CREAT | O_TRUNC, 0666);
-    folly::gen::from(*newEntry.get()->getContent().get()) | folly::gen::toFile(folly::File(f.fd()), newEntry.get()->getContent().get()->computeChainDataLength());
+    folly::File f("/home/.gladius/content/blog.gladius.io/" + newEntry->getHash(),
+        O_WRONLY | O_CREAT | O_TRUNC, 0666);
+    folly::gen::from(*newEntry->getContent()) | 
+        folly::gen::toFile(folly::File(f.fd()), newEntry->getContent()->computeChainDataLength());
 
 }
 

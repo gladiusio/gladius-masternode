@@ -22,7 +22,7 @@ namespace masternode {
     
     // RequestHandler methods
     void ProxyHandler::onRequest(std::unique_ptr<HTTPMessage> headers) noexcept {
-        LOG(INFO) << "Received new request from " << headers.get()->getClientIP() << "\n";
+        LOG(INFO) << "Received new request from " << headers->getClientIP() << "\n";
         request_ = std::move(headers);
         proxygen::URL url(request_->getURL());
 
@@ -33,9 +33,9 @@ namespace masternode {
             LOG(INFO) << "Serving from cache for " << url.getUrl() << "\n";
             ResponseBuilder(downstream_)
                 .status(200, "OK")
-                .header("Content-Type", cachedRoute.get()->getHeaders().get()->getHeaders().rawGet("Content-Type"))
-                .header("Content-Encoding", cachedRoute.get()->getHeaders().get()->getHeaders().rawGet("Content-Encoding"))
-                .body(cachedRoute.get()->getContent())
+                .header("Content-Type", cachedRoute->getHeaders()->getHeaders().rawGet("Content-Type"))
+                .header("Content-Encoding", cachedRoute->getHeaders()->getHeaders().rawGet("Content-Encoding"))
+                .body(cachedRoute->getContent())
                 .sendWithEOM();
             return;
         }
@@ -82,7 +82,7 @@ namespace masternode {
         if (contentBody_ && contentHeaders_) {
             proxygen::URL url(request_->getURL());
             LOG(INFO) << "Adding " << url.getUrl() << " to memory cache\n";
-            cache_->addCachedRoute(url.getUrl(), contentBody_.get()->clone(), contentHeaders_); // may want to do this asynchronously
+            cache_->addCachedRoute(url.getUrl(), contentBody_->clone(), contentHeaders_); // may want to do this asynchronously
         }
         LOG(INFO) << "Deleting RequestHandler now...\n";
         delete this;
@@ -136,9 +136,9 @@ namespace masternode {
         proxygen::URL url(request_->getURL());
         // If we've already received some body content
         if (contentBody_) {
-            contentBody_->prependChain(chain.get()->clone());
+            contentBody_->prependChain(chain->clone());
         } else {
-            contentBody_ = chain.get()->clone();
+            contentBody_ = chain->clone();
         }
         
         downstream_->sendBody(std::move(chain));
