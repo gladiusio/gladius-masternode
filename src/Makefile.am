@@ -1,4 +1,7 @@
 AUTOMAKE_OPTIONS = foreign
+
+SUBDIRS = . tests
+
 bin_PROGRAMS = masternode
 masternode_LDADD = -lproxygenhttpserver -lproxygenlib -lwangle -lfolly -lglog -lgflags -lcrypto
 masternode_LDFLAGS = -pthread

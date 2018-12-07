@@ -38,6 +38,13 @@ ENV LD_LIBRARY_PATH /usr/local/lib
 # ###################################################
 FROM proxygen-env as masternode-builder
 
+RUN apt-get install -y libgtest-dev
+
+RUN cd /usr/src/gtest && \
+        cmake CMakeLists.txt && \
+        make && \
+        cp *.a $LD_LIBRARY_PATH
+
 WORKDIR /app
 
 # Move src and build template files over from host
