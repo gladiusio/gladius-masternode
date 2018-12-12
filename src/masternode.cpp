@@ -1,11 +1,6 @@
 #include <unistd.h>
 
-#include <folly/Memory.h>
-#include <folly/executors/IOThreadPoolExecutor.h>
-#include <folly/io/async/EventBaseManager.h>
-
 #include <proxygen/httpserver/HTTPServer.h>
-#include <proxygen/httpserver/RequestHandlerFactory.h>
 
 #include "ProxyHandlerFactory.h"
 
