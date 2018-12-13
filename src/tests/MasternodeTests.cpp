@@ -4,6 +4,8 @@
 
 #include <proxygen/httpserver/HTTPServer.h>
 
+#include <httplib.h>
+
 #include "ProxyHandlerFactory.h"
 
 using namespace folly;
@@ -41,12 +43,63 @@ class ServerThread {
   }
 };
 
+
 TEST (MasternodeTests, Foo) {
   EXPECT_EQ (1, 1);
 }
 
 TEST (ProxyHandlerFactory, TestStartsWithServer) {
+  std::vector<HTTPServer::IPConfig> IPs = {
+        {folly::SocketAddress("0.0.0.0", 8080, true),
+        HTTPServer::Protocol::HTTP}};
 
+  HTTPServerOptions options;
+  options.threads = 1;
+  options.idleTimeout = std::chrono::milliseconds(60000);
+  options.shutdownOn = {SIGINT, SIGTERM};
+  options.enableContentCompression = false;
+  options.handlerFactories =
+      RequestHandlerChain()
+          .addThen<ProxyHandlerFactory>()
+          .build();
+  auto server = std::make_unique<HTTPServer>(std::move(options));
+  auto st = std::make_unique<ServerThread>(server.get());
+  server->bind(IPs);
+  EXPECT_TRUE(st->start());
+}
+
+// Wrapper/helper class around an httplib Server object
+// so it can run in another thread.
+class OriginThread {
+ private:
+  std::thread t_;
+  httplib::Server* server_;
+
+ public:
+  explicit OriginThread(httplib::Server* server) : server_(server) {}
+  ~OriginThread() {
+    // Stop the server and join the thread back in
+    // automatically when a unit test finishes.
+    if (server_) {
+      server_->stop();
+    }
+    t_.join();
+  }
+
+  void start() {
+    t_ = std::thread([&]() {
+      server_->Get("/", [](const httplib::Request& req, httplib::Response& res) {
+        res.set_content("Origin server content", "text/plain");
+      }).listen("0.0.0.0", 8085);
+    });
+  }
+};
+
+TEST (ProxyHandlerFactory, TestPassthroughProxy) {
+  // Create an origin server
+  auto origin = std::make_unique<httplib::Server>();
+  auto origin_thread = std::make_unique<OriginThread>(origin.get());
+  origin_thread->start();
 
   std::vector<HTTPServer::IPConfig> IPs = {
         {folly::SocketAddress("0.0.0.0", 8080, true),
