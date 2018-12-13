@@ -73,24 +73,20 @@ TEST (ProxyHandlerFactory, TestStartsWithServer) {
 class OriginThread {
  private:
   std::thread t_;
-  httplib::Server* server_;
+  httplib::Server& server_;
 
  public:
-  explicit OriginThread(httplib::Server* server) : server_(server) {}
+  explicit OriginThread(httplib::Server& server) : server_(server) {}
   ~OriginThread() {
     // Stop the server and join the thread back in
     // automatically when a unit test finishes.
-    if (server_) {
-      server_->stop();
-    }
+    server_.stop();
     t_.join();
   }
 
   void start() {
     t_ = std::thread([&]() {
-      server_->Get("/", [](const httplib::Request& req, httplib::Response& res) {
-        res.set_content("Origin server content", "text/plain");
-      }).listen("0.0.0.0", 8085);
+      server_.listen("0.0.0.0", 8085);
     });
   }
 };
@@ -98,7 +94,10 @@ class OriginThread {
 TEST (ProxyHandlerFactory, TestPassthroughProxy) {
   // Create an origin server
   auto origin = std::make_unique<httplib::Server>();
-  auto origin_thread = std::make_unique<OriginThread>(origin.get());
+  auto origin_thread = std::make_unique<OriginThread>(origin.get()
+    ->Get("/", [](const httplib::Request& req, httplib::Response& res) {
+        res.set_content("Origin server content", "text/plain");
+      }));
   origin_thread->start();
 
   std::vector<HTTPServer::IPConfig> IPs = {
