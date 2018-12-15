@@ -6,7 +6,7 @@
 
 #include <httplib.h>
 
-#include "ProxyHandlerFactory.h"
+#include "Masternode.h"
 
 using namespace folly;
 using namespace proxygen;
@@ -91,8 +91,30 @@ class OriginThread {
   }
 };
 
+class MasternodeThread {
+  private:
+    boost::barrier barrier_{2}; // barrier so we can "wait" for the server to start
+    std::thread t_;
+    Masternode* master_{nullptr};
+  public:
+    explicit MasternodeThread(Masternode* master) : master_(master){}
+    ~MasternodeThread() {
+      LOG(INFO) << "Stopping masternode thread...\n";
+      if (master_) {
+        master_->stop();
+      }
+      t_.join();
+    }
+
+    void start() {
+      t_ = std::thread([&]() {
+        master_->start();
+      });
+    }
+};
+
 TEST (ProxyHandlerFactory, TestPassthroughProxy) {
-  // Create an origin server
+  // Create and start an origin server
   auto origin = std::make_unique<httplib::Server>();
   auto origin_thread = std::make_unique<OriginThread>(origin.get()
     ->Get("/", [](const httplib::Request& req, httplib::Response& res) {
@@ -100,6 +122,7 @@ TEST (ProxyHandlerFactory, TestPassthroughProxy) {
       }));
   origin_thread->start();
 
+  // Create and start a masternode
   std::vector<HTTPServer::IPConfig> IPs = {
         {folly::SocketAddress("0.0.0.0", 8080, true),
         HTTPServer::Protocol::HTTP}};
@@ -113,10 +136,20 @@ TEST (ProxyHandlerFactory, TestPassthroughProxy) {
       RequestHandlerChain()
           .addThen<ProxyHandlerFactory>()
           .build();
-  auto server = std::make_unique<HTTPServer>(std::move(options));
-  auto st = std::make_unique<ServerThread>(server.get());
-  server->bind(IPs);
-  EXPECT_TRUE(st->start());
+  
+  MasternodeConfig mc("0.0.0.0", 8085, "blog.gladius.io", std::move(options), std::move(IPs));
+  auto master = std::make_unique<Masternode>(mc);
+  auto master_thread = std::make_unique<MasternodeThread>(master.get());
+  LOG(INFO) << "Starting master_thread\n";
+  //master_thread->start();
+  master->start();
+
+  // Make a request from the client's perspective to the masternode
+  httplib::Client client("0.0.0.0", 8080);
+  auto res = client.Get("/");
+  ASSERT_TRUE(res != nullptr);
+  EXPECT_EQ(res->status, 200);
+  EXPECT_EQ(res->body, "Origin server content");
 }
 
 int main(int argc, char **argv) {

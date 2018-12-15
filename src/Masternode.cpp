@@ -7,17 +7,9 @@
 using namespace proxygen;
 using namespace masternode;
 
-using folly::HHWheelTimer;
-
-
 DEFINE_string(ip, "0.0.0.0", "IP/Hostname to bind to");
 DEFINE_int32(port, 80, "Port to listen for HTTP requests on");
 
-
-void Masternode::start() {
-  server_->bind(config_->IPs);
-  server_->start();
-}
 
 int main(int argc, char *argv[]) {
   gflags::ParseCommandLineFlags(&argc, &argv, true);
@@ -42,15 +34,8 @@ int main(int argc, char *argv[]) {
           .addThen<ProxyHandlerFactory>()
           .build();
 
-
   MasternodeConfig mc("159.203.172.79", 80, "blog.gladius.io", std::move(options), std::move(IPs));
   Masternode master(mc);
-
-
-  //HTTPServer server(std::move(options));
-  //server.bind(IPs);
-
-  //std::thread t([&]() { server.start(); });
 
   std::thread t([&]() { master.start(); });
   t.join();
