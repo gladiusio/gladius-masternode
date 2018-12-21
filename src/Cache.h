@@ -32,7 +32,7 @@ class CachedRoute {
 
 class MemoryCache {
     public:
-        MemoryCache(size_t capacity) : cache_(capacity) {}
+        MemoryCache(size_t capacity, std::string dir) : cache_(capacity), cache_directory_(dir) {}
 
         // Retrieve cached content with the URL as the lookup key
         std::shared_ptr<CachedRoute> getCachedRoute(std::string);
@@ -47,4 +47,6 @@ class MemoryCache {
         // to serve cached content from. Thread-safe!
         wangle::LRUInMemoryCache<std::string, std::shared_ptr<CachedRoute>, std::mutex> cache_;
         
+        // Directory to write cached files to
+        std::string cache_directory_;
 };

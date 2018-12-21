@@ -18,5 +18,5 @@ void ProxyHandlerFactory::onServerStop() noexcept {
 }
 
 RequestHandler* ProxyHandlerFactory::onRequest(RequestHandler *, HTTPMessage *) noexcept {
-    return new ProxyHandler(timer_->timer.get(), cache_.get());
+    return new ProxyHandler(timer_->timer.get(), cache_.get(), config_.get());
 }

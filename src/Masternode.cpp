@@ -2,7 +2,7 @@
 
 #include <proxygen/httpserver/HTTPServer.h>
 
-#include "Masternode.h"
+#include "ProxyHandlerFactory.h"
 
 using namespace proxygen;
 using namespace masternode;
@@ -24,18 +24,22 @@ int main(int argc, char *argv[]) {
        HTTPServer::Protocol::HTTP}};
   LOG(INFO) << "Binding to " << FLAGS_ip << ":" << FLAGS_port << "\n";
 
-  HTTPServerOptions options;
-  options.threads = threads;
-  options.idleTimeout = std::chrono::milliseconds(60000);
-  options.shutdownOn = {SIGINT, SIGTERM};
-  options.enableContentCompression = false;
-  options.handlerFactories =
+  auto config = std::make_shared<MasternodeConfig>();
+  config->options.threads = threads;
+  config->options.idleTimeout = std::chrono::milliseconds(60000);
+  config->options.shutdownOn = {SIGINT, SIGTERM};
+  config->options.enableContentCompression = false;
+  config->options.handlerFactories =
       RequestHandlerChain()
-          .addThen<ProxyHandlerFactory>()
+          .addThen<ProxyHandlerFactory>(config)
           .build();
-
-  MasternodeConfig mc("159.203.172.79", 80, "blog.gladius.io", std::move(options), std::move(IPs));
-  Masternode master(mc);
+  config->origin_host = "159.203.172.79";
+  config->origin_port = 80;
+  config->protected_host = "blog.gladius.io";
+  config->IPs = IPs;
+  config->cache_directory = "/home/.gladius/content/blog.gladius.io";
+  
+  Masternode master(config);
 
   std::thread t([&]() { master.start(); });
   t.join();
