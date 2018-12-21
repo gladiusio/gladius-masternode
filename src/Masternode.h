@@ -27,13 +27,16 @@ namespace masternode {
         private:
             std::shared_ptr<MasternodeConfig> config_;
             std::unique_ptr<proxygen::HTTPServer> server_;
+            std::shared_ptr<folly::CPUThreadPoolExecutor> cpuThreadPool_;
         public:
             Masternode(std::shared_ptr<MasternodeConfig> config) {
                 config_ = config;
+                cpuThreadPool_ = std::make_shared<folly::CPUThreadPoolExecutor>(
+                    config_->options.threads,
+                    std::make_shared<folly::NamedThreadFactory>("CpuAsyncThread"));
                 server_ = std::make_unique<proxygen::HTTPServer>(std::move(config_->options));
             };
             
-
             void start(std::function<void()> onSuccess = nullptr,
                 std::function<void(std::exception_ptr)> onError = nullptr) {
                 server_->bind(config_->IPs);

@@ -25,6 +25,11 @@ int main(int argc, char *argv[]) {
   LOG(INFO) << "Binding to " << FLAGS_ip << ":" << FLAGS_port << "\n";
 
   auto config = std::make_shared<MasternodeConfig>();
+  config->origin_host = "159.203.172.79";
+  config->origin_port = 80;
+  config->protected_host = "blog.gladius.io";
+  config->IPs = IPs;
+  config->cache_directory = "/home/.gladius/content/blog.gladius.io";
   config->options.threads = threads;
   config->options.idleTimeout = std::chrono::milliseconds(60000);
   config->options.shutdownOn = {SIGINT, SIGTERM};
@@ -33,11 +38,7 @@ int main(int argc, char *argv[]) {
       RequestHandlerChain()
           .addThen<ProxyHandlerFactory>(config)
           .build();
-  config->origin_host = "159.203.172.79";
-  config->origin_port = 80;
-  config->protected_host = "blog.gladius.io";
-  config->IPs = IPs;
-  config->cache_directory = "/home/.gladius/content/blog.gladius.io";
+  
   
   Masternode master(config);
 

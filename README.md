@@ -43,7 +43,6 @@ doxygen Doxyfile
 docker cp <container id>:/proxygen/html <path on host to put docs>
 ```
 
-
 ## Running the Software
 ```shell
 docker run -p 80:80 -it gladiusio/masternode
