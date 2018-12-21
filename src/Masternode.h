@@ -32,11 +32,7 @@ namespace masternode {
                 config_ = config;
                 server_ = std::make_unique<proxygen::HTTPServer>(std::move(config_->options));
             };
-            ~Masternode() {
-                if (server_.get()) {
-                    server_->stop();
-                }
-            }
+            
 
             void start(std::function<void()> onSuccess = nullptr,
                 std::function<void(std::exception_ptr)> onError = nullptr) {
