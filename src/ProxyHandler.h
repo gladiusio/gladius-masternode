@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Cache.h"
+#include "Masternode.h"
 
 #include <folly/Memory.h>
 #include <folly/executors/IOThreadPoolExecutor.h>
@@ -12,125 +13,129 @@
 #include <proxygen/lib/http/session/HTTPTransaction.h>
 
 
-namespace masternode {
-    class ProxyHandler : public proxygen::RequestHandler,
-                            private proxygen::HTTPConnector::Callback {
-        public:
-            ProxyHandler(folly::HHWheelTimer *timer,
-                MemoryCache *cache);
-            ~ProxyHandler() override;
+using namespace masternode;
 
-            // RequestHandler methods
-            void onRequest(std::unique_ptr<proxygen::HTTPMessage> headers) noexcept override;
-            void onBody(std::unique_ptr<folly::IOBuf> body) noexcept override;
-            void onUpgrade(proxygen::UpgradeProtocol protocol) noexcept override;
-            void onEOM() noexcept override;
-            void requestComplete() noexcept override;
-            void onError(proxygen::ProxygenError err) noexcept override;
-        
-            // HTTPConnector::Callback methods
-            void connectSuccess(proxygen::HTTPUpstreamSession* session) noexcept override;
-            void connectError(const folly::AsyncSocketException& ex) noexcept override;
+class ProxyHandler : public proxygen::RequestHandler,
+                        private proxygen::HTTPConnector::Callback {
+    public:
+        ProxyHandler(folly::HHWheelTimer *timer,
+            MemoryCache *cache, MasternodeConfig *config);
+        ~ProxyHandler() override;
 
-            // HTTPTransactionHandler delegated methods
-            void originSetTransaction(proxygen::HTTPTransaction* txn) noexcept;
-            void originDetachTransaction() noexcept;
-            void originOnHeadersComplete(std::unique_ptr<proxygen::HTTPMessage> msg) noexcept;
-            void originOnBody(std::unique_ptr<folly::IOBuf> chain) noexcept;
-            void originOnChunkHeader(size_t length) noexcept;
-            void originOnChunkComplete() noexcept;
-            void originOnTrailers(std::unique_ptr<proxygen::HTTPHeaders> trailers) noexcept;
-            void originOnEOM() noexcept;
-            void originOnUpgrade(proxygen::UpgradeProtocol protocol) noexcept;
-            void originOnError(const proxygen::HTTPException& error) noexcept;
-            void originOnEgressPaused() noexcept;
-            void originOnEgressResumed() noexcept;
-            void originOnPushedTransaction(proxygen::HTTPTransaction *txn) noexcept;
-        private:
-            class OriginTransactionHandler : public proxygen::HTTPTransactionHandler {
-                public:
-                    explicit OriginTransactionHandler(ProxyHandler& parent) : parent_(parent) {}
-                private:
-                    void setTransaction(proxygen::HTTPTransaction* txn) noexcept {
-                        parent_.originSetTransaction(txn);
-                    }
+        // RequestHandler methods
+        void onRequest(std::unique_ptr<proxygen::HTTPMessage> headers) noexcept override;
+        void onBody(std::unique_ptr<folly::IOBuf> body) noexcept override;
+        void onUpgrade(proxygen::UpgradeProtocol protocol) noexcept override;
+        void onEOM() noexcept override;
+        void requestComplete() noexcept override;
+        void onError(proxygen::ProxygenError err) noexcept override;
+    
+        // HTTPConnector::Callback methods
+        void connectSuccess(proxygen::HTTPUpstreamSession* session) noexcept override;
+        void connectError(const folly::AsyncSocketException& ex) noexcept override;
 
-                    void detachTransaction() noexcept {
-                        parent_.originDetachTransaction();
-                    }
+        // HTTPTransactionHandler delegated methods
+        void originSetTransaction(proxygen::HTTPTransaction* txn) noexcept;
+        void originDetachTransaction() noexcept;
+        void originOnHeadersComplete(std::unique_ptr<proxygen::HTTPMessage> msg) noexcept;
+        void originOnBody(std::unique_ptr<folly::IOBuf> chain) noexcept;
+        void originOnChunkHeader(size_t length) noexcept;
+        void originOnChunkComplete() noexcept;
+        void originOnTrailers(std::unique_ptr<proxygen::HTTPHeaders> trailers) noexcept;
+        void originOnEOM() noexcept;
+        void originOnUpgrade(proxygen::UpgradeProtocol protocol) noexcept;
+        void originOnError(const proxygen::HTTPException& error) noexcept;
+        void originOnEgressPaused() noexcept;
+        void originOnEgressResumed() noexcept;
+        void originOnPushedTransaction(proxygen::HTTPTransaction *txn) noexcept;
+    private:
+        class OriginTransactionHandler : public proxygen::HTTPTransactionHandler {
+            public:
+                explicit OriginTransactionHandler(ProxyHandler& parent) : parent_(parent) {}
+            private:
+                void setTransaction(proxygen::HTTPTransaction* txn) noexcept {
+                    parent_.originSetTransaction(txn);
+                }
 
-                    void onHeadersComplete(std::unique_ptr<proxygen::HTTPMessage> msg) noexcept {
-                        parent_.originOnHeadersComplete(std::move(msg));
-                    }
+                void detachTransaction() noexcept {
+                    parent_.originDetachTransaction();
+                }
 
-                    void onBody(std::unique_ptr<folly::IOBuf> chain) noexcept {
-                        parent_.originOnBody(std::move(chain));
-                    }
+                void onHeadersComplete(std::unique_ptr<proxygen::HTTPMessage> msg) noexcept {
+                    parent_.originOnHeadersComplete(std::move(msg));
+                }
 
-                    void onChunkHeader(size_t length) noexcept {
-                        parent_.originOnChunkHeader(length);
-                    }
+                void onBody(std::unique_ptr<folly::IOBuf> chain) noexcept {
+                    parent_.originOnBody(std::move(chain));
+                }
 
-                    void onChunkComplete() noexcept {
-                        parent_.originOnChunkComplete();
-                    }
+                void onChunkHeader(size_t length) noexcept {
+                    parent_.originOnChunkHeader(length);
+                }
 
-                    void onTrailers(std::unique_ptr<proxygen::HTTPHeaders> trailers) noexcept {
-                        parent_.originOnTrailers(std::move(trailers));
-                    }
+                void onChunkComplete() noexcept {
+                    parent_.originOnChunkComplete();
+                }
 
-                    void onEOM() noexcept {
-                        parent_.originOnEOM();
-                    }
+                void onTrailers(std::unique_ptr<proxygen::HTTPHeaders> trailers) noexcept {
+                    parent_.originOnTrailers(std::move(trailers));
+                }
 
-                    void onUpgrade(proxygen::UpgradeProtocol protocol) noexcept {
-                        parent_.originOnUpgrade(protocol);
-                    }
+                void onEOM() noexcept {
+                    parent_.originOnEOM();
+                }
 
-                    void onError(const proxygen::HTTPException& error) noexcept {
-                        parent_.originOnError(error);
-                    }
+                void onUpgrade(proxygen::UpgradeProtocol protocol) noexcept {
+                    parent_.originOnUpgrade(protocol);
+                }
 
-                    void onEgressPaused() noexcept {
-                        parent_.originOnEgressPaused();
-                    }
+                void onError(const proxygen::HTTPException& error) noexcept {
+                    parent_.originOnError(error);
+                }
 
-                    void onEgressResumed() noexcept {
-                        parent_.originOnEgressResumed();
-                    }
+                void onEgressPaused() noexcept {
+                    parent_.originOnEgressPaused();
+                }
 
-                    void onPushedTransaction(proxygen::HTTPTransaction *txn) noexcept {
-                        parent_.originOnPushedTransaction(txn);
-                    }
+                void onEgressResumed() noexcept {
+                    parent_.originOnEgressResumed();
+                }
 
-                    ProxyHandler& parent_;
-            };
+                void onPushedTransaction(proxygen::HTTPTransaction *txn) noexcept {
+                    parent_.originOnPushedTransaction(txn);
+                }
 
-            // Creates a connection to origin servers we're protecting when we need
-            // to fetch content.
-            proxygen::HTTPConnector connector_;
+                ProxyHandler& parent_;
+        };
 
-            // Handles connection lifecycle events between origin servers and us
-            OriginTransactionHandler originHandler_;
+        // Creates a connection to origin servers we're protecting when we need
+        // to fetch content.
+        proxygen::HTTPConnector connector_;
 
-            // HTTP transaction used to get content from an origin server
-            proxygen::HTTPTransaction* originTxn_{nullptr};
+        // Handles connection lifecycle events between origin servers and us
+        OriginTransactionHandler originHandler_;
 
-            // Incoming request (headers)
-            std::unique_ptr<proxygen::HTTPMessage> request_;
+        // HTTP transaction used to get content from an origin server
+        proxygen::HTTPTransaction* originTxn_{nullptr};
 
-            // Thread pool for running cpu-bound tasks off of the main event threads
-            folly::CPUThreadPoolExecutor *cpuPool_;
+        // Incoming request (headers)
+        std::unique_ptr<proxygen::HTTPMessage> request_;
 
-            // Content received from the origin. Used to collect data as it
-            // comes in from the origin and later pass in to the cache once
-            // all the data is there.
-            std::unique_ptr<folly::IOBuf> contentBody_{nullptr};
+        // Thread pool for running cpu-bound tasks off of the main event threads
+        folly::CPUThreadPoolExecutor *cpuPool_;
 
-            // Origin response headers
-            std::shared_ptr<proxygen::HTTPMessage> contentHeaders_{nullptr};
+        // Content received from the origin. Used to collect data as it
+        // comes in from the origin and later pass in to the cache once
+        // all the data is there.
+        std::unique_ptr<folly::IOBuf> contentBody_{nullptr};
 
-            // HTTP content cache
-            MemoryCache *cache_;
-    }; 
-}
+        // Origin response headers
+        std::shared_ptr<proxygen::HTTPMessage> contentHeaders_{nullptr};
+
+        // HTTP content cache
+        MemoryCache *cache_;
+
+        // Configuration class
+        MasternodeConfig *config_;
+}; 
+

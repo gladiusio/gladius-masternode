@@ -57,7 +57,7 @@ void MemoryCache::addCachedRoute(std::string url,
     LOG(INFO) << "Added new cached route: " << url << "\n";
 
     // write bytes to file
-    folly::File f("/home/.gladius/content/blog.gladius.io/" + newEntry->getHash(),
+    folly::File f(cache_directory_ + newEntry->getHash(),
         O_WRONLY | O_CREAT | O_TRUNC, 0666);
     folly::gen::from(*newEntry->getContent()) | 
         folly::gen::toFile(folly::File(f.fd()), newEntry->getContent()->computeChainDataLength());

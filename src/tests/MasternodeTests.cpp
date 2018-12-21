@@ -6,7 +6,7 @@
 
 #include <httplib.h>
 
-#include "Masternode.h"
+#include "ProxyHandlerFactory.h"
 
 using namespace folly;
 using namespace proxygen;
@@ -42,31 +42,6 @@ class ServerThread {
     return !throws;
   }
 };
-
-
-TEST (MasternodeTests, Foo) {
-  EXPECT_EQ (1, 1);
-}
-
-TEST (ProxyHandlerFactory, TestStartsWithServer) {
-  std::vector<HTTPServer::IPConfig> IPs = {
-        {folly::SocketAddress("0.0.0.0", 8080, true),
-        HTTPServer::Protocol::HTTP}};
-
-  HTTPServerOptions options;
-  options.threads = 1;
-  options.idleTimeout = std::chrono::milliseconds(60000);
-  options.shutdownOn = {SIGINT, SIGTERM};
-  options.enableContentCompression = false;
-  options.handlerFactories =
-      RequestHandlerChain()
-          .addThen<ProxyHandlerFactory>()
-          .build();
-  auto server = std::make_unique<HTTPServer>(std::move(options));
-  auto st = std::make_unique<ServerThread>(server.get());
-  server->bind(IPs);
-  EXPECT_TRUE(st->start());
-}
 
 // Wrapper/helper class around an httplib Server object
 // so it can run in another thread.
@@ -106,10 +81,18 @@ class MasternodeThread {
       t_.join();
     }
 
-    void start() {
+    bool start() {
+      bool throws = false;
       t_ = std::thread([&]() {
-        master_->start();
+        master_->start([&]() { barrier_.wait(); },
+                        [&](std::exception_ptr) {
+                          throws = true;
+                          master_ = nullptr;
+                          barrier_.wait();
+                        });
       });
+      barrier_.wait();
+      return !throws;
     }
 };
 
@@ -127,22 +110,25 @@ TEST (ProxyHandlerFactory, TestPassthroughProxy) {
         {folly::SocketAddress("0.0.0.0", 8080, true),
         HTTPServer::Protocol::HTTP}};
 
-  HTTPServerOptions options;
-  options.threads = 1;
-  options.idleTimeout = std::chrono::milliseconds(60000);
-  options.shutdownOn = {SIGINT, SIGTERM};
-  options.enableContentCompression = false;
-  options.handlerFactories =
+  auto mc = std::make_shared<MasternodeConfig>();
+  mc->origin_host = "0.0.0.0";
+  mc->origin_port = 8085;
+  mc->IPs = IPs;
+  mc->cache_directory = "/dev/null";
+  mc->options.threads = 1;
+  mc->options.idleTimeout = std::chrono::milliseconds(10000);
+  mc->options.shutdownOn = {SIGINT, SIGTERM};
+  mc->options.enableContentCompression = false;
+  mc->options.handlerFactories =
       RequestHandlerChain()
-          .addThen<ProxyHandlerFactory>()
+          .addThen<ProxyHandlerFactory>(mc)
           .build();
+ 
   
-  MasternodeConfig mc("0.0.0.0", 8085, "blog.gladius.io", std::move(options), std::move(IPs));
   auto master = std::make_unique<Masternode>(mc);
   auto master_thread = std::make_unique<MasternodeThread>(master.get());
   LOG(INFO) << "Starting master_thread\n";
-  //master_thread->start();
-  master->start();
+  EXPECT_TRUE(master_thread->start());
 
   // Make a request from the client's perspective to the masternode
   httplib::Client client("0.0.0.0", 8080);
