@@ -30,6 +30,9 @@ WORKDIR /proxygen/proxygen
 # Build and install ProxyGen
 RUN ./deps.sh -j $(printf %.0f $(echo "$(nproc) * 1.5" | bc -l))
 
+# Remove gigantic source code tree
+RUN rm -rf /proxygen
+
 # Tell the linker where to find ProxyGen and friends
 ENV LD_LIBRARY_PATH /usr/local/lib
 
