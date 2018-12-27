@@ -57,6 +57,7 @@ void MemoryCache::addCachedRoute(std::string url,
     LOG(INFO) << "Added new cached route: " << url << "\n";
 
     // write bytes to file
+    // todo: use thread pool to do this off of the IO threads
     folly::File f(cache_directory_ + newEntry->getHash(),
         O_WRONLY | O_CREAT | O_TRUNC, 0666);
     folly::gen::from(*newEntry->getContent()) | 
