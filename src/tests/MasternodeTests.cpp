@@ -2,15 +2,23 @@
 #include <glog/logging.h>
 #include <boost/thread.hpp>
 
+#include <proxygen/lib/utils/TestUtils.h>
 #include <proxygen/httpserver/HTTPServer.h>
 
+#define CPPHTTPLIB_OPENSSL_SUPPORT
 #include <httplib.h>
 
 #include "ProxyHandlerFactory.h"
 
+
+
 using namespace folly;
 using namespace proxygen;
 using namespace masternode;
+
+namespace {
+  const std::string testDir = getContainingDirectory(__FILE__).str();
+}
 
 class ServerThread {
  private:
@@ -131,6 +139,53 @@ TEST (ProxyHandlerFactory, TestPassthroughProxy) {
 
   // Make a request from the client's perspective to the masternode
   httplib::Client client("0.0.0.0", 8080);
+  auto res = client.Get("/");
+  ASSERT_TRUE(res != nullptr);
+  EXPECT_EQ(res->status, 200);
+  EXPECT_EQ(res->body, "Origin server content");
+}
+
+TEST (ProxyHandlerFactory, TestSSLPassthroughProxy) {
+  // Create and start an origin server
+  auto origin = std::make_unique<httplib::Server>();
+  auto origin_thread = std::make_unique<OriginThread>(origin.get()
+    ->Get("/", [](const httplib::Request& req, httplib::Response& res) {
+        res.set_content("Origin server content", "text/plain");
+      }));
+  origin_thread->start();
+
+  // Create and start a masternode
+  std::vector<HTTPServer::IPConfig> IPs = {
+        {folly::SocketAddress("0.0.0.0", 8080, true),
+        HTTPServer::Protocol::HTTP}};
+
+  // Enable SSL
+  wangle::SSLContextConfig sslCfg;
+  sslCfg.isDefault = true;
+  sslCfg.setCertificate(testDir + "certs/cert.pem", testDir + "certs/key.pem", "");
+  IPs[0].sslConfigs.push_back(sslCfg);
+
+  auto mc = std::make_shared<MasternodeConfig>();
+  mc->origin_host = "0.0.0.0";
+  mc->origin_port = 8085;
+  mc->IPs = IPs;
+  mc->cache_directory = "/dev/null";
+  mc->options.threads = 1;
+  mc->options.idleTimeout = std::chrono::milliseconds(10000);
+  mc->options.shutdownOn = {SIGINT, SIGTERM};
+  mc->options.enableContentCompression = false;
+  mc->options.handlerFactories =
+      RequestHandlerChain()
+          .addThen<ProxyHandlerFactory>(mc)
+          .build();
+ 
+  auto master = std::make_unique<Masternode>(mc);
+  auto master_thread = std::make_unique<MasternodeThread>(master.get());
+
+  EXPECT_TRUE(master_thread->start());
+
+  // Make a request from the client's perspective to the masternode
+  httplib::SSLClient client("0.0.0.0", 8080);
   auto res = client.Get("/");
   ASSERT_TRUE(res != nullptr);
   EXPECT_EQ(res->status, 200);

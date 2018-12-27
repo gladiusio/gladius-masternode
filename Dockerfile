@@ -41,6 +41,7 @@ ENV LD_LIBRARY_PATH /usr/local/lib
 # ###################################################
 FROM proxygen-env as masternode-builder
 
+# Install google test libs
 RUN apt-get install -y libgtest-dev
 
 RUN cd /usr/src/gtest && \
@@ -76,7 +77,7 @@ COPY --from=masternode-builder /app/build/masternode .
 
 RUN mkdir -p /home/.gladius/content/blog.gladius.io
 
-EXPOSE 80
+EXPOSE 80 443
 
 CMD ./masternode --logtostderr=1
 
