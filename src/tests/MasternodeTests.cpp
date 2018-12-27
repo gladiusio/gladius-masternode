@@ -74,7 +74,7 @@ class MasternodeThread {
   public:
     explicit MasternodeThread(Masternode* master) : master_(master){}
     ~MasternodeThread() {
-      LOG(INFO) << "Stopping masternode thread...\n";
+
       if (master_) {
         master_->stop();
       }
@@ -124,10 +124,9 @@ TEST (ProxyHandlerFactory, TestPassthroughProxy) {
           .addThen<ProxyHandlerFactory>(mc)
           .build();
  
-  
   auto master = std::make_unique<Masternode>(mc);
   auto master_thread = std::make_unique<MasternodeThread>(master.get());
-  LOG(INFO) << "Starting master_thread\n";
+
   EXPECT_TRUE(master_thread->start());
 
   // Make a request from the client's perspective to the masternode
