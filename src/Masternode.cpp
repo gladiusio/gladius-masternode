@@ -27,14 +27,16 @@ int main(int argc, char *argv[]) {
 
   std::vector<HTTPServer::IPConfig> IPs = {
       {folly::SocketAddress(FLAGS_ip, FLAGS_port, true),
-       HTTPServer::Protocol::HTTP}};
+       HTTPServer::Protocol::HTTP},
+       {folly::SocketAddress(FLAGS_ip, 443, true),
+        HTTPServer::Protocol::HTTP}};
   LOG(INFO) << "Binding to " << FLAGS_ip << ":" << FLAGS_port << "\n";
 
   // Enable SSL
   wangle::SSLContextConfig sslCfg;
   sslCfg.isDefault = true;
   sslCfg.setCertificate(FLAGS_cert_path, FLAGS_key_path, "");
-  IPs[0].sslConfigs.push_back(sslCfg);
+  IPs[1].sslConfigs.push_back(sslCfg);
 
   auto config = std::make_shared<MasternodeConfig>();
   config->origin_host = FLAGS_origin_host;
