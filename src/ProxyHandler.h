@@ -120,9 +120,6 @@ class ProxyHandler : public proxygen::RequestHandler,
         // Incoming request (headers)
         std::unique_ptr<proxygen::HTTPMessage> request_;
 
-        // Thread pool for running cpu-bound tasks off of the main event threads
-        folly::CPUThreadPoolExecutor *cpuPool_;
-
         // Content received from the origin. Used to collect data as it
         // comes in from the origin and later pass in to the cache once
         // all the data is there.
