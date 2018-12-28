@@ -10,7 +10,8 @@ RUN apt-get update && \
                 apt-utils \
                 git \
                 sudo \
-                bc
+                bc \
+                libdouble-conversion1v5
 
 RUN useradd -m docker && echo "docker:docker" | chpasswd && adduser docker sudo
 
