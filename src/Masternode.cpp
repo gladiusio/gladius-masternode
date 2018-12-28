@@ -1,5 +1,5 @@
 #include <unistd.h>
-
+#define STRIP_FLAG_HELP 1 // removes google gflags help messages in the binary
 #include <proxygen/httpserver/HTTPServer.h>
 
 #include "ProxyHandlerFactory.h"
