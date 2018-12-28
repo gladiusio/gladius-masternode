@@ -5,7 +5,6 @@
 
 #include <folly/Memory.h>
 #include <folly/executors/IOThreadPoolExecutor.h>
-#include <folly/executors/CPUThreadPoolExecutor.h>
 #include <folly/futures/Future.h>
 
 #include <proxygen/httpserver/RequestHandler.h>
