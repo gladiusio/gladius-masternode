@@ -17,8 +17,10 @@ DEFINE_string(protected_host,
 DEFINE_string(cert_path, "", "Path to SSL certificate");
 DEFINE_string(key_path, "", "Path to SSL private key");
 DEFINE_string(cache_dir, "", "Path to directory to write cached files to");
-DEFINE_string(gateway_address, "http://0.0.0.0:3000", 
+DEFINE_string(gateway_address, "0.0.0.0", 
     "Address to the masternode's Gladius network gateway");
+DEFINE_int32(gateway_port, 3000, 
+    "Port of the masternode's Gladius network gateway");
 
 int main(int argc, char *argv[]) {
     gflags::ParseCommandLineFlags(&argc, &argv, true);
@@ -43,12 +45,15 @@ int main(int argc, char *argv[]) {
         sslCfg.setCertificate(FLAGS_cert_path, FLAGS_key_path, "");
         sslIP.sslConfigs.push_back(sslCfg);
         IPs.push_back(sslIP);
+        LOG(INFO) << "Binding to " << FLAGS_ip << ":443 for SSL requests\n";
     }
     
     auto config = std::make_shared<MasternodeConfig>();
     config->origin_host = FLAGS_origin_host;
     config->origin_port = FLAGS_origin_port;
     config->protected_host = FLAGS_protected_host;
+    config->gateway_address = FLAGS_gateway_address;
+    config->gateway_port = FLAGS_gateway_port;
     config->IPs = IPs;
     config->cache_directory = FLAGS_cache_dir;
     config->options.threads = threads;

@@ -3,38 +3,32 @@
 #include <string.h>
 #include <stdint.h>
 
-#include <boost/thread.hpp>
+#include "MasternodeConfig.h"
+#include "NetworkState.h"
+
 #include <proxygen/httpserver/HTTPServer.h>
 
 namespace masternode {
-    class MasternodeConfig {
-        public:
-            // IP or hostname of the origin server (required)
-            std::string origin_host;
-            // Port of the origin server (required)
-            uint16_t origin_port;
-            // IP or hostname of the host we're protecting (singular for now) (required)
-            std::string protected_host;
-            // Proxygen server options
-            proxygen::HTTPServerOptions options;
-            // IPs for the server to locally bind to
-            std::vector<proxygen::HTTPServer::IPConfig> IPs;
-            // Directory to store cached files
-            std::string cache_directory;
-    };
-
     class Masternode {
         private:
-            std::shared_ptr<MasternodeConfig> config_;
-            std::unique_ptr<proxygen::HTTPServer> server_;
+            std::shared_ptr<MasternodeConfig> config_{nullptr};
+            std::unique_ptr<proxygen::HTTPServer> server_{nullptr};
+            std::shared_ptr<NetworkState> state_{nullptr};
         public:
             Masternode(std::shared_ptr<MasternodeConfig> config) {
                 config_ = config;
-                server_ = std::make_unique<proxygen::HTTPServer>(std::move(config_->options));
+                server_ = std::make_unique<proxygen::HTTPServer>(
+                    std::move(config_->options));
+                if (!config_->gateway_address.empty()) {
+                    state_ = std::make_shared<NetworkState>(config_);
+                }
             };
             
             void start(std::function<void()> onSuccess = nullptr,
                 std::function<void(std::exception_ptr)> onError = nullptr) {
+                if (state_) {
+                    state_->beginPollingGateway();
+                }
                 server_->bind(config_->IPs);
                 server_->start(onSuccess, onError);
             }

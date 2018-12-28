@@ -8,9 +8,8 @@
 #define CPPHTTPLIB_OPENSSL_SUPPORT
 #include <httplib.h>
 
+#include "NetworkState.h"
 #include "ProxyHandlerFactory.h"
-
-
 
 using namespace folly;
 using namespace proxygen;
@@ -190,6 +189,15 @@ TEST (ProxyHandlerFactory, TestSSLPassthroughProxy) {
   ASSERT_TRUE(res != nullptr);
   EXPECT_EQ(res->status, 200);
   EXPECT_EQ(res->body, "Origin server content");
+}
+
+TEST (NetworkState, TestStateParsing) {
+  auto mc = std::make_shared<MasternodeConfig>();
+  auto state = std::make_unique<NetworkState>(mc);
+  auto sample = R"({"response": {"node_data_map": {"0xdeadbeef": {"content_port": {"data": "8080"}, "ip_address": {"data": "127.0.0.1"}}}}})";
+  state->parseStateUpdate(sample);
+  EXPECT_EQ(state->getEdgeNodes().size(), 1);
+  EXPECT_EQ(state->getEdgeNodes()[0], "127.0.0.1:8080");
 }
 
 int main(int argc, char **argv) {

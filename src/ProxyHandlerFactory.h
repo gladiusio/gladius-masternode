@@ -25,12 +25,14 @@ class ProxyHandlerFactory : public RequestHandlerFactory {
         ~ProxyHandlerFactory() {
             LOG(INFO) << "Destroying a ProxyHandlerFactory\n";
         };
+        // Use this method to setup thread local data
         void onServerStart(folly::EventBase *) noexcept override;
         void onServerStop() noexcept override;
         RequestHandler *onRequest(RequestHandler *, HTTPMessage *) noexcept override;
     protected:
         std::shared_ptr<MemoryCache> cache_;
         std::shared_ptr<MasternodeConfig> config_;
+        std::string DIRECT_HEADER_NAME = "Gladius-Masternode-Direct";
     private:
         struct TimerWrapper {
             HHWheelTimer::UniquePtr timer;
