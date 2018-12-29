@@ -8,18 +8,19 @@
 
 #include "Cache.h"
 #include "ProxyHandler.h"
-#include "Masternode.h"
+#include "NetworkState.h"
 
 using namespace proxygen;
 using folly::HHWheelTimer;
 
-using namespace masternode;
-
 class ProxyHandlerFactory : public RequestHandlerFactory {
     public:
-        ProxyHandlerFactory(std::shared_ptr<MasternodeConfig> config):
-            cache_(std::make_shared<MemoryCache>(0, config->cache_directory)),
-            config_(config) {
+        ProxyHandlerFactory(std::shared_ptr<MasternodeConfig> config,
+            std::shared_ptr<NetworkState> state,
+            std::shared_ptr<ContentCache> cache):
+            cache_(cache),
+            config_(config),
+            state_(state) {
             LOG(INFO) << "Constructing a new ProxyHandlerFactory\n";
         };
         ~ProxyHandlerFactory() {
@@ -30,8 +31,10 @@ class ProxyHandlerFactory : public RequestHandlerFactory {
         void onServerStop() noexcept override;
         RequestHandler *onRequest(RequestHandler *, HTTPMessage *) noexcept override;
     protected:
-        std::shared_ptr<MemoryCache> cache_;
-        std::shared_ptr<MasternodeConfig> config_;
+        std::shared_ptr<ContentCache> cache_{nullptr};
+        std::shared_ptr<MasternodeConfig> config_{nullptr};
+        std::shared_ptr<NetworkState> state_{nullptr};
+
         std::string DIRECT_HEADER_NAME = "Gladius-Masternode-Direct";
     private:
         struct TimerWrapper {

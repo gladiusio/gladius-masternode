@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Cache.h"
-#include "Masternode.h"
+#include "MasternodeConfig.h"
 
 #include <folly/Memory.h>
 #include <folly/executors/IOThreadPoolExecutor.h>
@@ -12,13 +12,11 @@
 #include <proxygen/lib/http/session/HTTPTransaction.h>
 
 
-using namespace masternode;
-
 class ProxyHandler : public proxygen::RequestHandler,
                         private proxygen::HTTPConnector::Callback {
     public:
         ProxyHandler(folly::HHWheelTimer *timer,
-            MemoryCache *cache, MasternodeConfig *config);
+            ContentCache *cache, MasternodeConfig *config);
         ~ProxyHandler() override;
 
         // RequestHandler methods
@@ -129,7 +127,7 @@ class ProxyHandler : public proxygen::RequestHandler,
         std::shared_ptr<proxygen::HTTPMessage> contentHeaders_{nullptr};
 
         // HTTP content cache
-        MemoryCache *cache_;
+        ContentCache *cache_;
 
         // Configuration class
         MasternodeConfig *config_;

@@ -2,7 +2,7 @@
 #define STRIP_FLAG_HELP 1 // removes google gflags help messages in the binary
 #include <proxygen/httpserver/HTTPServer.h>
 
-#include "ProxyHandlerFactory.h"
+#include "Masternode.h"
 
 using namespace proxygen;
 using namespace folly::ssl;
@@ -60,10 +60,6 @@ int main(int argc, char *argv[]) {
     config->options.idleTimeout = std::chrono::milliseconds(60000);
     config->options.shutdownOn = {SIGINT, SIGTERM};
     config->options.enableContentCompression = false;
-    config->options.handlerFactories =
-        RequestHandlerChain()
-            .addThen<ProxyHandlerFactory>(config)
-            .build();
 
     Masternode master(config);
 

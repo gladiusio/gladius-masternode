@@ -1,6 +1,5 @@
 #include "ProxyHandlerFactory.h"
-
-using namespace masternode;
+#include "DirectHandler.h"
 
 void ProxyHandlerFactory::onServerStart(folly::EventBase *evb) noexcept {
     timer_->timer = HHWheelTimer::newTimer(
@@ -19,7 +18,8 @@ void ProxyHandlerFactory::onServerStop() noexcept {
 
 RequestHandler* ProxyHandlerFactory::onRequest(RequestHandler *, HTTPMessage *m) noexcept {
     if (m->getHeaders().rawExists(DIRECT_HEADER_NAME)) {
-        // Reply using masternode info handler
+        // Reply using masternode direct access handler
+        return new DirectHandler(cache_.get(), config_.get(), state_.get());
     }
     return new ProxyHandler(timer_->timer.get(), cache_.get(), config_.get());
 }

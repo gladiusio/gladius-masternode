@@ -10,11 +10,9 @@
 #include <proxygen/lib/utils/URL.h>
 
 using namespace proxygen;
-using namespace masternode;
-
 
 ProxyHandler::ProxyHandler(folly::HHWheelTimer *timer,
-    MemoryCache *cache, MasternodeConfig *config):
+    ContentCache *cache, MasternodeConfig *config):
         connector_{this, timer},
         originHandler_(*this),
         cache_(cache),

@@ -12,8 +12,11 @@
 class NetworkState {
     private:
         std::shared_ptr<MasternodeConfig> config_;
+        // List of addresses of edge nodes
         std::vector<std::string> edgeNodes_;
+        // Used to fetch p2p network state on a repeated basis
         folly::FunctionScheduler fs;
+        // Used to make simple requests to the local gladius network gateway
         std::unique_ptr<httplib::Client> httpClient_;
 
     public:
@@ -27,7 +30,7 @@ class NetworkState {
         }
 
         ~NetworkState() {
-            fs.shutdown(); // todo what happens if this is never started?
+            fs.shutdown();
         }
 
         std::vector<std::string> getEdgeNodes() {
@@ -44,8 +47,7 @@ class NetworkState {
             for (auto& value : nodeMap.values()) {
                 std::string ip = value["ip_address"]["data"].asString();
                 std::string port = value["content_port"]["data"].asString();
-
-                edgeNodes_.push_back(std::string(ip + ":" + port));
+                edgeNodes_.push_back(std::string(ip + ":" + port)); // todo: make this atomic/thread-safe
             }
         }
 
