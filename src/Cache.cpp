@@ -60,9 +60,6 @@ bool ContentCache::addCachedRoute(std::string url,
     return true;
 }
 
-
-// TODO: need to use a different kind of map in the Cache.h that doesn't rely on primitive types,
-// or somehow allow std::shared_ptr<CachedRoute> to be converted to a dynamic
 std::shared_ptr<folly::F14FastMap<std::string, std::string>> ContentCache::getAssetHashMap() {
     auto map = std::make_shared<folly::F14FastMap<std::string, std::string>>(this->size());
     for (auto it = map_.cbegin(); it != map_.cend(); ++it) {

@@ -10,10 +10,11 @@
 
 #include "NetworkState.h"
 #include "ProxyHandlerFactory.h"
+#include "Masternode.h"
+#include "MasternodeConfig.h"
 
 using namespace folly;
 using namespace proxygen;
-using namespace masternode;
 
 namespace {
   const std::string testDir = getContainingDirectory(__FILE__).str();
@@ -77,9 +78,9 @@ class MasternodeThread {
   private:
     boost::barrier barrier_{2}; // barrier so we can "wait" for the server to start
     std::thread t_;
-    Masternode* master_{nullptr};
+    masternode::Masternode* master_{nullptr};
   public:
-    explicit MasternodeThread(Masternode* master) : master_(master){}
+    explicit MasternodeThread(masternode::Masternode* master) : master_(master){}
     ~MasternodeThread() {
 
       if (master_) {
@@ -126,12 +127,8 @@ TEST (ProxyHandlerFactory, TestPassthroughProxy) {
   mc->options.idleTimeout = std::chrono::milliseconds(10000);
   mc->options.shutdownOn = {SIGINT, SIGTERM};
   mc->options.enableContentCompression = false;
-  mc->options.handlerFactories =
-      RequestHandlerChain()
-          .addThen<ProxyHandlerFactory>(mc)
-          .build();
  
-  auto master = std::make_unique<Masternode>(mc);
+  auto master = std::make_unique<masternode::Masternode>(mc);
   auto master_thread = std::make_unique<MasternodeThread>(master.get());
 
   EXPECT_TRUE(master_thread->start());
@@ -173,12 +170,8 @@ TEST (ProxyHandlerFactory, TestSSLPassthroughProxy) {
   mc->options.idleTimeout = std::chrono::milliseconds(10000);
   mc->options.shutdownOn = {SIGINT, SIGTERM};
   mc->options.enableContentCompression = false;
-  mc->options.handlerFactories =
-      RequestHandlerChain()
-          .addThen<ProxyHandlerFactory>(mc)
-          .build();
  
-  auto master = std::make_unique<Masternode>(mc);
+  auto master = std::make_unique<masternode::Masternode>(mc);
   auto master_thread = std::make_unique<MasternodeThread>(master.get());
 
   EXPECT_TRUE(master_thread->start());
@@ -199,6 +192,28 @@ TEST (NetworkState, TestStateParsing) {
   EXPECT_EQ(state->getEdgeNodes().size(), 1);
   EXPECT_EQ(state->getEdgeNodes()[0], "127.0.0.1:8080");
 }
+
+TEST (NetworkState, TestStatePolling) {
+  // Create and start a gateway
+  auto gw = std::make_unique<httplib::Server>();
+  auto gw_thread = std::make_unique<OriginThread>(gw.get()
+    ->Get("/api/p2p/state", [](const httplib::Request& req, httplib::Response& res) {
+        res.set_content(R"({"response": {"node_data_map": {"0xdeadbeef": {"content_port": {"data": "8080"}, "ip_address": {"data": "127.0.0.1"}}}}})", "application/json");
+      }));
+  gw_thread->start();
+
+  auto mc = std::make_shared<MasternodeConfig>();
+  mc->gateway_poll_interval = 1;
+  mc->gateway_address = "0.0.0.0";
+  mc->gateway_port = 8085;
+  auto state = std::make_unique<NetworkState>(mc);
+  state->beginPollingGateway();
+  std::this_thread::sleep_for(std::chrono::seconds(2));
+  EXPECT_EQ(state->getEdgeNodes().size(), 1);
+  EXPECT_EQ(state->getEdgeNodes()[0], "127.0.0.1:8080");
+}
+
+// todo: add a test that runs the masternode itself polling for p2p state
 
 int main(int argc, char **argv) {
   google::InitGoogleLogging(argv[0]);
