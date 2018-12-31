@@ -65,7 +65,7 @@ class NetworkState {
                     // parse the JSON into state structs/classes
                     parseStateUpdate(res->body);
                 }
-            }, std::chrono::seconds(5), "GatewayPoller");
+            }, std::chrono::seconds(config_->gateway_poll_interval), "GatewayPoller");
             fs.setSteady(true);
             fs.start();
             LOG(INFO) << "Started network state polling thread...\n";
