@@ -42,6 +42,7 @@ int main(int argc, char *argv[]) {
             HTTPServer::Protocol::HTTP};
         wangle::SSLContextConfig sslCfg;
         sslCfg.isDefault = true;
+        sslCfg.clientVerification = folly::SSLContext::SSLVerifyPeerEnum::VERIFY;
         sslCfg.setCertificate(FLAGS_cert_path, FLAGS_key_path, "");
         sslIP.sslConfigs.push_back(sslCfg);
         IPs.push_back(sslIP);
