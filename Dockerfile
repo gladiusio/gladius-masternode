@@ -76,9 +76,11 @@ WORKDIR /app
 
 COPY --from=masternode-builder /app/build/masternode .
 
-RUN mkdir -p /home/.gladius/content/blog.gladius.io
-
 EXPOSE 80 443
 
-CMD ./masternode --logtostderr=1
-
+ENTRYPOINT ./masternode --origin_host=$ORIGIN_HOST \
+        --origin_port=$ORIGIN_PORT \
+        --protected_host=$PROTECTED_HOST \
+        --cert_path=$CERT_PATH \
+        --key_path=$KEY_PATH \
+        --cache_dir=$CACHE_DIR
