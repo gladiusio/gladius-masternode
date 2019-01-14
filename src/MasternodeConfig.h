@@ -25,4 +25,6 @@ class MasternodeConfig {
         uint16_t gateway_port{0};
         // P2P polling interval
         uint16_t gateway_poll_interval{5};
+        // file path to service worker file to serve
+        std::string service_worker_path;
 };
