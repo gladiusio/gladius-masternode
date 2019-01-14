@@ -9,10 +9,11 @@ check_PROGRAMS = masternode_tests
 masternode_tests_SOURCES = \
     MasternodeTests.cpp \
     $(top_builddir)/Masternode.cpp \
-    $(top_builddir)/ProxyHandlerFactory.cpp \
+    $(top_builddir)/Router.cpp \
     $(top_builddir)/ProxyHandler.cpp \
     $(top_builddir)/Cache.cpp \
     $(top_builddir)/DirectHandler.cpp \
+    $(top_builddir)/ServiceWorkerHandler.cpp \
     $(top_builddir)/NetworkState.cpp
 
 masternode_tests_LDADD = \

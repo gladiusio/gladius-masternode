@@ -4,7 +4,6 @@
 
 #include <folly/io/async/EventBaseManager.h>
 
-#include <proxygen/httpserver/RequestHandler.h>
 #include <proxygen/httpserver/ResponseBuilder.h>
 #include <proxygen/lib/http/session/HTTPUpstreamSession.h>
 #include <proxygen/lib/utils/URL.h>

@@ -25,6 +25,7 @@ masternode_SOURCES = \
     Masternode.cpp \
     ProxyHandler.cpp \
     Cache.cpp \
-    ProxyHandlerFactory.cpp \
+    Router.cpp \
     DirectHandler.cpp \
+    ServiceWorkerHandler.cpp \
     NetworkState.cpp
