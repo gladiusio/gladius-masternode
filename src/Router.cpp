@@ -1,6 +1,7 @@
 #include "Router.h"
 #include "DirectHandler.h"
 #include "ProxyHandler.h"
+#include "ServiceWorkerHandler.h"
 
 Router::Router(std::shared_ptr<MasternodeConfig> config,
     std::shared_ptr<NetworkState> state,
@@ -11,6 +12,8 @@ Router::Router(std::shared_ptr<MasternodeConfig> config,
 {
     // read the service worker file if it exists from disk 
 }
+
+Router::~Router() {}
 
 void Router::onServerStart(folly::EventBase *evb) noexcept {
     timer_->timer = HHWheelTimer::newTimer(
@@ -34,8 +37,8 @@ RequestHandler* Router::onRequest(RequestHandler *req, HTTPMessage *m) noexcept 
         return new DirectHandler(cache_.get(), config_.get(), state_.get());
     }
 
-    if (m->getHeaders().getURL() == "/gladius-service-worker.js") {
-        return new ServiceWorkerHandler();
+    if (m->getURL() == "/gladius-service-worker.js") {
+        return new ServiceWorkerHandler(config_.get());
     }
 
     return new ProxyHandler(timer_->timer.get(), cache_.get(), config_.get());
