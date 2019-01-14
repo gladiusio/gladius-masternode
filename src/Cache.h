@@ -47,6 +47,7 @@ class ContentCache {
     private:
         // Shared cache object that all handler threads use
         // to serve cached content from. Thread-safe!
+        // Reads are wait-free, writes are locking.
         folly::ConcurrentHashMap<std::string /* url */, std::shared_ptr<CachedRoute>> map_;
         
         // Directory to write cached files to
