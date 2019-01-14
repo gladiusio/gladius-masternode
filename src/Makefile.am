@@ -2,7 +2,9 @@ AUTOMAKE_OPTIONS = foreign
 
 SUBDIRS = . tests
 
+AM_CPPFLAGS = -I$(top_srcdir) -I$(top_srcdir)/libs
+
 bin_PROGRAMS = masternode
 masternode_LDADD = -lproxygenhttpserver -lproxygenlib -lwangle -lfolly -lboost_system -lboost_thread -lglog -lgflags -lcrypto -ldouble-conversion
 masternode_LDFLAGS = -pthread
-masternode_SOURCES = Masternode.h Masternode.cpp ProxyHandler.cpp ProxyHandler.h Cache.h Cache.cpp ProxyHandlerFactory.h ProxyHandlerFactory.cpp httplib.h NetworkState.h MasternodeConfig.h DirectHandler.h DirectHandler.cpp
+masternode_SOURCES = Masternode.cpp ProxyHandler.cpp Cache.cpp ProxyHandlerFactory.cpp DirectHandler.cpp
