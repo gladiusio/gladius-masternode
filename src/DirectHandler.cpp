@@ -1,5 +1,8 @@
 #include <proxygen/httpserver/ResponseBuilder.h>
 
+#include <folly/dynamic.h>
+#include <folly/json.h>
+
 #include "DirectHandler.h"
 
 using namespace proxygen;
