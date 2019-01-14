@@ -21,6 +21,7 @@ DEFINE_string(gateway_address, "0.0.0.0",
     "Address to the masternode's Gladius network gateway");
 DEFINE_int32(gateway_port, 3000, 
     "Port of the masternode's Gladius network gateway");
+DEFINE_string(sw_path, "", "Path to service worker file to serve");
 
 int main(int argc, char *argv[]) {
     gflags::ParseCommandLineFlags(&argc, &argv, true);
@@ -55,6 +56,7 @@ int main(int argc, char *argv[]) {
     config->protected_host = FLAGS_protected_host;
     config->gateway_address = FLAGS_gateway_address;
     config->gateway_port = FLAGS_gateway_port;
+    config->service_worker_path = FLAGS_sw_path;
     config->IPs = IPs;
     config->cache_directory = FLAGS_cache_dir;
     config->options.threads = threads;

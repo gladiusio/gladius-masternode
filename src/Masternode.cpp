@@ -1,5 +1,5 @@
 #include "Masternode.h"
-#include "ProxyHandlerFactory.h"
+#include "Router.h"
 
 using namespace masternode;
 
@@ -8,7 +8,7 @@ Masternode::Masternode(std::shared_ptr<MasternodeConfig> config) {
     state_ = std::make_shared<NetworkState>(config_);
     cache_ = std::make_shared<ContentCache>(256, config_->cache_directory);
     config_->options.handlerFactories = proxygen::RequestHandlerChain()
-        .addThen<ProxyHandlerFactory>(config_, state_, cache_)
+        .addThen<Router>(config_, state_, cache_)
         .build();
 
     server_ = std::make_unique<proxygen::HTTPServer>(

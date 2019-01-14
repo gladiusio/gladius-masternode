@@ -9,7 +9,6 @@
 #include <httplib.h>
 
 #include "NetworkState.h"
-#include "ProxyHandlerFactory.h"
 #include "Masternode.h"
 #include "MasternodeConfig.h"
 
@@ -104,7 +103,7 @@ class MasternodeThread {
     }
 };
 
-TEST (ProxyHandlerFactory, TestPassthroughProxy) {
+TEST (ContentServing, TestPassthroughProxy) {
   // Create and start an origin server
   auto origin = std::make_unique<httplib::Server>();
   auto origin_thread = std::make_unique<OriginThread>(origin.get()
@@ -141,7 +140,7 @@ TEST (ProxyHandlerFactory, TestPassthroughProxy) {
   EXPECT_EQ(res->body, "Origin server content");
 }
 
-TEST (ProxyHandlerFactory, TestSSLPassthroughProxy) {
+TEST (ContentServing, TestSSLPassthroughProxy) {
   // Create and start an origin server
   auto origin = std::make_unique<httplib::Server>();
   auto origin_thread = std::make_unique<OriginThread>(origin.get()

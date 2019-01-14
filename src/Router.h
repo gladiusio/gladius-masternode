@@ -3,29 +3,20 @@
 #include <unistd.h>
 
 #include <folly/io/async/EventBaseManager.h>
-
 #include <proxygen/httpserver/RequestHandlerFactory.h>
 
-#include "Cache.h"
-#include "ProxyHandler.h"
 #include "NetworkState.h"
+#include "Cache.h"
 
 using namespace proxygen;
 using folly::HHWheelTimer;
 
-class ProxyHandlerFactory : public RequestHandlerFactory {
+class Router : public RequestHandlerFactory {
     public:
-        ProxyHandlerFactory(std::shared_ptr<MasternodeConfig> config,
-            std::shared_ptr<NetworkState> state,
-            std::shared_ptr<ContentCache> cache):
-            cache_(cache),
-            config_(config),
-            state_(state) {
-            LOG(INFO) << "Constructing a new ProxyHandlerFactory\n";
-        };
-        ~ProxyHandlerFactory() {
-            LOG(INFO) << "Destroying a ProxyHandlerFactory\n";
-        };
+        Router(std::shared_ptr<MasternodeConfig>,
+            std::shared_ptr<NetworkState>,
+            std::shared_ptr<ContentCache>);
+        ~Router();
         // Use this method to setup thread local data
         void onServerStart(folly::EventBase *) noexcept override;
         void onServerStop() noexcept override;
