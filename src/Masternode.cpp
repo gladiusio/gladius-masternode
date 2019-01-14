@@ -1,4 +1,5 @@
 #include "Masternode.h"
+#include "ProxyHandlerFactory.h"
 
 using namespace masternode;
 
