@@ -3,7 +3,8 @@
 ServiceWorkerHandler::ServiceWorkerHandler(MasternodeConfig *config):
     config_(config)
 {
-
+    // load the service worker file from the filesystem
+    
 }
 
 ServiceWorkerHandler::~ServiceWorkerHandler() {}
