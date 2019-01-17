@@ -50,6 +50,14 @@ RUN cd /usr/src/gtest && \
         make && \
         cp *.a $LD_LIBRARY_PATH
 
+# Install html parsing library
+RUN git clone https://github.com/lexborisov/myhtml && \
+    cd myhtml && \
+    git checkout 18d5d82b21f854575754c41f186b1a3f8778bb99 && \
+    make && \
+    make test && \
+    sudo make install
+
 WORKDIR /app
 
 # Move src and build template files over from host
