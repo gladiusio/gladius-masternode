@@ -40,5 +40,5 @@ RequestHandler* Router::onRequest(RequestHandler *req, HTTPMessage *m) noexcept 
         return new ServiceWorkerHandler(config_.get(), sw_.get());
     }
 
-    return new ProxyHandler(timer_->timer.get(), cache_.get(), config_.get());
+    return new ProxyHandler(timer_->timer.get(), cache_.get(), config_.get(), sw_.get());
 }
