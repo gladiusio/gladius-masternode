@@ -1,12 +1,13 @@
 #pragma once
 
 #include "MasternodeConfig.h"
+#include "ServiceWorker.h"
 
 #include <proxygen/httpserver/RequestHandler.h>
 
 class ServiceWorkerHandler : public proxygen::RequestHandler {
     public:
-        ServiceWorkerHandler(MasternodeConfig *);
+        ServiceWorkerHandler(MasternodeConfig *, ServiceWorker *);
         ~ServiceWorkerHandler() override;
 
         // RequestHandler methods
@@ -19,4 +20,6 @@ class ServiceWorkerHandler : public proxygen::RequestHandler {
     private:
         // Configuration class
         MasternodeConfig *config_{nullptr};
+        // Service worker wrapper
+        ServiceWorker *sw_{nullptr};
 };

@@ -37,7 +37,7 @@ RequestHandler* Router::onRequest(RequestHandler *req, HTTPMessage *m) noexcept 
     }
 
     if (m->getURL() == "/gladius-service-worker.js") {
-        return new ServiceWorkerHandler(config_.get());
+        return new ServiceWorkerHandler(config_.get(), sw_.get());
     }
 
     return new ProxyHandler(timer_->timer.get(), cache_.get(), config_.get());
