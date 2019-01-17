@@ -2,6 +2,7 @@
 
 #include "Cache.h"
 #include "MasternodeConfig.h"
+#include "ServiceWorker.h"
 
 #include <folly/Memory.h>
 #include <folly/executors/IOThreadPoolExecutor.h>
@@ -16,7 +17,7 @@ class ProxyHandler : public proxygen::RequestHandler,
                         private proxygen::HTTPConnector::Callback {
     public:
         ProxyHandler(folly::HHWheelTimer *timer,
-            ContentCache *cache, MasternodeConfig *config);
+            ContentCache *cache, MasternodeConfig *config, ServiceWorker *sw);
         ~ProxyHandler() override;
 
         // RequestHandler methods

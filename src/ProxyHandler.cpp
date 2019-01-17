@@ -11,7 +11,7 @@
 using namespace proxygen;
 
 ProxyHandler::ProxyHandler(folly::HHWheelTimer *timer,
-    ContentCache *cache, MasternodeConfig *config):
+    ContentCache *cache, MasternodeConfig *config, ServiceWorker *sw):
         connector_{this, timer},
         originHandler_(*this),
         cache_(cache),
@@ -29,6 +29,11 @@ void ProxyHandler::onRequest(std::unique_ptr<HTTPMessage> headers) noexcept {
     auto cachedRoute = cache_->getCachedRoute(url.getUrl());
     // if we have it cached, reply to client
     if (cachedRoute) {
+        if (cachedRoute->getHeaders()->getHeaders().rawGet("Content-Type")
+            .find("text/html") != std::string::npos) {
+                // inject service worker bootstrap into <head> tag
+                // todo: use MyHTML lib https://github.com/lexborisov/myhtml/blob/master/INSTALL.md
+            }
         LOG(INFO) << "Serving from cache for " << url.getUrl() << "\n";
         ResponseBuilder(downstream_)
             .status(200, "OK")
