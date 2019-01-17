@@ -14,7 +14,8 @@ masternode_tests_SOURCES = \
     $(top_builddir)/Cache.cpp \
     $(top_builddir)/DirectHandler.cpp \
     $(top_builddir)/ServiceWorkerHandler.cpp \
-    $(top_builddir)/NetworkState.cpp
+    $(top_builddir)/NetworkState.cpp \
+    $(top_builddir)/ServiceWorker.cpp
 
 masternode_tests_LDADD = \
     -lproxygenhttpserver \

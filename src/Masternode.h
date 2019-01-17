@@ -5,6 +5,7 @@
 #include "MasternodeConfig.h"
 #include "Cache.h"
 #include "NetworkState.h"
+#include "ServiceWorker.h"
 
 #include <proxygen/httpserver/HTTPServer.h>
 
@@ -20,6 +21,8 @@ namespace masternode {
             std::shared_ptr<NetworkState> state_{nullptr};
             // Stores cached web content
             std::shared_ptr<ContentCache> cache_{nullptr};
+            // Manages the service worker implementation
+            std::shared_ptr<ServiceWorker> sw_{nullptr};
         public:
             Masternode(std::shared_ptr<MasternodeConfig>);
             void start(std::function<void()> onSuccess = nullptr,

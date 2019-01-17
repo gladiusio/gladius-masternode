@@ -28,4 +28,5 @@ masternode_SOURCES = \
     Router.cpp \
     DirectHandler.cpp \
     ServiceWorkerHandler.cpp \
-    NetworkState.cpp
+    NetworkState.cpp \
+    ServiceWorker.cpp

@@ -5,13 +5,12 @@
 
 Router::Router(std::shared_ptr<MasternodeConfig> config,
     std::shared_ptr<NetworkState> state,
-    std::shared_ptr<ContentCache> cache):
+    std::shared_ptr<ContentCache> cache,
+    std::shared_ptr<ServiceWorker> sw):
     cache_(cache),
     config_(config),
-    state_(state)
-{
-    // read the service worker file if it exists from disk 
-}
+    state_(state),
+    sw_(sw) {}
 
 Router::~Router() {}
 
