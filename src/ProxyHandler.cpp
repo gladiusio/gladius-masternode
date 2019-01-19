@@ -15,7 +15,8 @@ ProxyHandler::ProxyHandler(folly::HHWheelTimer *timer,
         connector_{this, timer},
         originHandler_(*this),
         cache_(cache),
-        config_(config){}
+        config_(config),
+        sw_(sw) {}
 
 ProxyHandler::~ProxyHandler() {}
 
@@ -27,14 +28,26 @@ void ProxyHandler::onRequest(std::unique_ptr<HTTPMessage> headers) noexcept {
 
     // check the cache for this url
     auto cachedRoute = cache_->getCachedRoute(url.getUrl());
+    
     // if we have it cached, reply to client
     if (cachedRoute) {
+        LOG(INFO) << "Serving from cache for " << url.getUrl() << "\n";
         if (cachedRoute->getHeaders()->getHeaders().rawGet("Content-Type")
             .find("text/html") != std::string::npos) {
-                // inject service worker bootstrap into <head> tag
-                // todo: use MyHTML lib https://github.com/lexborisov/myhtml/blob/master/INSTALL.md
+            folly::fbstring injected_body;
+            // inject service worker bootstrap into <head> tag
+            injected_body = sw_->injectServiceWorker(*cachedRoute->getContent());
+            if (injected_body != nullptr) {
+                ResponseBuilder(downstream_)
+                    .status(200, "OK")
+                    .header("Content-Type", cachedRoute->getHeaders()->getHeaders().rawGet("Content-Type"))
+                    .header("Content-Encoding", cachedRoute->getHeaders()->getHeaders().rawGet("Content-Encoding"))
+                    .body(cachedRoute->getContent())
+                    .sendWithEOM();
+                return;
             }
-        LOG(INFO) << "Serving from cache for " << url.getUrl() << "\n";
+        }
+    
         ResponseBuilder(downstream_)
             .status(200, "OK")
             .header("Content-Type", cachedRoute->getHeaders()->getHeaders().rawGet("Content-Type"))
@@ -68,6 +81,7 @@ void ProxyHandler::onRequest(std::unique_ptr<HTTPMessage> headers) noexcept {
     LOG(INFO) << "Connecting to origin server...\n";
     connector_.connect(evb, addr, std::chrono::milliseconds(60000), opts);
 }
+
 void ProxyHandler::onBody(std::unique_ptr<folly::IOBuf> body) noexcept {}
 void ProxyHandler::onUpgrade(UpgradeProtocol protocol) noexcept {}
 

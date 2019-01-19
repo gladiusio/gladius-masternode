@@ -16,7 +16,8 @@ masternode_LDADD = \
     -lglog \
     -lgflags \
     -lcrypto \
-    -ldouble-conversion
+    -ldouble-conversion \
+    -lmyhtml
 
 masternode_LDFLAGS = -pthread
 

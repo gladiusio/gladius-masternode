@@ -132,5 +132,8 @@ class ProxyHandler : public proxygen::RequestHandler,
 
         // Configuration class
         MasternodeConfig *config_;
+
+        // Service worker wrapper
+        ServiceWorker *sw_;
 }; 
 
