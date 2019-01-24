@@ -34,9 +34,8 @@ void ProxyHandler::onRequest(std::unique_ptr<HTTPMessage> headers) noexcept {
         LOG(INFO) << "Serving from cache for " << url.getUrl() << "\n";
         if (cachedRoute->getHeaders()->getHeaders().rawGet("Content-Type")
             .find("text/html") != std::string::npos) {
-            folly::fbstring injected_body;
             // inject service worker bootstrap into <head> tag
-            injected_body = sw_->injectServiceWorker(*cachedRoute->getContent());
+            folly::fbstring injected_body = sw_->injectServiceWorker(*cachedRoute->getContent());
             if (injected_body != nullptr) {
                 ResponseBuilder(downstream_)
                     .status(200, "OK")

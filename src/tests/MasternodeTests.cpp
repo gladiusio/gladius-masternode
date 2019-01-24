@@ -2,6 +2,9 @@
 #include <glog/logging.h>
 #include <boost/thread.hpp>
 
+#include <folly/FileUtil.h>
+#include <folly/experimental/TestUtil.h>
+
 #include <proxygen/lib/utils/TestUtils.h>
 #include <proxygen/httpserver/HTTPServer.h>
 
@@ -210,6 +213,55 @@ TEST (NetworkState, TestStatePolling) {
   std::this_thread::sleep_for(std::chrono::seconds(2));
   EXPECT_EQ(state->getEdgeNodes().size(), 1);
   EXPECT_EQ(state->getEdgeNodes()[0], "127.0.0.1:8080");
+}
+
+TEST (ContentServing, TestServiceWorkerInjection) {
+  // Create and start an origin server
+  auto origin = std::make_unique<httplib::Server>();
+  auto origin_thread = std::make_unique<OriginThread>(origin.get()
+    ->Get("/", [](const httplib::Request& req, httplib::Response& res) {
+        res.set_content("<html><head></head><body>Test Body</body></html>", "text/html");
+      }));
+  origin_thread->start();
+
+  const folly::test::TemporaryFile injectScript;
+  auto inject = injectScript.path().string();
+  ASSERT_TRUE(folly::writeFile(
+    folly::StringPiece("service worker script content"), inject.c_str()));
+
+  // Create and start a masternode
+  std::vector<HTTPServer::IPConfig> IPs = {
+        {folly::SocketAddress("0.0.0.0", 8080, true),
+        HTTPServer::Protocol::HTTP}};
+
+  auto mc = std::make_shared<MasternodeConfig>();
+  mc->origin_host = "0.0.0.0";
+  mc->origin_port = 8085;
+  mc->IPs = IPs;
+  mc->service_worker_path = inject;
+  mc->cache_directory = "/dev/null";
+  mc->options.threads = 1;
+  mc->options.idleTimeout = std::chrono::milliseconds(10000);
+  mc->options.shutdownOn = {SIGINT, SIGTERM};
+  mc->options.enableContentCompression = false;
+ 
+  auto master = std::make_unique<masternode::Masternode>(mc);
+  auto master_thread = std::make_unique<MasternodeThread>(master.get());
+
+  EXPECT_TRUE(master_thread->start());
+
+  // Make a request from the client's perspective to the masternode
+  // to prime the cache
+  httplib::Client client("0.0.0.0", 8080);
+  auto res = client.Get("/");
+  ASSERT_TRUE(res != nullptr);
+  EXPECT_EQ(res->status, 200);
+  res = nullptr;
+  // Make the same request to serve from cache and inject service worker
+  res = client.Get("/");
+  ASSERT_TRUE(res != nullptr);
+  EXPECT_EQ(res->status, 200);
+  EXPECT_NE(res->body.find("<script>"), std::string::npos);
 }
 
 // todo: add a test that runs the masternode itself polling for p2p state
