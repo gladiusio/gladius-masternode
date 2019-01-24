@@ -19,7 +19,7 @@ DEFINE_string(key_path, "", "Path to SSL private key");
 DEFINE_string(cache_dir, "", "Path to directory to write cached files to");
 DEFINE_string(gateway_address, "0.0.0.0", 
     "Address to the masternode's Gladius network gateway");
-DEFINE_int32(gateway_port, 3000, 
+DEFINE_int32(gateway_port, 3001, 
     "Port of the masternode's Gladius network gateway");
 DEFINE_string(sw_path, "", "Path to service worker file to serve");
 
