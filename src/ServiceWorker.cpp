@@ -27,6 +27,7 @@ folly::fbstring ServiceWorker::injectServiceWorker(folly::IOBuf buf) {
 
     mycore_string_raw_t str = {0};
     myhtml_serialization_tree_buffer(myhtml_tree_get_document(tree), &str);
+    // todo: str.data is null for some reason
     folly::fbstring injected = str.data;
     
     mycore_string_raw_destroy(&str, false);
