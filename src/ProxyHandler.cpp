@@ -41,7 +41,7 @@ void ProxyHandler::onRequest(std::unique_ptr<HTTPMessage> headers) noexcept {
                     .status(200, "OK")
                     .header("Content-Type", cachedRoute->getHeaders()->getHeaders().rawGet("Content-Type"))
                     .header("Content-Encoding", cachedRoute->getHeaders()->getHeaders().rawGet("Content-Encoding"))
-                    .body(cachedRoute->getContent())
+                    .body(injected_body)
                     .sendWithEOM();
                 return;
             }
