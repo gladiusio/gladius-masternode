@@ -58,6 +58,9 @@ RUN git clone https://github.com/lexborisov/myhtml && \
     make test && \
     sudo make install
 
+# Clean up APT when done
+RUN apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
 WORKDIR /app
 
 # Move src and build template files over from host
@@ -73,18 +76,19 @@ WORKDIR /app/build
 RUN ../configure
 
 # Build the masternode
-RUN make -j $(printf %.0f $(echo "$(nproc) * 1.5" | bc -l))
+RUN make -j $(printf %.0f $(echo "$(nproc) * 1.5" | bc -l)) \
+        && mkdir -p /tmp/dist \
+        && cp `ldd masternode | grep -v nux-vdso | awk '{print $3}'` /tmp/dist/
 
 # ###################################################
 # # Use a separate stage to deliver the binary
 # ###################################################
-FROM proxygen-env as production
+FROM ubuntu:16.04 as production
 
 WORKDIR /app
 
+COPY --from=masternode-builder /tmp/dist/* /usr/lib/x86_64-linux-gnu/
 COPY --from=masternode-builder /app/build/masternode .
-
-EXPOSE 80 443
 
 ENTRYPOINT ./masternode --origin_host=$ORIGIN_HOST \
         --origin_port=$ORIGIN_PORT \
