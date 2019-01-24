@@ -21,3 +21,4 @@ masternode
 masternode_tests
 *.log
 *.trs
+test-driver
