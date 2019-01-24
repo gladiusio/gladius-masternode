@@ -269,6 +269,7 @@ TEST (ContentServing, TestServiceWorkerInjection) {
   ASSERT_TRUE(res != nullptr);
   EXPECT_EQ(res->status, 200);
   EXPECT_NE(res->body.find("<script>"), std::string::npos);
+  EXPECT_NE(res->body.find("navigator.serviceWorker.register"), std::string::npos);
 }
 
 // todo: add a test that runs the masternode itself polling for p2p state
