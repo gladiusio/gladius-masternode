@@ -61,10 +61,11 @@ RUN git clone https://github.com/lexborisov/myhtml && \
 # Clean up APT when done
 RUN apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
+VOLUME /app
 WORKDIR /app
 
 # Move src and build template files over from host
-COPY src/ .
+# COPY src/ .
 
 # Invoke autotools toolchain to create configure file and Makefiles
 RUN aclocal && autoconf && automake --add-missing

@@ -1,0 +1,8 @@
+version: '3'
+services:
+  dev:
+    image: gladiusio/masternode-builder
+    container_name: masternode-builder
+    privileged: true
+    volumes:
+      - "./src:/app"

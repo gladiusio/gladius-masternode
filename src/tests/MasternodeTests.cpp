@@ -95,7 +95,14 @@ class MasternodeThread {
       bool throws = false;
       t_ = std::thread([&]() {
         master_->start([&]() { barrier_.wait(); },
-                        [&](std::exception_ptr) {
+                        [&](std::exception_ptr ep) {
+                          try {
+                            if (ep) {
+                              std::rethrow_exception(ep);
+                            }
+                          } catch(const std::exception& e) {
+                            LOG(ERROR) << "Caught exception: " << e.what() << "\n";
+                          }
                           throws = true;
                           master_ = nullptr;
                           barrier_.wait();
@@ -176,7 +183,7 @@ TEST (ContentServing, TestSSLPassthroughProxy) {
   auto master = std::make_unique<masternode::Masternode>(mc);
   auto master_thread = std::make_unique<MasternodeThread>(master.get());
 
-  EXPECT_TRUE(master_thread->start());
+  ASSERT_TRUE(master_thread->start());
 
   // Make a request from the client's perspective to the masternode
   httplib::SSLClient client("0.0.0.0", 8080);
