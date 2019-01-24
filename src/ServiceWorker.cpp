@@ -19,16 +19,18 @@ folly::fbstring ServiceWorker::injectServiceWorker(folly::IOBuf buf) {
     // find the head tag
     myhtml_tree_node_t* head = myhtml_tree_get_node_head(tree);
     if (!head) {
+        LOG(ERROR) << "Could not parse <head>";
         return nullptr;
     }
     // insert script tag
     myhtml_tree_node_t* sw_tag = myhtml_node_create(tree, MyHTML_TAG_SCRIPT, MyHTML_NAMESPACE_HTML);
     myhtml_node_text_set(sw_tag, inject_script_.c_str(), inject_script_.length(), MyENCODING_UTF_8);
+    myhtml_node_append_child(head, sw_tag);
 
     mycore_string_raw_t str = {0};
     myhtml_serialization_tree_buffer(myhtml_tree_get_document(tree), &str);
-    // todo: str.data is null for some reason
-    folly::fbstring injected = str.data;
+
+    folly::fbstring injected(str.data, str.length);
     
     mycore_string_raw_destroy(&str, false);
     myhtml_tree_destroy(tree);
