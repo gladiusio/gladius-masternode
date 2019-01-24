@@ -1,8 +1,8 @@
 version: '3'
 services:
   dev:
-    image: gladiusio/masternode-builder
-    container_name: masternode-builder
+    image: gladiusio/masternode-develop
+    container_name: masternode-develop
     privileged: true
     volumes:
       - "./src:/app"

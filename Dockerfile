@@ -43,7 +43,7 @@ ENV LD_LIBRARY_PATH /usr/local/lib
 FROM proxygen-env as masternode-builder
 
 # Install google test libs
-RUN apt-get install -y libgtest-dev
+RUN apt-get install -y libgtest-dev gdb
 
 RUN cd /usr/src/gtest && \
         cmake CMakeLists.txt && \
@@ -61,11 +61,10 @@ RUN git clone https://github.com/lexborisov/myhtml && \
 # Clean up APT when done
 RUN apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
-VOLUME /app
 WORKDIR /app
 
 # Move src and build template files over from host
-# COPY src/ .
+COPY src/ .
 
 # Invoke autotools toolchain to create configure file and Makefiles
 RUN aclocal && autoconf && automake --add-missing

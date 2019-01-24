@@ -25,6 +25,23 @@ docker build --target masternode-builder -t gladiusio/masternode-builder .
 docker build -t gladiusio/masternode .
 ```
 
+## Build the development container
+```shell
+docker build -f develop.Dockerfile -t gladiusio/masternode-develop
+```
+
+## Run the development container
+```shell
+docker-compose -f develop-compose.yml run --name devenv dev bash
+```
+
+## Debug tests with development container (once inside it)
+```shell
+make check
+cd tests
+gdb ./masternode_tests
+```
+
 ## Copy library headers to your host machine for IntelliSense purposes (optional)
 ```shell
 docker cp <container id>:/usr/local/include <path on host to put header files>
