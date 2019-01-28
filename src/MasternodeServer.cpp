@@ -10,6 +10,7 @@ using namespace masternode;
 
 DEFINE_string(ip, "0.0.0.0", "IP/Hostname to bind to");
 DEFINE_int32(port, 80, "Port to listen for HTTP requests on");
+DEFINE_int32(ssl_port, 443, "Port to listen for HTTPS requests on");
 DEFINE_string(origin_host, "0.0.0.0", "IP/Hostname of protected origin");
 DEFINE_int32(origin_port, 80, "Port to contact the origin server on");
 DEFINE_string(protected_host, 
@@ -39,7 +40,7 @@ int main(int argc, char *argv[]) {
     if (!(FLAGS_cert_path.empty() || FLAGS_key_path.empty())) {
         // Enable SSL
         HTTPServer::IPConfig sslIP = 
-            {folly::SocketAddress(FLAGS_ip, 443, true),
+            {folly::SocketAddress(FLAGS_ip, FLAGS_ssl_port, true),
             HTTPServer::Protocol::HTTP};
         wangle::SSLContextConfig sslCfg;
         sslCfg.isDefault = true;
@@ -47,7 +48,7 @@ int main(int argc, char *argv[]) {
         sslCfg.setCertificate(FLAGS_cert_path, FLAGS_key_path, "");
         sslIP.sslConfigs.push_back(sslCfg);
         IPs.push_back(sslIP);
-        LOG(INFO) << "Binding to " << FLAGS_ip << ":443 for SSL requests\n";
+        LOG(INFO) << "Binding to " << FLAGS_ip << ": " << FLAGS_ssl_port << " for SSL requests\n";
     }
     
     auto config = std::make_shared<MasternodeConfig>();
