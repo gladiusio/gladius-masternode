@@ -1,5 +1,6 @@
 #include "Router.h"
 #include "DirectHandler.h"
+#include "RedirectHandler.h"
 #include "ProxyHandler.h"
 #include "ServiceWorkerHandler.h"
 
@@ -31,6 +32,9 @@ void Router::onServerStop() noexcept {
 
 RequestHandler* Router::onRequest(RequestHandler *req, HTTPMessage *m) noexcept {
     // logic to determine which handler to create based on the request
+    if (config_->upgrade_insecure) {
+        return new RedirectHandler(config_.get());
+    }
 
     if (m->getHeaders().rawExists(DIRECT_HEADER_NAME)) {
         return new DirectHandler(cache_.get(), config_.get(), state_.get());

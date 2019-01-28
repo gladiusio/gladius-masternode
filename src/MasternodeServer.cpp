@@ -23,11 +23,14 @@ DEFINE_string(gateway_address, "0.0.0.0",
 DEFINE_int32(gateway_port, 3001, 
     "Port of the masternode's Gladius network gateway");
 DEFINE_string(sw_path, "", "Path to service worker file to serve");
+DEFINE_bool(upgrade_insecure, true, "Redirect HTTP requests to HTTPS port");
 
 int main(int argc, char *argv[]) {
     gflags::ParseCommandLineFlags(&argc, &argv, true);
     google::InitGoogleLogging(argv[0]);
     google::InstallFailureSignalHandler();
+
+    auto config = std::make_shared<MasternodeConfig>();
 
     size_t threads = sysconf(_SC_NPROCESSORS_ONLN);
     LOG(INFO) << "Configuring server to use " << threads << " I/O threads...\n";
@@ -39,6 +42,7 @@ int main(int argc, char *argv[]) {
 
     if (!(FLAGS_cert_path.empty() || FLAGS_key_path.empty())) {
         // Enable SSL
+        config->ssl_port = FLAGS_ssl_port;
         HTTPServer::IPConfig sslIP = 
             {folly::SocketAddress(FLAGS_ip, FLAGS_ssl_port, true),
             HTTPServer::Protocol::HTTP};
@@ -49,9 +53,12 @@ int main(int argc, char *argv[]) {
         sslIP.sslConfigs.push_back(sslCfg);
         IPs.push_back(sslIP);
         LOG(INFO) << "Binding to " << FLAGS_ip << ": " << FLAGS_ssl_port << " for SSL requests\n";
+        if (FLAGS_upgrade_insecure) {
+            config->upgrade_insecure = true;
+            LOG(INFO) << "Configured to upgrade requests from HTTP --> HTTPS\n";
+        }
     }
     
-    auto config = std::make_shared<MasternodeConfig>();
     config->origin_host = FLAGS_origin_host;
     config->origin_port = FLAGS_origin_port;
     config->protected_host = FLAGS_protected_host;

@@ -27,4 +27,8 @@ class MasternodeConfig {
         uint16_t gateway_poll_interval{5};
         // file path to service worker file to serve
         std::string service_worker_path;
+        // Enables upgrading HTTP requests to HTTPS via redirects
+        bool upgrade_insecure;
+        // Port to listen to ssl requests
+        uint16_t ssl_port;
 };
