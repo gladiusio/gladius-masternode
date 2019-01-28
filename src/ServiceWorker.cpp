@@ -9,6 +9,7 @@ ServiceWorker::ServiceWorker(std::string path) {
     }
 }
 
+// todo: optimize use of threads with the myhtml library
 folly::fbstring ServiceWorker::injectServiceWorker(folly::IOBuf buf) {
     myhtml_t* myhtml = myhtml_create();
     myhtml_init(myhtml, MyHTML_OPTIONS_DEFAULT, 1, 0);
