@@ -9,7 +9,7 @@ class ServiceWorker {
         folly::fbstring payload_;
         // string for payload to inject into index pages
         folly::fbstring inject_script_{
-            "navigator.serviceWorker.register('service-worker.js', {scope: './'});"
+            "navigator.serviceWorker.register('gladius-service-worker.js', {scope: './'});"
         };
     public:
         ServiceWorker(std::string);

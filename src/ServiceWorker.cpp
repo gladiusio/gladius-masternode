@@ -7,6 +7,7 @@ ServiceWorker::ServiceWorker(std::string path) {
     if (!folly::readFile(path.c_str(), payload_)) {
         LOG(ERROR) << "Could not read service worker javascript file: " << path;
     }
+    LOG(INFO) << "Service worker content: " << payload_;
 }
 
 // todo: optimize use of threads with the myhtml library
