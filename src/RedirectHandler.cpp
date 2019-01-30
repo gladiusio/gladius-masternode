@@ -11,12 +11,13 @@ RedirectHandler::RedirectHandler(MasternodeConfig *config):
 RedirectHandler::~RedirectHandler() {}
 
 void RedirectHandler::onRequest(std::unique_ptr<HTTPMessage> headers) noexcept {
+    LOG(INFO) << "Redirect handler received request for: " << headers->getURL();
 
     proxygen::URL url(headers->getURL());
-    LOG(INFO) << "Redirect handler received request for: " << url.getUrl();
+    std::string host = headers->getHeaders().rawGet("Host");
     proxygen::URL redirect_url(
         "https",
-        headers->getDstIP(),
+        host,
         config_->ssl_port,
         url.getPath().substr(1),
         url.getQuery(),
