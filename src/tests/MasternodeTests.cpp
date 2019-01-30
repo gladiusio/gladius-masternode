@@ -270,6 +270,13 @@ TEST (ContentServing, TestServiceWorkerInjection) {
   EXPECT_EQ(res->status, 200);
   EXPECT_NE(res->body.find("<script>"), std::string::npos);
   EXPECT_NE(res->body.find("navigator.serviceWorker.register"), std::string::npos);
+
+  res = nullptr;
+  // now make sure the service worker content is served
+  res = client.Get("/gladius-service-worker.js");
+  ASSERT_TRUE(res != nullptr);
+  EXPECT_EQ(res->status, 200);
+  EXPECT_NE(res->body.find("service worker script content"), std::string::npos);
 }
 
 // todo: add a test that runs the masternode itself polling for p2p state
