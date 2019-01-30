@@ -52,7 +52,7 @@ int main(int argc, char *argv[]) {
         sslCfg.setCertificate(FLAGS_cert_path, FLAGS_key_path, "");
         sslIP.sslConfigs.push_back(sslCfg);
         IPs.push_back(sslIP);
-        LOG(INFO) << "Binding to " << FLAGS_ip << ": " << FLAGS_ssl_port << " for SSL requests\n";
+        LOG(INFO) << "Binding to " << FLAGS_ip << ":" << FLAGS_ssl_port << " for SSL requests\n";
         if (FLAGS_upgrade_insecure) {
             config->upgrade_insecure = true;
             LOG(INFO) << "Configured to upgrade requests from HTTP --> HTTPS\n";
