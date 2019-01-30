@@ -32,17 +32,24 @@ void Router::onServerStop() noexcept {
 
 RequestHandler* Router::onRequest(RequestHandler *req, HTTPMessage *m) noexcept {
     // logic to determine which handler to create based on the request
-    if (config_->upgrade_insecure) {
+
+    // if upgrading insecure requests is enabled and this request is
+    // not secure, redirect to the secure port
+    if (config_->upgrade_insecure && !m->isSecure()) {
         return new RedirectHandler(config_.get());
     }
 
+    // For speaking directly to the masternode and not an underlying
+    // (protected) domain
     if (m->getHeaders().rawExists(DIRECT_HEADER_NAME)) {
         return new DirectHandler(cache_.get(), config_.get(), state_.get());
     }
 
+    // serving the service worker javascript file itself
     if (m->getURL() == "/gladius-service-worker.js") {
         return new ServiceWorkerHandler(config_.get(), sw_.get());
     }
 
+    // all other requests for proxied content
     return new ProxyHandler(timer_->timer.get(), cache_.get(), config_.get(), sw_.get());
 }
