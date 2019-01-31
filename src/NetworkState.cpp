@@ -24,6 +24,7 @@ std::vector<std::string> NetworkState::getEdgeNodes() {
 }
 
 void NetworkState::parseStateUpdate(std::string body) {
+    // todo: add heartbeat check, non-empty content check, lowercase hostname/eth address
     folly::dynamic parsed = folly::parseJson(body);
     auto lockedList = edgeNodes_.wlock();
     lockedList->clear();
