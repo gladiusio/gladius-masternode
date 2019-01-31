@@ -3,8 +3,6 @@
 # Build folder
 build/
 
-.vscode/
-
 aclocal.m4
 config.log
 config.status
