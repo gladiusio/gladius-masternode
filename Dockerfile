@@ -90,6 +90,8 @@ WORKDIR /app
 COPY --from=masternode-builder /tmp/dist/* /usr/lib/x86_64-linux-gnu/
 COPY --from=masternode-builder /app/build/masternode .
 
+ENV UPGRADE_INSECURE false
+
 ENTRYPOINT ./masternode --origin_host=$ORIGIN_HOST \
         --origin_port=$ORIGIN_PORT \
         --protected_host=$PROTECTED_HOST \

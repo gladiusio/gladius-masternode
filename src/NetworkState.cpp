@@ -29,9 +29,13 @@ void NetworkState::parseStateUpdate(std::string body) {
     lockedList->clear();
     auto nodeMap = parsed["response"]["node_data_map"];
     for (auto& value : nodeMap.values()) {
-        std::string ip = value["ip_address"]["data"].asString();
-        std::string port = value["content_port"]["data"].asString();
-        lockedList->push_back(std::string(ip + ":" + port));
+        try {
+            std::string ip = value["ip_address"]["data"].getString();
+            std::string port = value["content_port"]["data"].getString();
+            lockedList->push_back(std::string(ip + ":" + port));
+        } catch (const std::exception& e) {
+            LOG(ERROR) << "Caught exception when parsing network state: " << e.what() << "\n";
+        }
     }
 }
 
