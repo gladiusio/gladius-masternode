@@ -207,7 +207,7 @@ TEST (NetworkState, TestStatePolling) {
   auto gw = std::make_unique<httplib::Server>();
   auto gw_thread = std::make_unique<OriginThread>(gw.get()
     ->Get("/api/p2p/state", [](const httplib::Request& req, httplib::Response& res) {
-        res.set_content(R"({"response": {"node_data_map": {"0xdeadbeef": {"content_port": {"data": "8080"}, "ip_address": {"data": "127.0.0.1"}}}}})", "application/json");
+        res.set_content(R"({"response": {"node_data_map": {"0xdeadbeef": {"content_port": {"data": "8080"}, "ip_address": {"data": "127.0.0.1"}, "heartbeat": {"data": "9999999999"}, "disk_content": {"data": ["yes", "no", "maybe"]}}}}})", "application/json");
       }));
   gw_thread->start();
 
@@ -219,7 +219,7 @@ TEST (NetworkState, TestStatePolling) {
   state->beginPollingGateway();
   std::this_thread::sleep_for(std::chrono::seconds(2));
   EXPECT_EQ(state->getEdgeNodes().size(), 1);
-  EXPECT_EQ(state->getEdgeNodes()[0], "127.0.0.1:8080");
+  EXPECT_EQ(state->getEdgeNodes()[0], "0xdeadbeef:8080");
 }
 
 TEST (ContentServing, TestServiceWorkerInjection) {
