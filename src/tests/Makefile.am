@@ -1,0 +1,36 @@
+
+SUBDIRS = .
+
+AM_CPPFLAGS = -I$(top_srcdir) -I$(top_srcdir)/libs
+
+TESTS = masternode_tests
+check_PROGRAMS = masternode_tests
+
+masternode_tests_SOURCES = \
+    MasternodeTests.cpp \
+    $(top_builddir)/Masternode.cpp \
+    $(top_builddir)/Router.cpp \
+    $(top_builddir)/ProxyHandler.cpp \
+    $(top_builddir)/Cache.cpp \
+    $(top_builddir)/DirectHandler.cpp \
+    $(top_builddir)/ServiceWorkerHandler.cpp \
+    $(top_builddir)/NetworkState.cpp \
+    $(top_builddir)/ServiceWorker.cpp \
+    $(top_builddir)/RedirectHandler.cpp
+
+masternode_tests_LDADD = \
+    -lproxygenhttpserver \
+    -lproxygenlib \
+    -lwangle \
+    -lfolly \
+    -lboost_system \
+    -lboost_thread \
+    -lglog \
+    -lgflags \
+    -lgtest \
+    -lcrypto \
+    -lssl \
+    -ldouble-conversion \
+    -lmyhtml
+    
+masternode_tests_LDFLAGS = -pthread

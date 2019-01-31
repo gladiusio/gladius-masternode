@@ -1,7 +1,11 @@
-*.o
-
-# Build folder
-build/
+.clabot
+.gitignore
+LICENSE
+.git/
+.dockerignore
+Dockerfile
+README.md
+.vscode/
 
 aclocal.m4
 config.log
@@ -14,9 +18,3 @@ depcomp
 install-sh
 missing
 .deps/
-.dirstamp
-masternode
-masternode_tests
-*.log
-*.trs
-test-driver
