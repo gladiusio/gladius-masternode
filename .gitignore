@@ -20,3 +20,5 @@ masternode_tests
 *.log
 *.trs
 test-driver
+
+.DS_store
