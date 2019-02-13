@@ -11,8 +11,8 @@ class MasternodeConfig {
         std::string origin_host;
         // Port of the origin server (required)
         uint16_t origin_port;
-        // IP or hostname of the host we're protecting (singular for now) (required)
-        std::string protected_host;
+        // Domain we're protecting (singular for now) (required)
+        std::string protected_domain;
         // Proxygen server options
         proxygen::HTTPServerOptions options;
         // IPs for the server to locally bind to

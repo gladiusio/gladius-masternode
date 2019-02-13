@@ -13,7 +13,7 @@ DEFINE_int32(port, 80, "Port to listen for HTTP requests on");
 DEFINE_int32(ssl_port, 443, "Port to listen for HTTPS requests on");
 DEFINE_string(origin_host, "0.0.0.0", "IP/Hostname of protected origin");
 DEFINE_int32(origin_port, 80, "Port to contact the origin server on");
-DEFINE_string(protected_host, 
+DEFINE_string(protected_domain, 
     "localhost", "Hostname of protected host"); // i.e. blog.gladius.io
 DEFINE_string(cert_path, "", "Path to SSL certificate");
 DEFINE_string(key_path, "", "Path to SSL private key");
@@ -61,7 +61,7 @@ int main(int argc, char *argv[]) {
     
     config->origin_host = FLAGS_origin_host;
     config->origin_port = FLAGS_origin_port;
-    config->protected_host = FLAGS_protected_host;
+    config->protected_domain = FLAGS_protected_domain;
     config->gateway_address = FLAGS_gateway_address;
     config->gateway_port = FLAGS_gateway_port;
     config->service_worker_path = FLAGS_sw_path;
