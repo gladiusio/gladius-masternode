@@ -4,25 +4,27 @@
 This application runs as the main connection point in the beta network. All
 connections are routed through one master node at this point in time.
 
-The masternode can generally be thought of as a custom proxy server built with Facebook's Proxygen library. It's main functions are to proxy requests from clients through to an origin server and cache the response within the Gladius peer-to-peer network. It then injects a service worker into proxied index page responses which allows additional website assets to be fetched from edge nodes within the Gladius network.
+The masternode can generally be thought of as a custom proxy server built with Facebook's Proxygen library. Its main functions are to proxy requests from clients through to an origin server and cache the response within the Gladius peer-to-peer network. It then injects a service worker into proxied index page responses which allows additional website assets to be fetched from edge nodes within the Gladius network.
 
 
 ## Building
 
-### Build the first stage of the docker container (proxygen environment)
-```shell
-docker build --target proxygen-env -t gladiusio/proxygen-env .
-```
-
-### Build the second stage of the docker container (builds the masternode binary)
-```shell
-docker build --target masternode-builder -t gladiusio/masternode-builder .
-```
 
 ### Build the full container that runs the masternode
 ```shell
 docker build -t gladiusio/masternode .
 ```
+
+### (Optional) Build the first stage of the docker container (proxygen environment)
+```shell
+docker build --target proxygen-env -t gladiusio/proxygen-env .
+```
+
+### (Optional) Build the second stage of the docker container (builds the masternode binary)
+```shell
+docker build --target masternode-builder -t gladiusio/masternode-builder .
+```
+
 
 ## Developing
 
@@ -66,6 +68,18 @@ docker cp <container id>:/proxygen/html <path on host to put docs>
 ## Running the Masternode
 
 As of now, we only support deploying the masternode by using the provided Docker container. The environmental requirements make this the easiest approach.
+
+To run the masternode container, first make a copy of the `env.list.sample` file from the root of this repo.
+```shell
+cp env.list.sample env.list
+```
+
+Make any edits to the configuration values in this new `env.list` file.
+
+Then you can bring up the container like so:
+```shell
+docker run -it --env-file env.list gladiusio/masternode
+```
 
 ### Command Line Flags
 
