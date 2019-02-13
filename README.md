@@ -1,11 +1,10 @@
 # Gladius Master Node
 
-The Gladius Master Node software
-
 ## Overview
-This application runs as a the main connection point in the beta network. All
-connections are routed through one master node, and then the client is connected
-to the geographically nearest edge node.
+This application runs as the main connection point in the beta network. All
+connections are routed through one master node at this point in time.
+
+The masternode can generally be thought of as a custom proxy server built with Facebook's Proxygen library. It's main functions are to proxy requests from clients through to an origin server and cache the response within the Gladius peer-to-peer network. It then injects a service worker into proxied index page responses which allows additional website assets to be fetched from edge nodes within the Gladius network.
 
 
 # Building
@@ -24,6 +23,10 @@ docker build --target masternode-builder -t gladiusio/masternode-builder .
 ```shell
 docker build -t gladiusio/masternode .
 ```
+
+# Developing
+
+Besides the main Dockerfile that is used for building and deploying the masternode, there is an additional develop.Dockerfile that can be used with docker-compose to allow for quicker rebuilds when developing for the masternode locally. Build files will be shared between your host machine and the container.
 
 ## Build the development container
 ```shell
@@ -64,3 +67,7 @@ docker cp <container id>:/proxygen/html <path on host to put docs>
 ```shell
 docker run -p 80:80 -it gladiusio/masternode
 ```
+
+todo: 
+-add info about flags and which are necessary
+-add info about docker volumes and other params
