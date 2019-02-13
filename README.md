@@ -78,8 +78,15 @@ Make any edits to the configuration values in this new `env.list` file.
 
 Then you can bring up the container like so:
 ```shell
-docker run -it --env-file env.list gladiusio/masternode
+docker run -it -p 80:80 -p 443:443 --env-file env.list gladiusio/masternode
 ```
+
+Be aware that the masternode requires an instance of both the [gladius-network-gateway](https://github.com/gladiusio/gladius-network-gateway) and the [gladius-edged](https://github.com/gladiusio/gladius-edged) (configured as a seed node) processes to be running locally alongside it. This is so it can interact with and distribute content to the Gladius network. You may wish to use Docker volumes to share the content directory between the seed node process and the masternode container. Volumes may also be helpful for providing the service worker javascript file and the SSL certificate/key to the masternode container.
+
+```shell
+docker run -it -p 80:80 -p 443:443 -v /home/.gladius/:/gladius --env-file env.list gladiusio/masternode
+```
+where `/home/.gladius/` on the host machine contains your SSL certificate, certificate key file, content directory for the seed node, and the service worker you wish to inject. Be sure to configure the appropriate paths in the `env.list` file to reflect any usage of Docker volumes.
 
 ### Command Line Flags
 
