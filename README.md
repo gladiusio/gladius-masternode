@@ -85,6 +85,3 @@ Flag | Description | Example
 --key_path | File path to the private key for the SSL cert | --key_path=/home/bob/key.pem
 --upgrade_insecure | Set to true to redirect HTTP requests to the HTTPS port | --upgrade_insecure=true
 --logtostderr | Set to 1 to write logs to stderr instead of /tmp files | --logtostderr=1
-
-todo: 
--add info about docker volumes and other params
