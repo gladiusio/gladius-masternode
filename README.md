@@ -71,9 +71,9 @@ As of now, we only support deploying the masternode by using the provided Docker
 
 Flag | Description | Example
 ---- | ----------- | -------
---ip | The IP address to listen for requests on | --ip=0.0.0.0
+--ip | The IP address/hostname to listen for requests on | --ip=0.0.0.0
 --port | The port to listen for HTTP requests on | --port=80
---origin_host | The IP/Hostname of the origin server | --origin_host=192.168.2.12
+--origin_host | The IP/Hostname of the origin server to proxy for | --origin_host=192.168.2.12
 --origin_port | The port of the origin server to connect to | --origin_port=80
 --protected_domain | The domain name we are protecting | --protected_domain=www.example.com
 --cache_dir | Path to directory to write cached content to | --cache_dir=/home/bob/content_cache/
