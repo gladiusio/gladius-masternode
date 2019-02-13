@@ -63,10 +63,27 @@ doxygen Doxyfile
 docker cp <container id>:/proxygen/html <path on host to put docs>
 ```
 
-## Running the Software
-```shell
-docker run -p 80:80 -it gladiusio/masternode
-```
+## Running the Masternode
+
+As of now, we only support deploying the masternode by using the provided Docker container. The environmental requirements make this the easiest approach.
+
+### Command Line Arguments
+
+Flag | Description | Example
+---- | ----------- | -------
+--ip | The IP address to listen for requests on | --ip=0.0.0.0
+--port | The port to listen for HTTP requests on | --port=80
+--origin_host | The IP/Hostname of the origin server | --origin_host=192.168.2.12
+--origin_port | The port of the origin server to connect to | --origin_port=80
+--protected_domain | The domain name we are protecting | --protected_domain=www.example.com
+--cache_dir | Path to directory to write cached content to | --cache_dir=/home/bob/content_cache/
+--gateway_address | IP/Hostname of Gladius network gateway process | --gateway_address=127.0.0.1
+--gateway_port | Port to reach the Gladius network gateway process on | --gateway_port=3001
+--sw_path | File path of service worker javascript file to inject | --sw_path=/home/bob/my_service_worker.js
+--ssl_port | The port to listen for HTTPS requests on | --ssl_port=443
+--cert_path | File path to SSL certificate | --cert_path=/home/bob/cert.pem
+--key_path | File path to the private key for the SSL cert | --key_path=/home/bob/key.pem
+--upgrade_insecure | Set to true to redirect HTTP requests to the HTTPS port | --upgrade_insecure=true
 
 todo: 
 -add info about flags and which are necessary
