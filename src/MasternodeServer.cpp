@@ -25,6 +25,9 @@ DEFINE_int32(gateway_port, 3001,
 DEFINE_string(sw_path, "", "File path of service worker javascript file to inject");
 DEFINE_bool(upgrade_insecure, true, "Set to true to redirect HTTP requests to the HTTPS port");
 
+// debug use only
+DEFINE_bool(ignore_heartbeat, false, "Set to true to disable heartbeat checking for edge nodes");
+
 int main(int argc, char *argv[]) {
     gflags::ParseCommandLineFlags(&argc, &argv, true);
     google::InitGoogleLogging(argv[0]);
@@ -67,6 +70,7 @@ int main(int argc, char *argv[]) {
     config->service_worker_path = FLAGS_sw_path;
     config->IPs = IPs;
     config->cache_directory = FLAGS_cache_dir;
+    config->ignore_heartbeat = FLAGS_ignore_heartbeat;
     config->options.threads = threads;
     config->options.idleTimeout = std::chrono::milliseconds(60000);
     config->options.shutdownOn = {SIGINT, SIGTERM};

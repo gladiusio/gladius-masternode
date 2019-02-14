@@ -26,7 +26,7 @@ class NetworkState {
         // from the network gateway state request. Parses
         // this response and sets corresponding fields
         // of this NetworkState class.
-        void parseStateUpdate(std::string body);
+        void parseStateUpdate(std::string, bool);
 
         void beginPollingGateway();
 };
