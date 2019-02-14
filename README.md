@@ -32,7 +32,7 @@ Besides the main Dockerfile that is used for building and deploying the masterno
 
 ### Build the development container
 ```shell
-docker build -f develop.Dockerfile -t gladiusio/masternode-develop
+docker build -f develop.Dockerfile -t gladiusio/masternode-develop .
 ```
 
 ### Run the development container
@@ -40,9 +40,16 @@ docker build -f develop.Dockerfile -t gladiusio/masternode-develop
 docker-compose -f develop-compose.yml run --name devenv dev bash
 ```
 
+### Build the Masternode inside the dev container
+```shell
+aclocal && autoconf && automake --add-missing
+./configure
+make -j8
+```
+
 ### Debug tests with development container (once inside it)
 ```shell
-make check
+make -j8 check
 cd tests
 gdb ./masternode_tests
 ```
