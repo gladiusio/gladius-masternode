@@ -8,15 +8,15 @@ check_PROGRAMS = masternode_tests
 
 masternode_tests_SOURCES = \
     MasternodeTests.cpp \
-    $(top_builddir)/Masternode.cpp \
-    $(top_builddir)/Router.cpp \
-    $(top_builddir)/ProxyHandler.cpp \
-    $(top_builddir)/Cache.cpp \
-    $(top_builddir)/DirectHandler.cpp \
-    $(top_builddir)/ServiceWorkerHandler.cpp \
-    $(top_builddir)/NetworkState.cpp \
-    $(top_builddir)/ServiceWorker.cpp \
-    $(top_builddir)/RedirectHandler.cpp
+    $(top_srcdir)/Masternode.cpp \
+    $(top_srcdir)/Router.cpp \
+    $(top_srcdir)/ProxyHandler.cpp \
+    $(top_srcdir)/Cache.cpp \
+    $(top_srcdir)/DirectHandler.cpp \
+    $(top_srcdir)/ServiceWorkerHandler.cpp \
+    $(top_srcdir)/NetworkState.cpp \
+    $(top_srcdir)/ServiceWorker.cpp \
+    $(top_srcdir)/RedirectHandler.cpp
 
 masternode_tests_LDADD = \
     -lproxygenhttpserver \
