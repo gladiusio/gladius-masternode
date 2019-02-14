@@ -6,9 +6,7 @@
 
 #include "NetworkState.h"
 
-
 using namespace std::chrono;
-
 
 NetworkState::NetworkState(std::shared_ptr<MasternodeConfig> config) {
     config_ = config;
@@ -27,26 +25,7 @@ std::vector<std::string> NetworkState::getEdgeNodes() {
     return edgeNodes_.copy();
 }
 
-// void NetworkState::parseStateUpdate(std::string body) {
-//     // todo: add heartbeat check, non-empty content check, lowercase hostname/eth address
-//     folly::dynamic parsed = folly::parseJson(body);
-//     auto lockedList = edgeNodes_.wlock();
-//     lockedList->clear();
-//     auto nodeMap = parsed["response"]["node_data_map"];
-//     for (auto& value : nodeMap.values()) {
-//         try {
-//             std::string ip = value["ip_address"]["data"].getString();
-//             std::string port = value["content_port"]["data"].getString();
-//             lockedList->push_back(std::string(ip + ":" + port));
-//         } catch (const std::exception& e) {
-//             LOG(ERROR) << "Caught exception when parsing network state: " << e.what() << "\n";
-//         }
-//     }
-// }
-
-void NetworkState::parseStateUpdate(std::string body) {
-    
-
+void NetworkState::parseStateUpdate(std::string body, bool ignoreHeartbeat=false) {
     folly::dynamic state = folly::parseJson(body); // full json state
     auto lockedList = edgeNodes_.wlock();
     lockedList->clear();
@@ -63,9 +42,8 @@ void NetworkState::parseStateUpdate(std::string body) {
             std::string port = value["content_port"]["data"].getString();
             int64_t heartbeat = value["heartbeat"]["data"].asInt();
             bool hasNoContent = value["disk_content"]["data"].empty();
-            if (hasNoContent || (time - heartbeat) > (2 * 1000 * 60)) {
-                continue;
-            }
+            if (!ignoreHeartbeat && (time - heartbeat) > (2 * 1000 * 60)) continue;
+            if (hasNoContent) continue;
             lockedList->push_back(std::string(nodeAddress + ":" + port));
         } catch (const std::exception& e) {
             LOG(ERROR) << "Caught exception when parsing network state: " << e.what() << "\n";
@@ -82,7 +60,7 @@ void NetworkState::beginPollingGateway() {
         if (res && res->status == 200) {
             LOG(INFO) << "Received network state from gateway\n";
             // parse the JSON into state structs/classes
-            parseStateUpdate(res->body);
+            parseStateUpdate(res->body, config_->ignore_heartbeat);
         }
     }, std::chrono::seconds(config_->gateway_poll_interval), "GatewayPoller");
     fs.setSteady(true);

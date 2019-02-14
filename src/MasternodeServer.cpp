@@ -8,22 +8,25 @@ using namespace proxygen;
 using namespace folly::ssl;
 using namespace masternode;
 
-DEFINE_string(ip, "0.0.0.0", "IP/Hostname to bind to");
-DEFINE_int32(port, 80, "Port to listen for HTTP requests on");
-DEFINE_int32(ssl_port, 443, "Port to listen for HTTPS requests on");
-DEFINE_string(origin_host, "0.0.0.0", "IP/Hostname of protected origin");
-DEFINE_int32(origin_port, 80, "Port to contact the origin server on");
+DEFINE_string(ip, "0.0.0.0", "The IP address/hostname to listen for requests on");
+DEFINE_int32(port, 80, "The port to listen for HTTP requests on");
+DEFINE_int32(ssl_port, 443, "The port to listen for HTTPS requests on");
+DEFINE_string(origin_host, "0.0.0.0", "The IP/Hostname of the origin server to proxy for");
+DEFINE_int32(origin_port, 80, "The port of the origin server to connect to");
 DEFINE_string(protected_domain, 
-    "localhost", "Hostname of protected host"); // i.e. blog.gladius.io
-DEFINE_string(cert_path, "", "Path to SSL certificate");
-DEFINE_string(key_path, "", "Path to SSL private key");
-DEFINE_string(cache_dir, "", "Path to directory to write cached files to");
+    "localhost", "The domain name we are protecting"); // i.e. www.example.com
+DEFINE_string(cert_path, "", "File path to SSL certificate");
+DEFINE_string(key_path, "", "File path to the private key for the SSL cert");
+DEFINE_string(cache_dir, "", "Path to directory to write cached content to");
 DEFINE_string(gateway_address, "0.0.0.0", 
-    "Address to the masternode's Gladius network gateway");
+    "IP/Hostname of Gladius network gateway process");
 DEFINE_int32(gateway_port, 3001, 
-    "Port of the masternode's Gladius network gateway");
-DEFINE_string(sw_path, "", "Path to service worker file to serve");
-DEFINE_bool(upgrade_insecure, true, "Redirect HTTP requests to HTTPS port");
+    "Port to reach the Gladius network gateway process on");
+DEFINE_string(sw_path, "", "File path of service worker javascript file to inject");
+DEFINE_bool(upgrade_insecure, true, "Set to true to redirect HTTP requests to the HTTPS port");
+
+// debug use only
+DEFINE_bool(ignore_heartbeat, false, "Set to true to disable heartbeat checking for edge nodes");
 
 int main(int argc, char *argv[]) {
     gflags::ParseCommandLineFlags(&argc, &argv, true);
@@ -67,6 +70,7 @@ int main(int argc, char *argv[]) {
     config->service_worker_path = FLAGS_sw_path;
     config->IPs = IPs;
     config->cache_directory = FLAGS_cache_dir;
+    config->ignore_heartbeat = FLAGS_ignore_heartbeat;
     config->options.threads = threads;
     config->options.idleTimeout = std::chrono::milliseconds(60000);
     config->options.shutdownOn = {SIGINT, SIGTERM};

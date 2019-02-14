@@ -87,17 +87,15 @@ FROM ubuntu:16.04 as production
 
 WORKDIR /app
 
+# Copies only the libraries necessary to run the masternode from the
+# builder stage.
 COPY --from=masternode-builder /tmp/dist/* /usr/lib/x86_64-linux-gnu/
+
+# Copies the masternode binary to this image
 COPY --from=masternode-builder /app/build/masternode .
 
-ENV UPGRADE_INSECURE false
-
-ENTRYPOINT ./masternode --origin_host=$ORIGIN_HOST \
-        --origin_port=$ORIGIN_PORT \
-        --protected_host=$PROTECTED_HOST \
-        --cert_path=$CERT_PATH \
-        --key_path=$KEY_PATH \
-        --cache_dir=$CACHE_DIR \
-        --gateway_address=$GATEWAY_ADDRESS \
-        --sw_path=$SW_PATH \
-        --upgrade_insecure=$UPGRADE_INSECURE
+# Command to run the masternode. The command line flags passed to the
+# masternode executable can be set by providing environment variables
+# to the docker container individually or with an env file.
+# See: https://docs.docker.com/engine/reference/commandline/run/#set-environment-variables--e---env---env-file
+ENTRYPOINT ./masternode --logtostderr=1 --tryfromenv=ip,port,ssl_port,origin_host,origin_port,protected_domain,cert_path,key_path,cache_dir,gateway_address,gateway_port,sw_path,upgrade_insecure

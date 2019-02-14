@@ -31,4 +31,6 @@ class MasternodeConfig {
         bool upgrade_insecure;
         // Port to listen to ssl requests
         uint16_t ssl_port;
+        // Ignore the heartbeat on edge nodes
+        bool ignore_heartbeat{false};
 };
