@@ -44,11 +44,16 @@ void NetworkState::parseStateUpdate(std::string body, bool ignoreHeartbeat=false
             bool hasNoContent = value["disk_content"]["data"].empty();
             if (!ignoreHeartbeat && (time - heartbeat) > (2 * 1000 * 60)) continue;
             if (hasNoContent) continue;
-            lockedList->push_back(std::string(nodeAddress + ":" + port));
+            lockedList->push_back(createEdgeNodeHostname(nodeAddress, port));
         } catch (const std::exception& e) {
             LOG(ERROR) << "Caught exception when parsing network state: " << e.what() << "\n";
         }
     }
+}
+
+std::string NetworkState::createEdgeNodeHostname(std::string address, std::string port) {
+    return std::string(address + "." + config_->cdn_subdomain + "." 
+        + config_->pool_domain + ":" + port);
 }
 
 void NetworkState::beginPollingGateway() {

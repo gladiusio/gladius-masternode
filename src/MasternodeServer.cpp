@@ -24,6 +24,8 @@ DEFINE_int32(gateway_port, 3001,
     "Port to reach the Gladius network gateway process on");
 DEFINE_string(sw_path, "", "File path of service worker javascript file to inject");
 DEFINE_bool(upgrade_insecure, true, "Set to true to redirect HTTP requests to the HTTPS port");
+DEFINE_string(pool_domain, "", "Domain to use for pool hosts"); // i.e. examplepool.com
+DEFINE_string(cdn_subdomain, "cdn", "Subdomain of the pool domain to use for content node hostnames");
 
 // debug use only
 DEFINE_bool(ignore_heartbeat, false, "Set to true to disable heartbeat checking for edge nodes");
@@ -71,6 +73,7 @@ int main(int argc, char *argv[]) {
     config->IPs = IPs;
     config->cache_directory = FLAGS_cache_dir;
     config->ignore_heartbeat = FLAGS_ignore_heartbeat;
+    config->pool_domain = FLAGS_pool_domain;
     config->options.threads = threads;
     config->options.idleTimeout = std::chrono::milliseconds(60000);
     config->options.shutdownOn = {SIGINT, SIGTERM};
