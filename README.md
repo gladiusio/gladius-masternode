@@ -112,4 +112,6 @@ Flag | Description | Example
 --cert_path | File path to SSL certificate | --cert_path=/home/bob/cert.pem
 --key_path | File path to the private key for the SSL cert | --key_path=/home/bob/key.pem
 --upgrade_insecure | Set to true to redirect HTTP requests to the HTTPS port | --upgrade_insecure=true
+--pool_domain | Domain to assign hostnames to edge nodes on | --pool_domain=examplepool.com
+--ignore_heartbeat | Set to true to disable heartbeat checking for edge nodes | --ignore_heartbeat=true
 --logtostderr | Set to 1 to write logs to stderr instead of /tmp files | --logtostderr=1

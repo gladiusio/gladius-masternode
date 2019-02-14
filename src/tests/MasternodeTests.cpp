@@ -195,11 +195,12 @@ TEST (ContentServing, TestSSLPassthroughProxy) {
 
 TEST (NetworkState, TestStateParsing) {
   auto mc = std::make_shared<MasternodeConfig>();
+  mc->pool_domain = "example.com";
   auto state = std::make_unique<NetworkState>(mc);
   auto sample = R"({"response": {"node_data_map": {"0xdeadbeef": {"content_port": {"data": "8080"}, "ip_address": {"data": "127.0.0.1"}, "heartbeat": {"data": "999999999"}, "disk_content": {"data": ["yes", "no", "maybe"]}}}}})";
   state->parseStateUpdate(sample, true);
   EXPECT_EQ(state->getEdgeNodes().size(), 1);
-  EXPECT_EQ(state->getEdgeNodes()[0], "0xdeadbeef:8080");
+  EXPECT_EQ(state->getEdgeNodes()[0], "0xdeadbeef.cdn.example.com:8080");
 }
 
 TEST (NetworkState, TestStatePolling) {
@@ -216,11 +217,12 @@ TEST (NetworkState, TestStatePolling) {
   mc->gateway_address = "0.0.0.0";
   mc->gateway_port = 8085;
   mc->ignore_heartbeat = true;
+  mc->pool_domain = "example.com";
   auto state = std::make_unique<NetworkState>(mc);
   state->beginPollingGateway();
   std::this_thread::sleep_for(std::chrono::seconds(2));
   EXPECT_EQ(state->getEdgeNodes().size(), 1);
-  EXPECT_EQ(state->getEdgeNodes()[0], "0xdeadbeef:8080");
+  EXPECT_EQ(state->getEdgeNodes()[0], "0xdeadbeef.cdn.example.com:8080");
 }
 
 TEST (ContentServing, TestServiceWorkerInjection) {

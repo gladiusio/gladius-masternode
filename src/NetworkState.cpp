@@ -44,7 +44,7 @@ void NetworkState::parseStateUpdate(std::string body, bool ignoreHeartbeat=false
             bool hasNoContent = value["disk_content"]["data"].empty();
             if (!ignoreHeartbeat && (time - heartbeat) > (2 * 1000 * 60)) continue;
             if (hasNoContent) continue;
-            lockedList->push_back(std::string(nodeAddress + ":" + port));
+            lockedList->push_back(std::string(nodeAddress + ".cdn." + config_->pool_domain + ":" + port));
         } catch (const std::exception& e) {
             LOG(ERROR) << "Caught exception when parsing network state: " << e.what() << "\n";
         }
