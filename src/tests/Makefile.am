@@ -8,6 +8,8 @@ check_PROGRAMS = masternode_tests
 
 masternode_tests_SOURCES = \
     MasternodeTests.cpp \
+    NetworkStateTests.cpp \
+    TestRunner.cpp \
     $(top_srcdir)/Masternode.cpp \
     $(top_srcdir)/Router.cpp \
     $(top_srcdir)/ProxyHandler.cpp \
