@@ -203,6 +203,15 @@ TEST (NetworkState, TestStateParsing) {
   EXPECT_EQ(state->getEdgeNodes()[0], "0xdeadbeef.cdn.example.com:8080");
 }
 
+TEST (NetworkState, TestEdgeNodeHostnameCreation) {
+  auto mc = std::make_shared<MasternodeConfig>();
+  mc->pool_domain = "example.com";
+  mc->cdn_subdomain = "foobarcdn";
+  auto state = std::make_unique<NetworkState>(mc);
+  auto actual = state->createEdgeNodeHostname("0xdeadbeeeeeef", "1234");
+  EXPECT_EQ(actual, "0xdeadbeeeeeef.foobarcdn.example.com:1234");
+}
+
 TEST (NetworkState, TestStatePolling) {
   // Create and start a gateway
   auto gw = std::make_unique<httplib::Server>();
