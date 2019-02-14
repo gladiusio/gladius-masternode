@@ -40,6 +40,11 @@ docker build -f develop.Dockerfile -t gladiusio/masternode-develop .
 docker-compose -f develop-compose.yml run --name devenv dev bash
 ```
 
+### Stop the development container
+```shell
+docker-compose -f develop-compose.yml down
+```
+
 ### Build the Masternode inside the dev container
 ```shell
 aclocal && autoconf && automake --add-missing
