@@ -30,7 +30,7 @@ void NetworkState::parseStateUpdate(std::string body, bool ignoreHeartbeat=false
     auto lockedList = edgeNodes_.wlock();
     lockedList->clear();
     auto nodeMap = state["response"]["node_data_map"]; // map of content nodes
-    int64_t time = duration_cast<milliseconds>(
+    int64_t time = duration_cast<seconds>(
         system_clock::now().time_since_epoch()).count(); // current time in ms
     for (auto& pair : nodeMap.items()) {
         std::string nodeAddress = pair.first.getString(); // eth address of content node
@@ -42,7 +42,7 @@ void NetworkState::parseStateUpdate(std::string body, bool ignoreHeartbeat=false
             std::string port = value["content_port"]["data"].getString();
             int64_t heartbeat = value["heartbeat"]["data"].asInt();
             bool hasNoContent = value["disk_content"]["data"].empty();
-            if (!ignoreHeartbeat && (time - heartbeat) > (2 * 1000 * 60)) continue;
+            if (!ignoreHeartbeat && (time - heartbeat) > (2 * 60)) continue;
             if (hasNoContent) continue;
             lockedList->push_back(createEdgeNodeHostname(nodeAddress, port));
         } catch (const std::exception& e) {
