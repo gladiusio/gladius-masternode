@@ -58,6 +58,16 @@ RUN git clone https://github.com/lexborisov/myhtml && \
     make test && \
     sudo make install
 
+# Install maxmind geoip lib
+RUN wget https://github.com/maxmind/libmaxminddb/releases/download/1.3.2/libmaxminddb-1.3.2.tar.gz && \
+        tar -xvf libmaxminddb-1.3.2.tar.gz && \
+        cd libmaxminddb-1.3.2 && \
+        ./configure && \
+        make && \
+        make check && \
+        sudo make install && \
+        sudo ldconfig
+
 # Clean up APT when done
 RUN apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
