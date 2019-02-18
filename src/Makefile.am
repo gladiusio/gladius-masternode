@@ -17,7 +17,8 @@ masternode_LDADD = \
     -lgflags \
     -lcrypto \
     -ldouble-conversion \
-    -lmyhtml
+    -lmyhtml \
+    -lmaxminddb
 
 masternode_LDFLAGS = -pthread
 
@@ -31,4 +32,5 @@ masternode_SOURCES = \
     ServiceWorkerHandler.cpp \
     NetworkState.cpp \
     ServiceWorker.cpp \
-    RedirectHandler.cpp
+    RedirectHandler.cpp \
+    Geo.cpp

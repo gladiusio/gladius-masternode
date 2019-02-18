@@ -50,6 +50,8 @@ RUN cd /usr/src/gtest && \
         make && \
         cp *.a $LD_LIBRARY_PATH
 
+WORKDIR /libraries
+
 # Install html parsing library
 RUN git clone https://github.com/lexborisov/myhtml && \
     cd myhtml && \
