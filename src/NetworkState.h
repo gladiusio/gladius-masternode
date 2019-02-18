@@ -30,5 +30,3 @@ class NetworkState {
         void parseStateUpdate(std::string, bool);
         void beginPollingGateway();
 };
-
-

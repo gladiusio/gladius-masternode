@@ -11,7 +11,6 @@ Geo::Geo(std::shared_ptr<MasternodeConfig> config) {
         LOG(ERROR) << "Could not open geoip database!\n";
         config->geo_ip_enabled = false;
     }
-    
 }
 
 Geo::~Geo() {
