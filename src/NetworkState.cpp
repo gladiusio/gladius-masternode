@@ -21,10 +21,6 @@ NetworkState::~NetworkState() {
     fs.shutdown();
 }
 
-std::vector<std::string> NetworkState::getEdgeNodes() {
-    return edgeNodes_.copy();
-}
-
 void NetworkState::parseStateUpdate(std::string body, bool ignoreHeartbeat=false) {
     folly::dynamic state = folly::parseJson(body); // full json state
     auto lockedList = edgeNodes_.wlock();
@@ -39,21 +35,31 @@ void NetworkState::parseStateUpdate(std::string body, bool ignoreHeartbeat=false
         auto& value = pair.second;
         try {
             std::string ip = value["ip_address"]["data"].getString();
-            std::string port = value["content_port"]["data"].getString();
+            uint16_t port = value["content_port"]["data"].asInt();
             int64_t heartbeat = value["heartbeat"]["data"].asInt();
             bool hasNoContent = value["disk_content"]["data"].empty();
             if (!ignoreHeartbeat && (time - heartbeat) > (2 * 60)) continue;
             if (hasNoContent) continue;
-            lockedList->push_back(createEdgeNodeHostname(nodeAddress, port));
+            std::shared_ptr<EdgeNode> node = std::make_shared<EdgeNode>(
+                ip, port, nodeAddress, heartbeat
+            );
+            lockedList->push_back(node);
         } catch (const std::exception& e) {
             LOG(ERROR) << "Caught exception when parsing network state: " << e.what() << "\n";
         }
     }
 }
 
-std::string NetworkState::createEdgeNodeHostname(std::string address, std::string port) {
-    return std::string(address + "." + config_->cdn_subdomain + "." 
-        + config_->pool_domain + ":" + port);
+std::vector<std::string> NetworkState::getEdgeNodeHostnames() {
+    std::vector<std::string> v;
+    { // critical section for edgeNodes lock
+        auto lockedList = edgeNodes_.wlock();
+        for (auto& node : *lockedList) {
+            std::string fqdn = node->getFQDN(config_->pool_domain, config_->cdn_subdomain);
+            v.push_back(fqdn);
+        }
+    }
+    return v;
 }
 
 void NetworkState::beginPollingGateway() {

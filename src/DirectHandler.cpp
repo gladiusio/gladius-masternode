@@ -17,7 +17,7 @@ DirectHandler::~DirectHandler() {}
 
 void DirectHandler::onRequest(std::unique_ptr<HTTPMessage> headers) noexcept {
     // Construct network state json response
-    auto edgeAddrs = state_->getEdgeNodes(); // vector of edge node addresses
+    auto edgeAddrs = state_->getEdgeNodeHostnames(); // vector of edge node addresses
     auto assetMap = cache_->getAssetHashMap(); // map of urls : hashes
 
     folly::dynamic jsonRes = folly::dynamic::object;

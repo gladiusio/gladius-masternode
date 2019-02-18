@@ -1,6 +1,6 @@
 #pragma once
 
-#include <string.h>
+#include <string>
 
 class EdgeNode {
     private:
@@ -13,8 +13,7 @@ class EdgeNode {
         EdgeNode(std::string,
             uint16_t,
             std::string,
-            uint32_t,
-            std::string);
+            uint32_t);
 
         std::string getIP();
         uint16_t getPort();

@@ -5,12 +5,13 @@
 
 #include "httplib.h"
 #include "MasternodeConfig.h"
+#include "EdgeNode.h"
 
 class NetworkState {
     private:
         std::shared_ptr<MasternodeConfig> config_;
-        // List of addresses of edge nodes
-        folly::Synchronized<std::vector<std::string>> edgeNodes_;
+        // List of edge node data classes
+        folly::Synchronized<std::vector<std::shared_ptr<EdgeNode>>> edgeNodes_;
         // Used to fetch p2p network state on a repeated basis
         folly::FunctionScheduler fs;
         // Used to make simple requests to the local gladius network gateway
@@ -20,14 +21,13 @@ class NetworkState {
         NetworkState(std::shared_ptr<MasternodeConfig>);
         ~NetworkState();
 
-        std::vector<std::string> getEdgeNodes();
+        std::vector<std::string> getEdgeNodeHostnames();
 
         // Accepts body as a string containing JSON response
         // from the network gateway state request. Parses
         // this response and sets corresponding fields
         // of this NetworkState class.
         void parseStateUpdate(std::string, bool);
-        std::string createEdgeNodeHostname(std::string, std::string);
         void beginPollingGateway();
 };
 

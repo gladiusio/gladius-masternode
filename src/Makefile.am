@@ -33,4 +33,5 @@ masternode_SOURCES = \
     NetworkState.cpp \
     ServiceWorker.cpp \
     RedirectHandler.cpp \
-    Geo.cpp
+    Geo.cpp \
+    EdgeNode.cpp
