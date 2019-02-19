@@ -9,6 +9,7 @@ check_PROGRAMS = masternode_tests
 masternode_tests_SOURCES = \
     MasternodeTests.cpp \
     NetworkStateTests.cpp \
+    EdgeNodeTests.cpp \
     TestRunner.cpp \
     $(top_builddir)/Masternode.cpp \
     $(top_builddir)/Router.cpp \
