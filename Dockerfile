@@ -70,6 +70,14 @@ RUN wget https://github.com/maxmind/libmaxminddb/releases/download/1.3.2/libmaxm
         sudo make install && \
         sudo ldconfig
 
+# Install c++ geoip lib
+RUN wget https://www.ccoderun.ca/GeoLite2PP/download/geolite2++-0.0.1-2561-Source.tar.gz && \
+        tar -xvf geolite2++-0.0.1-2561-Source.tar.gz && \
+        cd geolite2++-0.0.1-2561-Source && \
+        cmake CMakeLists.txt && \
+        make && \
+        sudo make install
+
 # Clean up APT when done
 RUN apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 

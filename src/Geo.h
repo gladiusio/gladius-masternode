@@ -1,6 +1,6 @@
 #pragma once
 
-#include <maxminddb.h>
+#include <GeoLite2PP.hpp>
 
 #include "MasternodeConfig.h"
 
