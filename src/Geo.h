@@ -17,13 +17,12 @@ struct Coordinate {
 class Geo {
     public:
         Geo(std::shared_ptr<MasternodeConfig>);
-        ~Geo();
 
         // find the geo coordinates of an IP address
         Coordinate lookupCoordinate(std::string);
     private:
         // reference to maxmind geoip database
-        MMDB_s mmdb_;
+        GeoLite2PP::DB db_;
 };
 
 

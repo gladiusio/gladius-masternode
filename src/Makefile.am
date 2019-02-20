@@ -18,6 +18,7 @@ masternode_LDADD = \
     -lcrypto \
     -ldouble-conversion \
     -lmyhtml \
+    -lgeolite2++ \
     -lmaxminddb
 
 masternode_LDFLAGS = -pthread
