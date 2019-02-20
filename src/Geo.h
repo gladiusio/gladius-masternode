@@ -4,6 +4,11 @@
 
 #include "MasternodeConfig.h"
 
+struct Coordinate {
+    double latitude;
+    double longitude;
+};
+
 // This class handles installing the maxmind geoip database
 // and provides utility methods wrapping the libmaxmind library
 // to access the database. This class will also hold a reference
@@ -13,7 +18,12 @@ class Geo {
     public:
         Geo(std::shared_ptr<MasternodeConfig>);
         ~Geo();
+
+        // find the geo coordinates of an IP address
+        Coordinate lookupCoordinate(std::string ip);
     private:
         // reference to maxmind geoip database
         MMDB_s mmdb_;
 };
+
+

@@ -12,6 +12,8 @@ class NetworkState {
         std::shared_ptr<MasternodeConfig> config_;
         // List of edge node data classes
         folly::Synchronized<std::vector<std::shared_ptr<EdgeNode>>> edgeNodes_;
+        // KD-Tree representation of edge nodes used for geoip lookup
+
         // Used to fetch p2p network state on a repeated basis
         folly::FunctionScheduler fs;
         // Used to make simple requests to the local gladius network gateway
@@ -29,4 +31,6 @@ class NetworkState {
         // of this NetworkState class.
         void parseStateUpdate(std::string, bool);
         void beginPollingGateway();
+
+        std::vector<std::shared_ptr<EdgeNode>> getNearestEdgeNodes(int n);
 };
