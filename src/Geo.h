@@ -20,7 +20,7 @@ class Geo {
         ~Geo();
 
         // find the geo coordinates of an IP address
-        Coordinate lookupCoordinate(std::string ip);
+        Coordinate lookupCoordinate(std::string);
     private:
         // reference to maxmind geoip database
         MMDB_s mmdb_;
