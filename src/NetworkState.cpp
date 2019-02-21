@@ -15,6 +15,13 @@ NetworkState::NetworkState(std::shared_ptr<MasternodeConfig> config) {
         config->gateway_port,
         config_->gateway_poll_interval /* timeout in seconds */
     );
+    try {
+        geo_ = std::make_unique<Geo>(config_);
+    } catch (const std::system_error& e) {
+        LOG(ERROR) << "Could not instantiate Geo module\n" << e.what();
+        config->geo_ip_enabled = false;
+        LOG(ERROR) << "Disabled Geo IP feature";
+    }
 }
 
 NetworkState::~NetworkState() {
@@ -48,6 +55,12 @@ void NetworkState::parseStateUpdate(std::string body, bool ignoreHeartbeat=false
             LOG(ERROR) << "Caught exception when parsing network state: " << e.what() << "\n";
         }
     }
+
+    // create new LockedNodeList with new nodes
+    
+    // create new KD-Tree with new LockedNodeList
+
+    // swap the old LockedNodeList and old KDTree out at the same time
 }
 
 std::vector<std::string> NetworkState::getEdgeNodeHostnames() {

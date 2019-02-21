@@ -5,8 +5,8 @@ Geo::Geo(std::shared_ptr<MasternodeConfig> config) {
     db_ = GeoLite2PP::DB(path); // can throw std::system_error
 }
 
-Coordinate Geo::lookupCoordinate(const std::string ip) {
-    Coordinate location = { 0.0, 0.0 };
+Location Geo::lookupCoordinates(const std::string ip) {
+    Location location = { 0.0, 0.0, 0.0, 0.0, 0.0 };
 
     std::string latitude_str = db_.get_field(
         ip, "en", GeoLite2PP::VCStr{ "location", "latitude" });
@@ -23,6 +23,16 @@ Coordinate Geo::lookupCoordinate(const std::string ip) {
         LOG(ERROR) << "Out of range exception when converting string to double: " 
             << oor.what();
     }
-    
+    location.convertToCartesian();
     return location;
+}
+
+
+std::shared_ptr<kd_tree_t> buildTree(const LockedNodeList& nodes) {
+    PointCloud cloud;
+    cloud.pts = nodes;
+    auto t = std::make_shared<kd_tree_t>(
+        3, cloud, KDTreeSingleIndexAdaptorParams(10));
+    t->buildIndex();
+    return t;
 }

@@ -14,3 +14,5 @@ std::string EdgeNode::getFQDN(std::string pool_domain,
     return std::string(eth_address_ + "." + cdn_subdomain + "." 
         + pool_domain + ":" + std::to_string(port_));
 }
+
+Location EdgeNode::getLocation() { return location_; }
