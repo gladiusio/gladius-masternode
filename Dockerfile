@@ -98,4 +98,4 @@ COPY --from=masternode-builder /app/build/masternode .
 # masternode executable can be set by providing environment variables
 # to the docker container individually or with an env file.
 # See: https://docs.docker.com/engine/reference/commandline/run/#set-environment-variables--e---env---env-file
-ENTRYPOINT ./masternode --logtostderr=1 --tryfromenv=ip,port,ssl_port,origin_host,origin_port,protected_domain,cert_path,key_path,cache_dir,gateway_address,gateway_port,sw_path,upgrade_insecure
+ENTRYPOINT ./masternode --logtostderr=1 --tryfromenv=ip,port,ssl_port,origin_host,origin_port,protected_domain,cert_path,key_path,cache_dir,gateway_address,gateway_port,sw_path,upgrade_insecure,pool_domain,cdn_subdomain

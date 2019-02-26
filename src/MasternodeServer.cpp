@@ -74,6 +74,7 @@ int main(int argc, char *argv[]) {
     config->cache_directory = FLAGS_cache_dir;
     config->ignore_heartbeat = FLAGS_ignore_heartbeat;
     config->pool_domain = FLAGS_pool_domain;
+    config->cdn_subdomain = FLAGS_cdn_subdomain;
     config->options.threads = threads;
     config->options.idleTimeout = std::chrono::milliseconds(60000);
     config->options.shutdownOn = {SIGINT, SIGTERM};
