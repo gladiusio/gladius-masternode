@@ -52,7 +52,7 @@ void NetworkState::parseStateUpdate(std::string body, bool ignoreHeartbeat=false
 }
 
 std::string NetworkState::createEdgeNodeHostname(std::string address, std::string port) {
-    return std::string(address + "." + config_->cdn_subdomain + "." 
+    return std::string("https://" + address + "." + config_->cdn_subdomain + "." 
         + config_->pool_domain + ":" + port);
 }
 
