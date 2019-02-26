@@ -2,7 +2,7 @@ AUTOMAKE_OPTIONS = foreign
 
 SUBDIRS = . tests
 
-AM_CPPFLAGS = -I$(top_srcdir) -I$(top_srcdir)/libs
+AM_CPPFLAGS = -I$(top_srcdir) -I$(top_srcdir)/libs -Wall -Werror
 
 bin_PROGRAMS = masternode
 
