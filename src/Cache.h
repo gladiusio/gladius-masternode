@@ -13,7 +13,7 @@
 
 class CachedRoute {
     public:
-        CachedRoute(std::string url,
+        CachedRoute(std::string& url,
             std::unique_ptr<folly::IOBuf> data,
             std::shared_ptr<proxygen::HTTPMessage> headers);
         ~CachedRoute();
@@ -31,13 +31,13 @@ class CachedRoute {
 
 class ContentCache {
     public:
-        ContentCache(size_t size, std::string dir) : map_(size), cache_directory_(dir) {}
+        ContentCache(size_t size, std::string& dir) : map_(size), cache_directory_(dir) {}
 
         // Retrieve cached content with the URL as the lookup key
         std::shared_ptr<CachedRoute> getCachedRoute(std::string);
 
         // Add a new CachedRoute entry to the memory cache
-        bool addCachedRoute(std::string, std::unique_ptr<folly::IOBuf> chain,
+        bool addCachedRoute(std::string url, std::unique_ptr<folly::IOBuf> chain,
             std::shared_ptr<proxygen::HTTPMessage> headers);
 
         std::shared_ptr<folly::F14FastMap<std::string, std::string>> getAssetHashMap();
