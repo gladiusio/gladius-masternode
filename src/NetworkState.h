@@ -17,7 +17,7 @@ class NetworkState {
         std::unique_ptr<httplib::Client> httpClient_;
 
     public:
-        NetworkState(std::shared_ptr<MasternodeConfig>);
+        explicit NetworkState(std::shared_ptr<MasternodeConfig> config);
         ~NetworkState();
 
         std::vector<std::string> getEdgeNodes();
@@ -27,7 +27,7 @@ class NetworkState {
         // this response and sets corresponding fields
         // of this NetworkState class.
         void parseStateUpdate(std::string, bool);
-        std::string createEdgeNodeHostname(std::string, std::string);
+        std::string createEdgeNodeHostname(std::string&, std::string&);
         void beginPollingGateway();
 };
 

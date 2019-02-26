@@ -8,8 +8,8 @@
 
 using namespace std::chrono;
 
-NetworkState::NetworkState(std::shared_ptr<MasternodeConfig> config) {
-    config_ = config;
+NetworkState::NetworkState(std::shared_ptr<MasternodeConfig> config):
+    config_(config) {
     httpClient_ = std::make_unique<httplib::Client>(
         config_->gateway_address.c_str(),
         config->gateway_port,
@@ -51,7 +51,7 @@ void NetworkState::parseStateUpdate(std::string body, bool ignoreHeartbeat=false
     }
 }
 
-std::string NetworkState::createEdgeNodeHostname(std::string address, std::string port) {
+std::string NetworkState::createEdgeNodeHostname(std::string& address, std::string& port) {
     return std::string("https://" + address + "." + config_->cdn_subdomain + "." 
         + config_->pool_domain + ":" + port);
 }
