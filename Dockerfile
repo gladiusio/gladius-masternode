@@ -11,7 +11,10 @@ RUN apt-get update && \
                 git \
                 sudo \
                 bc \
-                libdouble-conversion1v5
+                libdouble-conversion1v5 \
+                hardening-wrapper
+
+ENV DEB_BUILD_HARDENING=1
 
 RUN useradd -m docker && echo "docker:docker" | chpasswd && adduser docker sudo
 
