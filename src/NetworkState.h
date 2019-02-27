@@ -17,7 +17,7 @@ class NetworkState {
         std::unique_ptr<httplib::Client> httpClient_;
 
     public:
-        NetworkState(std::shared_ptr<MasternodeConfig>);
+        explicit NetworkState(std::shared_ptr<MasternodeConfig> config);
         ~NetworkState();
 
         std::vector<std::string> getEdgeNodes();

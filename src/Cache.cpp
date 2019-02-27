@@ -1,12 +1,11 @@
 #include "Cache.h"
 #include <folly/DynamicConverter.h>
 
-CachedRoute::CachedRoute(std::string url,
+CachedRoute::CachedRoute(std::string& url,
     std::unique_ptr<folly::IOBuf> data,
-    std::shared_ptr<proxygen::HTTPMessage> headers) {
-    url_ = std::move(url);
-    content_ = std::move(data);
-    headers_ = std::move(headers);
+    std::shared_ptr<proxygen::HTTPMessage> headers):
+        url_(url), content_(std::move(data)),
+        headers_(std::move(headers)) {
     auto out = std::vector<uint8_t>(32);
     folly::ssl::OpenSSLHash::sha256(folly::range(out), *(content_.get()));
     sha256_ = folly::hexlify(out);

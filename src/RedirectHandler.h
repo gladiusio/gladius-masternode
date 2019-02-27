@@ -6,7 +6,7 @@
 
 class RedirectHandler : public proxygen::RequestHandler {
     public:
-        RedirectHandler(MasternodeConfig *);
+        explicit RedirectHandler(MasternodeConfig *);
         ~RedirectHandler() override;
 
         // RequestHandler methods

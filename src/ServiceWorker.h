@@ -12,7 +12,7 @@ class ServiceWorker {
             "navigator.serviceWorker.register('gladius-service-worker.js', {scope: './'});"
         };
     public:
-        ServiceWorker(std::string);
+        explicit ServiceWorker(std::string);
         ~ServiceWorker() {}
         folly::fbstring getPayload();
         folly::fbstring getInjectScript();
