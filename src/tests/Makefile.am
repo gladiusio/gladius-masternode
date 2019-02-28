@@ -10,6 +10,7 @@ masternode_tests_SOURCES = \
     MasternodeTests.cpp \
     NetworkStateTests.cpp \
     EdgeNodeTests.cpp \
+    LocationTests.cpp \
     TestRunner.cpp \
     $(top_builddir)/Masternode.cpp \
     $(top_builddir)/Router.cpp \
@@ -37,6 +38,7 @@ masternode_tests_LDADD = \
     -lssl \
     -ldouble-conversion \
     -lmyhtml \
+    -lgeolite2++ \
     -lmaxminddb
     
 masternode_tests_LDFLAGS = -pthread
