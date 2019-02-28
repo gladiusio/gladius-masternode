@@ -28,7 +28,7 @@ class NetworkState {
         std::unique_ptr<Geo> geo_;
 
     public:
-        NetworkState(std::shared_ptr<MasternodeConfig>);
+        explicit NetworkState(std::shared_ptr<MasternodeConfig> config);
         ~NetworkState();
 
         std::vector<std::string> getEdgeNodeHostnames();

@@ -99,7 +99,7 @@ void ProxyHandler::requestComplete() noexcept {
     if (contentBody_ && contentHeaders_) {
         proxygen::URL url(request_->getURL());
         LOG(INFO) << "Adding " << url.getUrl() << " to memory cache\n";
-        cache_->addCachedRoute(url.getUrl(), contentBody_->clone(), contentHeaders_); // may want to do this asynchronously
+        cache_->addCachedRoute(url.getUrl(), contentBody_->cloneCoalesced(), contentHeaders_); // may want to do this asynchronously
     }
     LOG(INFO) << "Deleting RequestHandler now...\n";
     delete this;

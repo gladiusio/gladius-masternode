@@ -1,0 +1,34 @@
+version: '3'
+services:
+  masternode:
+    image: gladiusio/masternode:latest
+    container_name: masternode
+    env_file: ./env.list
+    ports:
+      - "80:80/tcp"
+      - "443:443/tcp"
+    volumes:
+      - "/app/data:/root/.gladius"
+  network-gateway:
+    image: gladiusio/network-gateway:latest
+    container_name: network-gateway
+    ports:
+      - "3001:3001/tcp"
+      - "7947:7947/tcp"
+    volumes:
+      - "/app/data:/root/.gladius"
+    env_file: ./env.list
+  edged:
+    image: gladiusio/edged:latest
+    container_name: edged
+    ports:
+      - "8081:8081/tcp"
+      - "8080:8080/tcp"
+    volumes:
+      - "/app/data:/root/.gladius"
+    env_file: ./env.list
+  dns:
+    image: gladiusio/dns-connector:latest
+    container_name: dns
+    env_file: ./env.list
+    command: gladns digitalocean --gateway_address=http://network-gateway:3001

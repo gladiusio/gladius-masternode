@@ -8,8 +8,8 @@
 
 using namespace std::chrono;
 
-NetworkState::NetworkState(std::shared_ptr<MasternodeConfig> config) {
-    config_ = config;
+NetworkState::NetworkState(std::shared_ptr<MasternodeConfig> config):
+    config_(config) {
     httpClient_ = std::make_unique<httplib::Client>(
         config_->gateway_address.c_str(),
         config->gateway_port,

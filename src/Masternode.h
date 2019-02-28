@@ -24,7 +24,7 @@ namespace masternode {
             // Manages the service worker implementation
             std::shared_ptr<ServiceWorker> sw_{nullptr};
         public:
-            Masternode(std::shared_ptr<MasternodeConfig>);
+            explicit Masternode(std::shared_ptr<MasternodeConfig>);
             void start(std::function<void()> onSuccess = nullptr,
                 std::function<void(std::exception_ptr)> onError = nullptr);
             void stop();
