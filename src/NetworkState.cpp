@@ -30,11 +30,11 @@ NetworkState::~NetworkState() {
 
 void NetworkState::parseStateUpdate(std::string body, bool ignoreHeartbeat=false) {
     folly::dynamic state = folly::parseJson(body); // full json state
-    auto lockedList = edgeNodes_.wlock();
-    lockedList->clear();
     auto nodeMap = state["response"]["node_data_map"]; // map of content nodes
     int64_t time = duration_cast<seconds>(
         system_clock::now().time_since_epoch()).count(); // current time in ms
+    // create new node list with new nodes
+    std::vector<std::shared_ptr<EdgeNode>> newList;
     for (auto& pair : nodeMap.items()) {
         std::string nodeAddress = pair.first.getString(); // eth address of content node
         std::transform(nodeAddress.begin(), nodeAddress.end(),
@@ -48,19 +48,19 @@ void NetworkState::parseStateUpdate(std::string body, bool ignoreHeartbeat=false
             if (!ignoreHeartbeat && (time - heartbeat) > (2 * 60)) continue;
             if (hasNoContent) continue;
             std::shared_ptr<EdgeNode> node = std::make_shared<EdgeNode>(
-                ip, port, nodeAddress, heartbeat
-            );
-            lockedList->push_back(node);
+                ip, port, nodeAddress, heartbeat);
+            node->setLocation(geo_->lookupCoordinates(ip));
+            newList.push_back(node);
         } catch (const std::exception& e) {
-            LOG(ERROR) << "Caught exception when parsing network state: " << e.what() << "\n";
+            LOG(ERROR) << "Caught exception when parsing network state: " << e.what();
         }
     }
-
-    // create new LockedNodeList with new nodes
     
     // create new KD-Tree with new LockedNodeList
-
-    // swap the old LockedNodeList and old KDTree out at the same time
+    auto newTree = geo_->buildTree(newList);
+    // swap the old LockedNodeList and old KDTree out with the new ones
+    edgeNodes_ = newList;
+    geo_->setTree(newTree);
 }
 
 std::vector<std::string> NetworkState::getEdgeNodeHostnames() {

@@ -25,4 +25,5 @@ class EdgeNode {
         uint32_t getHeartbeat();
         std::string getFQDN(std::string, std::string);
         Location getLocation();
+        void setLocation(Location l);
 };

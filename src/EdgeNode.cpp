@@ -11,8 +11,9 @@ uint32_t EdgeNode::getHeartbeat() { return heartbeat_; }
 
 std::string EdgeNode::getFQDN(std::string pool_domain,
     std::string cdn_subdomain) {
-    return std::string(eth_address_ + "." + cdn_subdomain + "." 
+    return std::string("https://" + eth_address_ + "." + cdn_subdomain + "." 
         + pool_domain + ":" + std::to_string(port_));
 }
 
 Location EdgeNode::getLocation() { return location_; }
+void EdgeNode::setLocation(Location l) { location_ = l; }

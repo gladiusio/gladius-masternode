@@ -28,11 +28,15 @@ Location Geo::lookupCoordinates(const std::string ip) {
 }
 
 
-std::shared_ptr<kd_tree_t> buildTree(const LockedNodeList& nodes) {
+std::shared_ptr<kd_tree_t> Geo::buildTree(const std::vector<std::shared_ptr<EdgeNode>>& nodes) {
     PointCloud cloud;
     cloud.pts = nodes;
     auto t = std::make_shared<kd_tree_t>(
         3, cloud, KDTreeSingleIndexAdaptorParams(10));
     t->buildIndex();
     return t;
+}
+
+void Geo::setTree(std::shared_ptr<kd_tree_t> tree) {
+    tree_ = tree;
 }

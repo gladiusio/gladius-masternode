@@ -15,18 +15,18 @@ using namespace nanoflann;
 
 struct PointCloud {
 
-    LockedNodeList pts;
+    std::vector<std::shared_ptr<EdgeNode>> pts;
 
 	// Must return the number of data points
-	inline size_t kdtree_get_point_count() const { return pts.rlock()->size(); }
+	inline size_t kdtree_get_point_count() const { return pts.size(); }
 
 	// Returns the dim'th component of the idx'th point in the class:
 	// Since this is inlined and the "dim" argument is typically an immediate value, the
 	//  "if/else's" are actually solved at compile time.
 	inline double kdtree_get_pt(const size_t idx, const size_t dim) const {
-		if (dim == 0) return pts.rlock()->at(idx)->getLocation().x;
-		else if (dim == 1) return pts.rlock()->at(idx)->getLocation().y;
-		else return pts.rlock()->at(idx)->getLocation().z;
+		if (dim == 0) return pts.at(idx)->getLocation().x;
+		else if (dim == 1) return pts.at(idx)->getLocation().y;
+		else return pts.at(idx)->getLocation().z;
 	}
 
 	template <class BBOX>
@@ -46,11 +46,12 @@ class Geo {
 
         // find the geo coordinates of an IP address
         Location lookupCoordinates(std::string);
-        std::shared_ptr<kd_tree_t> buildTree(const LockedNodeList&);
+        std::shared_ptr<kd_tree_t> buildTree(const std::vector<std::shared_ptr<EdgeNode>>&);
+		void setTree(std::shared_ptr<kd_tree_t> tree);
     private:
         // reference to maxmind geoip database
         GeoLite2PP::DB db_;
-        std::shared_ptr<kd_tree_t> tree_;
+        folly::Synchronized<std::shared_ptr<kd_tree_t>> tree_;
 };
 
 

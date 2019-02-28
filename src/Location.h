@@ -10,6 +10,8 @@ struct Location {
 
     double x, y, z;
 
+    // mutator function that sets the x, y, and z members
+    // as the Cartesian coordinates converted from lat/long members
     void convertToCartesian() {
         double lat_rads = (latitude * M_PI) / 180;
         double long_rads = (longitude * M_PI) / 180;
