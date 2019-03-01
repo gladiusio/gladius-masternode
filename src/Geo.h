@@ -53,7 +53,7 @@ class Geo {
 		kd_tree_t getTree();
 		std::vector<size_t> getNearestNodes(Location l, int n);
     private:
-		PointCloud cloud;
+		PointCloud cloud; // todo: protect this alongside the tree_ for threading
         // reference to maxmind geoip database
         std::unique_ptr<GeoLite2PP::DB> db_;
         folly::Synchronized<std::shared_ptr<kd_tree_t>> tree_;
