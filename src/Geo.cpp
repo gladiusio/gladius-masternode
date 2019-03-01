@@ -1,19 +1,19 @@
 #include "Geo.h"
 
 Geo::Geo() {
-    
+
 }
 
 Geo::Geo(std::string db_path) {
-    db_ = GeoLite2PP::DB(db_path); // can throw std::system_error
+    db_ = std::make_unique<GeoLite2PP::DB>(db_path); // can throw std::system_error
 }
 
 Location Geo::lookupCoordinates(const std::string ip) {
     Location location = { 0.0, 0.0, 0.0, 0.0, 0.0 };
 
-    std::string latitude_str = db_.get_field(
+    std::string latitude_str = db_->get_field(
         ip, "en", GeoLite2PP::VCStr{ "location", "latitude" });
-    std::string longitude_str = db_.get_field(
+    std::string longitude_str = db_->get_field(
         ip, "en", GeoLite2PP::VCStr{ "location", "longitude" }
     );
     try {
@@ -32,10 +32,10 @@ Location Geo::lookupCoordinates(const std::string ip) {
 
 
 std::shared_ptr<kd_tree_t> Geo::buildTree(const std::vector<std::shared_ptr<EdgeNode>>& nodes) {
-    PointCloud cloud; // right
-    cloud.pts = nodes; // right
+    
+    cloud.pts = nodes;
     auto t = std::make_shared<kd_tree_t>(
-        3, cloud, KDTreeSingleIndexAdaptorParams(10)); // right
+        3, cloud, KDTreeSingleIndexAdaptorParams(10));
     t->buildIndex();
     return t;
 }
@@ -48,7 +48,10 @@ std::vector<size_t> Geo::getNearestNodes(Location l, int n) {
 		nanoflann::KNNResultSet<double> resultSet(n);
 		resultSet.init(&ret_indices[0], &out_dist_sqr[0]);
         std::vector<double> query_pt{l.x, l.y, l.z};
-        tree_.wlock()->get()->findNeighbors(resultSet, &query_pt[0], nanoflann::SearchParams(10));
+        auto lock = tree_.rlock();
+        auto tree = lock->get();
+        tree->findNeighbors(resultSet, &query_pt[0], nanoflann::SearchParams(10));
+
         return ret_indices;
     }
 }
@@ -58,3 +61,5 @@ void Geo::setTree(std::shared_ptr<kd_tree_t> tree) {
         tree_ = tree;
     }   
 }
+
+
