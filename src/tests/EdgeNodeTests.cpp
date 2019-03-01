@@ -18,5 +18,5 @@ TEST (EdgeNode, TestGetFQDN) {
         "127.0.0.1", 1234, "0xdeadbeef", 12345678
     );
     EXPECT_EQ(node->getFQDN("examplepool.com", "foocdn"), 
-        "0xdeadbeef.foocdn.examplepool.com:1234");
+        "https://0xdeadbeef.foocdn.examplepool.com:1234");
 }

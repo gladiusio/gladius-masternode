@@ -16,7 +16,7 @@ NetworkState::NetworkState(std::shared_ptr<MasternodeConfig> config):
         config_->gateway_poll_interval /* timeout in seconds */
     );
     try {
-        geo_ = std::make_unique<Geo>(config_);
+        geo_ = std::make_unique<Geo>(config_->gladius_base + "GeoLite2-City.mmdb");
     } catch (const std::system_error& e) {
         LOG(ERROR) << "Could not instantiate Geo module\n" << e.what();
         config->geo_ip_enabled = false;
@@ -73,6 +73,15 @@ std::vector<std::string> NetworkState::getEdgeNodeHostnames() {
         }
     }
     return v;
+}
+
+std::vector<std::shared_ptr<EdgeNode>> NetworkState::getNearestEdgeNodes(Location l, int n) {
+    auto indices = geo_->getNearestNodes(l, n);
+    std::vector<std::shared_ptr<EdgeNode>> nodes(indices.size());
+    for (auto i : indices) {
+        nodes.push_back(edgeNodes_.rlock()->at(i));
+    }
+    return nodes;
 }
 
 void NetworkState::beginPollingGateway() {

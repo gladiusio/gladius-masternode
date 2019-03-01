@@ -14,10 +14,10 @@ class EdgeNode {
         Location location_;
 
     public:
-        EdgeNode(std::string,
-            uint16_t,
-            std::string,
-            uint32_t);
+        EdgeNode(std::string ip,
+            uint16_t port,
+            std::string eth_addr,
+            uint32_t heartbeat);
 
         std::string getIP();
         uint16_t getPort();

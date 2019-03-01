@@ -11,6 +11,7 @@ masternode_tests_SOURCES = \
     NetworkStateTests.cpp \
     EdgeNodeTests.cpp \
     LocationTests.cpp \
+    GeoTests.cpp \
     TestRunner.cpp \
     $(top_builddir)/Masternode.cpp \
     $(top_builddir)/Router.cpp \

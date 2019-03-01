@@ -31,9 +31,9 @@ struct PointCloud {
 
 	template <class BBOX>
 	bool kdtree_get_bbox(BBOX& /* bb */) const { return false; }
-};
+}; // this is right
 
-typedef KDTreeSingleIndexAdaptor<L2_Simple_Adaptor<double, PointCloud>,PointCloud,3> kd_tree_t;
+typedef KDTreeSingleIndexAdaptor<L2_Simple_Adaptor<double, PointCloud>,PointCloud,3> kd_tree_t; // this is right
 
 // This class handles installing the maxmind geoip database
 // and provides utility methods wrapping the libmaxmind library
@@ -42,12 +42,15 @@ typedef KDTreeSingleIndexAdaptor<L2_Simple_Adaptor<double, PointCloud>,PointClou
 // that are nearest to a given client.
 class Geo {
     public:
-        Geo(std::shared_ptr<MasternodeConfig>);
+		Geo();
+        explicit Geo(std::string);
+		
 
         // find the geo coordinates of an IP address
         Location lookupCoordinates(std::string);
         std::shared_ptr<kd_tree_t> buildTree(const std::vector<std::shared_ptr<EdgeNode>>&);
 		void setTree(std::shared_ptr<kd_tree_t> tree);
+		std::vector<size_t> getNearestNodes(Location l, int n);
     private:
         // reference to maxmind geoip database
         GeoLite2PP::DB db_;
