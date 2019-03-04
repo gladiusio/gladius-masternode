@@ -40,5 +40,5 @@ class MasternodeConfig {
         // Path to the Gladius base directory
         std::string gladius_base{""};
         // GeoIP enabled
-        bool geo_ip_enabled{"true"};
+        bool geo_ip_enabled{false};
 };

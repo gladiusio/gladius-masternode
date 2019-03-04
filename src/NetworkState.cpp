@@ -15,12 +15,14 @@ NetworkState::NetworkState(std::shared_ptr<MasternodeConfig> config):
         config->gateway_port,
         config_->gateway_poll_interval /* timeout in seconds */
     );
-    try {
-        geo_ = std::make_unique<Geo>(config_->gladius_base + "GeoLite2-City.mmdb");
-    } catch (const std::system_error& e) {
-        LOG(ERROR) << "Could not instantiate Geo module\n" << e.what();
-        config->geo_ip_enabled = false;
-        LOG(ERROR) << "Disabled Geo IP feature";
+    if (config_->geo_ip_enabled) {
+        try {
+            geo_ = std::make_unique<Geo>(config_->gladius_base + "GeoLite2-City.mmdb");
+        } catch (const std::system_error& e) {
+            LOG(ERROR) << "Could not instantiate Geo module\n" << e.what();
+            config_->geo_ip_enabled = false;
+            LOG(ERROR) << "Disabled Geo IP feature";
+        }
     }
 }
 
@@ -49,18 +51,21 @@ void NetworkState::parseStateUpdate(std::string body, bool ignoreHeartbeat=false
             if (hasNoContent) continue;
             std::shared_ptr<EdgeNode> node = std::make_shared<EdgeNode>(
                 ip, port, nodeAddress, heartbeat);
-            node->setLocation(geo_->lookupCoordinates(ip));
+            if (config_->geo_ip_enabled) node->setLocation(geo_->lookupCoordinates(ip));
             newList.push_back(node);
         } catch (const std::exception& e) {
             LOG(ERROR) << "Caught exception when parsing network state: " << e.what();
         }
     }
     
-    // create new KD-Tree with new LockedNodeList
-    auto newTreeData = geo_->buildTreeData(newList);
-    // swap the old LockedNodeList and old KDTree out with the new ones
+    if (config_->geo_ip_enabled) {
+        // create new KD-Tree with new LockedNodeList
+        auto newTreeData = geo_->buildTreeData(newList);
+        // swap the old one with the new one
+        geo_->setTreeData(newTreeData);
+    }
+    // swap the old LockedNodeList out with the new one
     edgeNodes_ = newList;
-    geo_->setTreeData(newTreeData);
 }
 
 std::vector<std::string> NetworkState::getEdgeNodeHostnames() {
