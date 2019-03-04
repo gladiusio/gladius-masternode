@@ -57,10 +57,10 @@ void NetworkState::parseStateUpdate(std::string body, bool ignoreHeartbeat=false
     }
     
     // create new KD-Tree with new LockedNodeList
-    auto newTree = geo_->buildTree(newList);
+    auto newTreeData = geo_->buildTreeData(newList);
     // swap the old LockedNodeList and old KDTree out with the new ones
     edgeNodes_ = newList;
-    geo_->setTree(newTree);
+    geo_->setTreeData(newTreeData);
 }
 
 std::vector<std::string> NetworkState::getEdgeNodeHostnames() {

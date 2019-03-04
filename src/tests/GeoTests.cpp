@@ -57,8 +57,8 @@ TEST (Geo, TestGetNearestNodes) {
     nodes.push_back(reno);
 
     // build a tree with nyc, atl, berlin, and london
-    auto tree = g.buildTree(nodes);
-    g.setTree(tree);
+    auto treeData = g.buildTreeData(nodes);
+    g.setTreeData(treeData);
     // make a "request" from DC and expect NYC to be the
     // nearest node and ATL the second nearest
     Location dc = {	38.889931, -77.009003, 0.0, 0.0, 0.0};
@@ -79,7 +79,7 @@ TEST (Geo, TestGetNearestNodes) {
     EXPECT_EQ(5, node_indices.at(1));
 }
 
-TEST (Geo, TestBuildTree) {
+TEST (Geo, TestBuildTreeData) {
     Geo g;
 
     std::vector<std::shared_ptr<EdgeNode>> nodes;
@@ -99,7 +99,7 @@ TEST (Geo, TestBuildTree) {
     atl->setLocation(l2);
     nodes.push_back(atl);
 
-    auto tree = g.buildTree(nodes);
-    EXPECT_NE(nullptr, tree);
-    EXPECT_EQ(2, tree->m_size);
+    auto treeData = g.buildTreeData(nodes);
+    EXPECT_NE(nullptr, treeData);
+    EXPECT_EQ(2, treeData->tree->m_size);
 }

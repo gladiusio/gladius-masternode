@@ -35,6 +35,11 @@ struct PointCloud {
 
 typedef KDTreeSingleIndexAdaptor<L2_Simple_Adaptor<double, PointCloud>,PointCloud,3> kd_tree_t;
 
+struct TreeData {
+	PointCloud cloud;
+	std::shared_ptr<kd_tree_t> tree;
+};
+
 // This class handles installing the maxmind geoip database
 // and provides utility methods wrapping the libmaxmind library
 // to access the database. This class will also hold a reference
@@ -45,18 +50,16 @@ class Geo {
 		Geo();
         explicit Geo(std::string);
 		
-
         // find the geo coordinates of an IP address
         Location lookupCoordinates(std::string);
-        std::shared_ptr<kd_tree_t> buildTree(const std::vector<std::shared_ptr<EdgeNode>>&);
-		void setTree(std::shared_ptr<kd_tree_t> tree);
-		kd_tree_t getTree();
+        std::shared_ptr<TreeData> buildTreeData(const std::vector<std::shared_ptr<EdgeNode>>&);
+		void setTreeData(std::shared_ptr<TreeData> tree);
+		std::shared_ptr<TreeData> getTree();
 		std::vector<size_t> getNearestNodes(Location l, int n);
     private:
-		PointCloud cloud; // todo: protect this alongside the tree_ for threading
         // reference to maxmind geoip database
         std::unique_ptr<GeoLite2PP::DB> db_;
-        folly::Synchronized<std::shared_ptr<kd_tree_t>> tree_;
+        folly::Synchronized<std::shared_ptr<TreeData>> treeData_;
 };
 
 
