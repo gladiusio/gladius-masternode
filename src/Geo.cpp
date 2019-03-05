@@ -48,7 +48,6 @@ std::vector<size_t> Geo::getNearestNodes(Location l, int n) {
 		nanoflann::KNNResultSet<double> resultSet(n);
 		resultSet.init(&ret_indices[0], &out_dist_sqr[0]);
         std::vector<double> query_pt{l.x, l.y, l.z};
-        //tree_.rlock()->get()->findNeighbors(resultSet, &query_pt[0], nanoflann::SearchParams(10));
         treeData_.rlock()->get()->tree->findNeighbors(resultSet, &query_pt[0], nanoflann::SearchParams(10));
 
         return ret_indices;
