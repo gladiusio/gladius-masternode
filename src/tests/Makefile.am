@@ -1,7 +1,7 @@
 
 SUBDIRS = .
 
-AM_CPPFLAGS = -I$(top_srcdir) -I$(top_srcdir)/libs -Wall -Werror
+AM_CPPFLAGS = -I$(top_srcdir) -I$(top_srcdir)/libs -Wall -Werror -Og
 
 TESTS = masternode_tests
 check_PROGRAMS = masternode_tests
