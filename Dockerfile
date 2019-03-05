@@ -39,6 +39,8 @@ ENV LD_LIBRARY_PATH /usr/local/lib
 # ###################################################
 FROM proxygen-env as masternode-builder
 
+RUN mkdir /gladius_base
+
 # Install google test libs
 RUN apt-get install -y libgtest-dev gdb
 
@@ -73,7 +75,9 @@ RUN wget https://www.ccoderun.ca/GeoLite2PP/download/geolite2++-0.0.1-2561-Sourc
         cd geolite2++-0.0.1-2561-Source && \
         cmake CMakeLists.txt && \
         make && \
-        sudo make install
+        sudo make install && \
+        ./scripts/geolite2pp_get_database.sh && \
+        mv GeoLite2-City.mmdb /gladius_base
 
 # Clean up APT when done
 RUN apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
@@ -110,6 +114,10 @@ COPY --from=masternode-builder /tmp/dist/* /usr/lib/x86_64-linux-gnu/
 
 # Copies the masternode binary to this image
 COPY --from=masternode-builder /app/build/masternode .
+
+RUN mkdir /gladius_base
+
+COPY --from=masternode-builder /gladius_base/* /gladius_base
 
 # Command to run the masternode. The command line flags passed to the
 # masternode executable can be set by providing environment variables
