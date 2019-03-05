@@ -17,13 +17,19 @@ DirectHandler::~DirectHandler() {}
 
 void DirectHandler::onRequest(std::unique_ptr<HTTPMessage> headers) noexcept {
     // Construct network state json response
-    auto edgeAddrs = state_->getEdgeNodeHostnames(); // vector of edge node addresses
     auto assetMap = cache_->getAssetHashMap(); // map of urls : hashes
+    std::vector<std::shared_ptr<EdgeNode>> edgeNodes;
+    if (config_->geo_ip_enabled) { // if geoip is on, use nearest neighbor edge nodes
+        edgeNodes = state_->getNearestEdgeNodes(headers->getClientIP(), 5);
+    } else { // else send all edge node addresses for now (random in future?)
+        edgeNodes = state_->getEdgeNodes();
+    }
 
-    folly::dynamic jsonRes = folly::dynamic::object;
-    jsonRes["edgeNodes"] = folly::dynamic::array;
-    for (auto edge : edgeAddrs) {
-        jsonRes["edgeNodes"].push_back(edge);
+    folly::dynamic jsonRes = folly::dynamic::object; // top level JSON response object
+    jsonRes["edgeNodes"] = folly::dynamic::array; // array of edge node http addresses
+    for (auto edge : edgeNodes) {
+        jsonRes["edgeNodes"].push_back(
+            edge->getFQDN(config_->pool_domain, config_->cdn_subdomain));
     }
     jsonRes["assetHashes"] = folly::dynamic::object;
     for (auto kv : *assetMap.get()) {

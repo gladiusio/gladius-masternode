@@ -42,6 +42,8 @@ class NetworkState {
         void beginPollingGateway();
 
         void setEdgeNodes(std::vector<std::shared_ptr<EdgeNode>> nodes);
+        std::vector<std::shared_ptr<EdgeNode>> getEdgeNodes();
 
         std::vector<std::shared_ptr<EdgeNode>> getNearestEdgeNodes(Location l, int n);
+        std::vector<std::shared_ptr<EdgeNode>> getNearestEdgeNodes(std::string ip, int n);
 };

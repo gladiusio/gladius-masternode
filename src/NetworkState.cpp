@@ -94,6 +94,13 @@ void NetworkState::setEdgeNodes(std::vector<std::shared_ptr<EdgeNode>> nodes) {
     }
 }
 
+std::vector<std::shared_ptr<EdgeNode>> NetworkState::getEdgeNodes() {
+    { // critical section
+        return edgeNodes_.copy();
+        // todo: may wish to add another method to cast the edge nodes to const for safety
+    }
+}
+
 std::vector<std::shared_ptr<EdgeNode>> NetworkState::getNearestEdgeNodes(Location l, int n) {
     std::vector<size_t> indices = geo_->getNearestNodes(l, n);
     std::vector<std::shared_ptr<EdgeNode>> nodes;
@@ -101,6 +108,10 @@ std::vector<std::shared_ptr<EdgeNode>> NetworkState::getNearestEdgeNodes(Locatio
         nodes.push_back(edgeNodes_.rlock()->at(i));
     }
     return nodes;
+}
+
+std::vector<std::shared_ptr<EdgeNode>> NetworkState::getNearestEdgeNodes(std::string ip, int n) {
+    return getNearestEdgeNodes(geo_->lookupCoordinates(ip), n);
 }
 
 void NetworkState::beginPollingGateway() {
