@@ -26,6 +26,14 @@ NetworkState::NetworkState(std::shared_ptr<MasternodeConfig> config):
     }
 }
 
+NetworkState::NetworkState(std::shared_ptr<MasternodeConfig> config,
+    std::unique_ptr<Geo> g): config_(config), geo_(std::move(g)) {
+    httpClient_ = std::make_unique<httplib::Client>(
+    config_->gateway_address.c_str(),
+    config->gateway_port,
+    config_->gateway_poll_interval /* timeout in seconds */);
+}
+
 NetworkState::~NetworkState() {
     fs.shutdown();
 }
@@ -80,9 +88,15 @@ std::vector<std::string> NetworkState::getEdgeNodeHostnames() {
     return v;
 }
 
+void NetworkState::setEdgeNodes(std::vector<std::shared_ptr<EdgeNode>> nodes) {
+    { // critical section
+        edgeNodes_ = nodes;
+    }
+}
+
 std::vector<std::shared_ptr<EdgeNode>> NetworkState::getNearestEdgeNodes(Location l, int n) {
-    auto indices = geo_->getNearestNodes(l, n);
-    std::vector<std::shared_ptr<EdgeNode>> nodes(indices.size());
+    std::vector<size_t> indices = geo_->getNearestNodes(l, n);
+    std::vector<std::shared_ptr<EdgeNode>> nodes;
     for (auto i : indices) {
         nodes.push_back(edgeNodes_.rlock()->at(i));
     }

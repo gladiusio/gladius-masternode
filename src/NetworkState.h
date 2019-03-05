@@ -29,6 +29,7 @@ class NetworkState {
 
     public:
         explicit NetworkState(std::shared_ptr<MasternodeConfig> config);
+        explicit NetworkState(std::shared_ptr<MasternodeConfig> config, std::unique_ptr<Geo> g);
         ~NetworkState();
 
         std::vector<std::string> getEdgeNodeHostnames();
@@ -39,6 +40,8 @@ class NetworkState {
         // of this NetworkState class.
         void parseStateUpdate(std::string, bool);
         void beginPollingGateway();
+
+        void setEdgeNodes(std::vector<std::shared_ptr<EdgeNode>> nodes);
 
         std::vector<std::shared_ptr<EdgeNode>> getNearestEdgeNodes(Location l, int n);
 };
