@@ -81,12 +81,8 @@ void ProxyHandler::onRequest(std::unique_ptr<HTTPMessage> headers) noexcept {
     connector_.connect(evb, addr, std::chrono::milliseconds(60000), opts);
 }
 
-void ProxyHandler::onBody(std::unique_ptr<folly::IOBuf> body) noexcept {
-    body = nullptr; // not used
-}
-void ProxyHandler::onUpgrade(UpgradeProtocol protocol) noexcept {
-    (void)protocol; // not used
-}
+void ProxyHandler::onBody(std::unique_ptr<folly::IOBuf> body) noexcept {}
+void ProxyHandler::onUpgrade(UpgradeProtocol protocol) noexcept {}
 
 // Called when the client sends their EOM to the masternode
 void ProxyHandler::onEOM() noexcept {
@@ -176,18 +172,14 @@ void ProxyHandler::originOnChunkComplete() noexcept {
     downstream_->sendChunkTerminator();
 }
 
-void ProxyHandler::originOnTrailers(std::unique_ptr<proxygen::HTTPHeaders> trailers) noexcept {
-    trailers = nullptr; // not used
-}
+void ProxyHandler::originOnTrailers(std::unique_ptr<proxygen::HTTPHeaders> trailers) noexcept {}
 
 void ProxyHandler::originOnEOM() noexcept {
     downstream_->sendEOM();
     LOG(INFO) << "Sent EOM from origin to client\n";
 }
 
-void ProxyHandler::originOnUpgrade(proxygen::UpgradeProtocol protocol) noexcept {
-    (void)protocol; // not used
-}
+void ProxyHandler::originOnUpgrade(proxygen::UpgradeProtocol protocol) noexcept {}
 void ProxyHandler::originOnError(const proxygen::HTTPException& error) noexcept {
     LOG(INFO) << "Received error from origin: " << error.describe();
 }
@@ -200,8 +192,6 @@ void ProxyHandler::originOnEgressResumed() noexcept {
     originTxn_->resumeIngress();
 }
 
-void ProxyHandler::originOnPushedTransaction(proxygen::HTTPTransaction *txn) noexcept {
-    (void)txn; // not used
-}
+void ProxyHandler::originOnPushedTransaction(proxygen::HTTPTransaction *txn) noexcept {}
 // End: HTTPTransactionHandler delegated methods
 /////////////////////////////////////////////////////////////
