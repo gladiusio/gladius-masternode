@@ -12,14 +12,17 @@ CachedRoute::CachedRoute(std::string& url,
     LOG(INFO) << "Created a CachedRoute object\n";
 }
 
-std::string CachedRoute::getHash() { return sha256_; }
-std::string CachedRoute::getURL() { return url_; }
-std::unique_ptr<folly::IOBuf> CachedRoute::getContent() { return content_->clone(); }
-std::shared_ptr<proxygen::HTTPMessage> CachedRoute::getHeaders() { return headers_; }
+std::string CachedRoute::getHash() const { return sha256_; }
+std::string CachedRoute::getURL() const { return url_; }
+std::unique_ptr<folly::IOBuf>
+    CachedRoute::getContent() const { return content_->clone(); }
+std::shared_ptr<proxygen::HTTPMessage>
+    CachedRoute::getHeaders() const { return headers_; }
 
 /////////////////////////////////////////////////////////////////////////
 
-std::shared_ptr<CachedRoute> ContentCache::getCachedRoute(std::string url) {
+std::shared_ptr<CachedRoute>
+    ContentCache::getCachedRoute(std::string url) const {
     auto item = map_.find(url);
     if (item == map_.cend()) {
         // URL is not in the cache
@@ -55,8 +58,10 @@ bool ContentCache::addCachedRoute(std::string url,
     return true;
 }
 
-std::shared_ptr<folly::F14FastMap<std::string, std::string>> ContentCache::getAssetHashMap() {
-    auto map = std::make_shared<folly::F14FastMap<std::string, std::string>>(this->size());
+std::shared_ptr<folly::F14FastMap<std::string, std::string>> 
+    ContentCache::getAssetHashMap() const {
+    auto map = std::make_shared
+        <folly::F14FastMap<std::string, std::string>>(this->size());
     for (auto it = map_.cbegin(); it != map_.cend(); ++it) {
         map->insert(std::make_pair(it->first, it->second->getHash()));
     }
