@@ -31,6 +31,9 @@ void Router::onServerStop() noexcept {
 }
 
 RequestHandler* Router::onRequest(RequestHandler *req, HTTPMessage *m) noexcept {
+    // make sure this request always has a Host: header
+    m->ensureHostHeader();
+    
     // logic to determine which handler to create based on the request
 
     // if upgrading insecure requests is enabled and this request is
