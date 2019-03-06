@@ -56,7 +56,7 @@ void ProxyHandler::onRequest(std::unique_ptr<HTTPMessage> headers) noexcept {
         return;
     }
     // otherwise, connect to origin server to fetch content
-
+    request_->stripPerHopHeaders();
     folly::SocketAddress addr;
     try {
         addr.setFromHostPort(config_->origin_host, config_->origin_port);
@@ -115,6 +115,7 @@ void ProxyHandler::onError(ProxygenError err) noexcept {
 void ProxyHandler::connectSuccess(proxygen::HTTPUpstreamSession* session) noexcept {
     LOG(INFO) << "Connected to origin server\n";
     originTxn_ = session->newTransaction(&originHandler_);
+
     originTxn_->sendHeaders(*request_);
     LOG(INFO) << "Sent headers to origin server\n";
     downstream_->resumeIngress();
