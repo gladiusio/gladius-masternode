@@ -81,8 +81,12 @@ void ProxyHandler::onRequest(std::unique_ptr<HTTPMessage> headers) noexcept {
     connector_.connect(evb, addr, std::chrono::milliseconds(60000), opts);
 }
 
-void ProxyHandler::onBody(std::unique_ptr<folly::IOBuf> body) noexcept {}
-void ProxyHandler::onUpgrade(UpgradeProtocol protocol) noexcept {}
+void ProxyHandler::onBody(std::unique_ptr<folly::IOBuf> body) noexcept {
+    body = nullptr; // not used
+}
+void ProxyHandler::onUpgrade(UpgradeProtocol protocol) noexcept {
+    (void)protocol; // not used
+}
 
 // Called when the client sends their EOM to the masternode
 void ProxyHandler::onEOM() noexcept {
@@ -126,7 +130,8 @@ void ProxyHandler::connectError(const folly::AsyncSocketException& ex) noexcept 
     ResponseBuilder(downstream_)
         .status(502, "Bad Gateway")
         .sendWithEOM();
-    LOG(ERROR) << "Encountered an error when connecting to the origin server\n";
+    LOG(ERROR) << "Encountered an error when connecting to the origin server: "
+        << ex.what();
 }
 
 /////////////////////////////////////////////////////////////
@@ -171,15 +176,21 @@ void ProxyHandler::originOnChunkComplete() noexcept {
     downstream_->sendChunkTerminator();
 }
 
-void ProxyHandler::originOnTrailers(std::unique_ptr<proxygen::HTTPHeaders> trailers) noexcept {}
+void ProxyHandler::originOnTrailers(std::unique_ptr<proxygen::HTTPHeaders> trailers) noexcept {
+    trailers = nullptr; // not used
+}
 
 void ProxyHandler::originOnEOM() noexcept {
     downstream_->sendEOM();
     LOG(INFO) << "Sent EOM from origin to client\n";
 }
 
-void ProxyHandler::originOnUpgrade(proxygen::UpgradeProtocol protocol) noexcept {}
-void ProxyHandler::originOnError(const proxygen::HTTPException& error) noexcept {}
+void ProxyHandler::originOnUpgrade(proxygen::UpgradeProtocol protocol) noexcept {
+    (void)protocol; // not used
+}
+void ProxyHandler::originOnError(const proxygen::HTTPException& error) noexcept {
+    LOG(INFO) << "Received error from origin: " << error.describe();
+}
 
 void ProxyHandler::originOnEgressPaused() noexcept {
     originTxn_->pauseIngress();
@@ -189,6 +200,8 @@ void ProxyHandler::originOnEgressResumed() noexcept {
     originTxn_->resumeIngress();
 }
 
-void ProxyHandler::originOnPushedTransaction(proxygen::HTTPTransaction *txn) noexcept {}
+void ProxyHandler::originOnPushedTransaction(proxygen::HTTPTransaction *txn) noexcept {
+    (void)txn; // not used
+}
 // End: HTTPTransactionHandler delegated methods
 /////////////////////////////////////////////////////////////

@@ -29,8 +29,15 @@ void RedirectHandler::onRequest(std::unique_ptr<HTTPMessage> headers) noexcept {
         .sendWithEOM();
 }
 
-void RedirectHandler::onBody(std::unique_ptr<folly::IOBuf> body) noexcept {}
-void RedirectHandler::onUpgrade(UpgradeProtocol protocol) noexcept {}
+void RedirectHandler::onBody(std::unique_ptr<folly::IOBuf> body) noexcept {
+    body = nullptr; // not used
+}
+void RedirectHandler::onUpgrade(UpgradeProtocol protocol) noexcept {
+    (void)protocol; // not used
+}
 void RedirectHandler::onEOM() noexcept {}
 void RedirectHandler::requestComplete() noexcept { delete this; }
-void RedirectHandler::onError(proxygen::ProxygenError err) noexcept { delete this; }
+void RedirectHandler::onError(proxygen::ProxygenError err) noexcept { 
+    LOG(INFO) << "RedirectHandler encountered an error: " << getErrorString(err);
+    delete this; 
+}
