@@ -104,7 +104,6 @@ TEST (NetworkState, TestGetNearestNodes) {
   auto state = std::make_unique<NetworkState>(mc, std::move(g));
   state->setEdgeNodes(nodes);
 
-  
   // make a "request" from DC and expect NYC to be the
   // nearest node and ATL the second nearest
   Location dc = {	38.889931, -77.009003, 0.0, 0.0, 0.0};

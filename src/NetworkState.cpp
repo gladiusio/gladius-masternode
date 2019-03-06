@@ -104,12 +104,15 @@ void NetworkState::setEdgeNodes(
     }
 }
 
+// return a copy of the list of edge node pointers
 std::vector<std::shared_ptr<EdgeNode>> NetworkState::getEdgeNodes() {
     { // critical section
         return edgeNodes_.copy();
     }
 }
 
+// performs an N-nearest-neighbor search for up to n edge nodes around
+// a geographic location l
 std::vector<std::shared_ptr<EdgeNode>> 
     NetworkState::getNearestEdgeNodes(Location l, int n) {
     std::vector<size_t> indices = geo_->getNearestNodes(l, n);
@@ -120,19 +123,24 @@ std::vector<std::shared_ptr<EdgeNode>>
     return nodes;
 }
 
+// looks up the geographic location of an ip address "ip"
+// performs an N-nearest-neighbor search for up to n edge nodes around
+// it.
 std::vector<std::shared_ptr<EdgeNode>> 
     NetworkState::getNearestEdgeNodes(std::string ip, int n) {
     return getNearestEdgeNodes(geo_->lookupCoordinates(ip), n);
 }
 
+// Start a separate thread to periodically poll the network
+// gateway for state. Calls parseStateUpdate()
 void NetworkState::beginPollingGateway() {
     fs.addFunction([&] {
-        LOG(INFO) << "Fetching network state from gateway...\n";
+        LOG(INFO) << "Fetching network state from gateway...";
         // Make a GET request to the Gladius network gateway
         // to fetch state
         auto res = httpClient_->Get("/api/p2p/state");
         if (res && res->status == 200) {
-            LOG(INFO) << "Received network state from gateway\n";
+            LOG(INFO) << "Received network state from gateway";
             // parse the JSON into state structs/classes
             parseStateUpdate(res->body, config_->ignore_heartbeat);
         }
