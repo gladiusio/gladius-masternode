@@ -5,8 +5,8 @@
 using namespace proxygen;
 
 ServiceWorkerHandler::ServiceWorkerHandler(
-    MasternodeConfig *config,
-    ServiceWorker *sw):
+    std::shared_ptr<MasternodeConfig> config,
+    std::shared_ptr<ServiceWorker> sw):
     config_(config),
     sw_(sw) {}
 

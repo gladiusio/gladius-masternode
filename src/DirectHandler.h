@@ -8,7 +8,9 @@
 
 class DirectHandler : public proxygen::RequestHandler {
     public:
-        DirectHandler(ContentCache *, MasternodeConfig *, NetworkState *);
+        DirectHandler(std::shared_ptr<ContentCache>, 
+            std::shared_ptr<MasternodeConfig>, 
+            std::shared_ptr<NetworkState>);
         ~DirectHandler() override;
 
         // RequestHandler methods
@@ -20,11 +22,11 @@ class DirectHandler : public proxygen::RequestHandler {
         void onError(proxygen::ProxygenError err) noexcept override;
     private:
         // HTTP content cache
-        ContentCache *cache_{nullptr};
+        std::shared_ptr<ContentCache> cache_{nullptr};
 
         // Configuration class
-        MasternodeConfig *config_{nullptr};
+        std::shared_ptr<MasternodeConfig> config_{nullptr};
 
         // Network state
-        NetworkState *state_{nullptr};
+        std::shared_ptr<NetworkState> state_{nullptr};
 };

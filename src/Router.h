@@ -14,10 +14,10 @@ using folly::HHWheelTimer;
 
 class Router : public RequestHandlerFactory {
     public:
-        Router(std::shared_ptr<MasternodeConfig>&,
-            std::shared_ptr<NetworkState>&,
-            std::shared_ptr<ContentCache>&,
-            std::shared_ptr<ServiceWorker>&);
+        Router(std::shared_ptr<MasternodeConfig>,
+            std::shared_ptr<NetworkState>,
+            std::shared_ptr<ContentCache>,
+            std::shared_ptr<ServiceWorker>);
         ~Router();
         // Use this method to setup thread local data
         void onServerStart(folly::EventBase *) noexcept override;

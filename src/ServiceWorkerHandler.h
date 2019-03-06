@@ -7,7 +7,8 @@
 
 class ServiceWorkerHandler : public proxygen::RequestHandler {
     public:
-        ServiceWorkerHandler(MasternodeConfig *, ServiceWorker *);
+        ServiceWorkerHandler(std::shared_ptr<MasternodeConfig>,
+            std::shared_ptr<ServiceWorker>);
         ~ServiceWorkerHandler() override;
 
         // RequestHandler methods
@@ -19,7 +20,7 @@ class ServiceWorkerHandler : public proxygen::RequestHandler {
         void onError(proxygen::ProxygenError err) noexcept override;
     private:
         // Configuration class
-        MasternodeConfig *config_{nullptr};
+        std::shared_ptr<MasternodeConfig> config_{nullptr};
         // Service worker wrapper
-        ServiceWorker *sw_{nullptr};
+        std::shared_ptr<ServiceWorker> sw_{nullptr};
 };

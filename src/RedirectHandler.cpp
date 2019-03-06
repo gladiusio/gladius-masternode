@@ -5,7 +5,7 @@
 
 using namespace proxygen;
 
-RedirectHandler::RedirectHandler(MasternodeConfig *config):
+RedirectHandler::RedirectHandler(std::shared_ptr<MasternodeConfig> config):
     config_(config){}
 
 RedirectHandler::~RedirectHandler() {}

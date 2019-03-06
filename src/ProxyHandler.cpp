@@ -11,7 +11,9 @@
 using namespace proxygen;
 
 ProxyHandler::ProxyHandler(folly::HHWheelTimer *timer,
-    ContentCache *cache, MasternodeConfig *config, ServiceWorker *sw):
+    std::shared_ptr<ContentCache> cache, 
+    std::shared_ptr<MasternodeConfig> config,
+    std::shared_ptr<ServiceWorker> sw):
         connector_{this, timer},
         originHandler_(*this),
         cache_(cache),

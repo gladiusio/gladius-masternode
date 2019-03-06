@@ -6,7 +6,7 @@
 
 class RedirectHandler : public proxygen::RequestHandler {
     public:
-        explicit RedirectHandler(MasternodeConfig *);
+        explicit RedirectHandler(std::shared_ptr<MasternodeConfig>);
         ~RedirectHandler() override;
 
         // RequestHandler methods
@@ -18,7 +18,7 @@ class RedirectHandler : public proxygen::RequestHandler {
         void onError(proxygen::ProxygenError err) noexcept override;
     private:
         // Configuration class
-        MasternodeConfig *config_{nullptr};
+        std::shared_ptr<MasternodeConfig> config_{nullptr};
         // Redirect base URL
         std::string baseURL;
 };
