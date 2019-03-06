@@ -22,7 +22,8 @@ class Router : public RequestHandlerFactory {
         // Use this method to setup thread local data
         void onServerStart(folly::EventBase *) noexcept override;
         void onServerStop() noexcept override;
-        RequestHandler *onRequest(RequestHandler *, HTTPMessage *) noexcept override;
+        RequestHandler *onRequest(RequestHandler *, HTTPMessage *)
+            noexcept override;
     protected:
         std::shared_ptr<ContentCache> cache_{nullptr};
         std::shared_ptr<MasternodeConfig> config_{nullptr};

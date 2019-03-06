@@ -8,8 +8,10 @@ using namespace proxygen;
 RedirectHandler::RedirectHandler(std::shared_ptr<MasternodeConfig> config):
     config_(config){}
 
-void RedirectHandler::onRequest(std::unique_ptr<HTTPMessage> headers) noexcept {
-    LOG(INFO) << "Redirect handler received request for: " << headers->getURL();
+void RedirectHandler::onRequest(
+    std::unique_ptr<HTTPMessage> headers) noexcept {
+    LOG(INFO) << "Redirect handler received request for: " 
+        << headers->getURL();
 
     proxygen::URL url(headers->getURL());
     std::string host = headers->getHeaders().rawGet("Host");
@@ -32,6 +34,7 @@ void RedirectHandler::onUpgrade(UpgradeProtocol protocol) noexcept {}
 void RedirectHandler::onEOM() noexcept {}
 void RedirectHandler::requestComplete() noexcept { delete this; }
 void RedirectHandler::onError(proxygen::ProxygenError err) noexcept { 
-    LOG(INFO) << "RedirectHandler encountered an error: " << getErrorString(err);
+    LOG(INFO) << "RedirectHandler encountered an error: " 
+        << getErrorString(err);
     delete this; 
 }

@@ -20,15 +20,16 @@ void Router::onServerStart(folly::EventBase *evb) noexcept {
         folly::AsyncTimeout::InternalEnum::NORMAL,
         std::chrono::seconds(60000)); // todo: use config timeout
     
-    LOG(INFO) << "Server thread now started and listening for requests!\n";
+    LOG(INFO) << "Server thread now started and listening for requests!";
 }
 
 void Router::onServerStop() noexcept {
     timer_->timer.reset();
-    LOG(INFO) << "Server stopped\n";
+    LOG(INFO) << "Server stopped";
 }
 
-RequestHandler* Router::onRequest(RequestHandler *req, HTTPMessage *m) noexcept {
+RequestHandler* Router::onRequest(
+    RequestHandler *req, HTTPMessage *m) noexcept {
     // make sure this request always has a Host: header
     m->ensureHostHeader();
     
