@@ -12,10 +12,6 @@ CachedRoute::CachedRoute(std::string& url,
     LOG(INFO) << "Created a CachedRoute object\n";
 }
 
-CachedRoute::~CachedRoute() {
-    LOG(INFO) << "Destroyed a CachedRoute object\n";
-}
-
 std::string CachedRoute::getHash() { return sha256_; }
 std::string CachedRoute::getURL() { return url_; }
 std::unique_ptr<folly::IOBuf> CachedRoute::getContent() { return content_->clone(); }

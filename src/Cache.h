@@ -16,7 +16,6 @@ class CachedRoute {
         CachedRoute(std::string& url,
             std::unique_ptr<folly::IOBuf> data,
             std::shared_ptr<proxygen::HTTPMessage> headers);
-        ~CachedRoute();
 
         std::string getHash();
         std::string getURL();
