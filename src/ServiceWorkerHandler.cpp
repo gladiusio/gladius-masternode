@@ -10,7 +10,8 @@ ServiceWorkerHandler::ServiceWorkerHandler(
     config_(config),
     sw_(sw) {}
 
-void ServiceWorkerHandler::onRequest(std::unique_ptr<proxygen::HTTPMessage> headers) noexcept {
+void ServiceWorkerHandler::onRequest(
+    std::unique_ptr<proxygen::HTTPMessage> headers) noexcept {
     // reply with service worker content
     ResponseBuilder(downstream_)
         .status(200, "OK")
@@ -19,8 +20,10 @@ void ServiceWorkerHandler::onRequest(std::unique_ptr<proxygen::HTTPMessage> head
         .sendWithEOM();
 }
 
-void ServiceWorkerHandler::onBody(std::unique_ptr<folly::IOBuf> body) noexcept {}
-void ServiceWorkerHandler::onUpgrade(proxygen::UpgradeProtocol protocol) noexcept {}
+void ServiceWorkerHandler::onBody(
+    std::unique_ptr<folly::IOBuf> body) noexcept {}
+void ServiceWorkerHandler::onUpgrade(
+    proxygen::UpgradeProtocol protocol) noexcept {}
 void ServiceWorkerHandler::onEOM() noexcept {}
 void ServiceWorkerHandler::requestComplete() noexcept {}
 void ServiceWorkerHandler::onError(proxygen::ProxygenError err) noexcept {}
