@@ -17,8 +17,9 @@ class ProxyHandler : public proxygen::RequestHandler,
                         private proxygen::HTTPConnector::Callback {
     public:
         ProxyHandler(folly::HHWheelTimer *timer,
-            ContentCache *cache, MasternodeConfig *config, ServiceWorker *sw);
-        ~ProxyHandler() override;
+            std::shared_ptr<ContentCache> cache,
+            std::shared_ptr<MasternodeConfig> config, 
+            std::shared_ptr<ServiceWorker> sw);
 
         // RequestHandler methods
         void onRequest(std::unique_ptr<proxygen::HTTPMessage> headers) noexcept override;
@@ -128,12 +129,12 @@ class ProxyHandler : public proxygen::RequestHandler,
         std::shared_ptr<proxygen::HTTPMessage> contentHeaders_{nullptr};
 
         // HTTP content cache
-        ContentCache *cache_;
+        std::shared_ptr<ContentCache> cache_;
 
         // Configuration class
-        MasternodeConfig *config_;
+        std::shared_ptr<MasternodeConfig> config_;
 
         // Service worker wrapper
-        ServiceWorker *sw_;
+        std::shared_ptr<ServiceWorker> sw_;
 }; 
 

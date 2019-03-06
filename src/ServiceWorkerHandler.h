@@ -7,11 +7,12 @@
 
 class ServiceWorkerHandler : public proxygen::RequestHandler {
     public:
-        ServiceWorkerHandler(MasternodeConfig *, ServiceWorker *);
-        ~ServiceWorkerHandler() override;
+        ServiceWorkerHandler(std::shared_ptr<MasternodeConfig>,
+            std::shared_ptr<ServiceWorker>);
 
         // RequestHandler methods
-        void onRequest(std::unique_ptr<proxygen::HTTPMessage> headers) noexcept override;
+        void onRequest(
+            std::unique_ptr<proxygen::HTTPMessage> headers) noexcept override;
         void onBody(std::unique_ptr<folly::IOBuf> body) noexcept override;
         void onUpgrade(proxygen::UpgradeProtocol protocol) noexcept override;
         void onEOM() noexcept override;
@@ -19,7 +20,7 @@ class ServiceWorkerHandler : public proxygen::RequestHandler {
         void onError(proxygen::ProxygenError err) noexcept override;
     private:
         // Configuration class
-        MasternodeConfig *config_{nullptr};
+        std::shared_ptr<MasternodeConfig> config_{nullptr};
         // Service worker wrapper
-        ServiceWorker *sw_{nullptr};
+        std::shared_ptr<ServiceWorker> sw_{nullptr};
 };

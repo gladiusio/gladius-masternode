@@ -17,7 +17,8 @@ NetworkState::NetworkState(std::shared_ptr<MasternodeConfig> config):
     );
     if (config_->geo_ip_enabled) {
         try {
-            geo_ = std::make_unique<Geo>(config_->gladius_base + "GeoLite2-City.mmdb");
+            geo_ = std::make_unique<Geo>(
+                config_->gladius_base + "GeoLite2-City.mmdb");
         } catch (const std::system_error& e) {
             LOG(ERROR) << "Could not instantiate Geo module\n" << e.what();
             config_->geo_ip_enabled = false;
@@ -38,7 +39,8 @@ NetworkState::~NetworkState() {
     fs.shutdown();
 }
 
-void NetworkState::parseStateUpdate(std::string body, bool ignoreHeartbeat=false) {
+void NetworkState::parseStateUpdate(std::string body,
+    bool ignoreHeartbeat=false) {
     folly::dynamic state = folly::parseJson(body); // full json state
     auto nodeMap = state["response"]["node_data_map"]; // map of content nodes
     int64_t time = duration_cast<seconds>(
@@ -46,9 +48,11 @@ void NetworkState::parseStateUpdate(std::string body, bool ignoreHeartbeat=false
     // create new node list with new nodes
     std::vector<std::shared_ptr<EdgeNode>> newList;
     for (auto& pair : nodeMap.items()) {
-        std::string nodeAddress = pair.first.getString(); // eth address of content node
+        // eth address of content node
+        std::string nodeAddress = pair.first.getString();
+        // lower case eth address of content node
         std::transform(nodeAddress.begin(), nodeAddress.end(),
-            nodeAddress.begin(), ::tolower); // lower case eth address of content node
+            nodeAddress.begin(), ::tolower);
         auto& value = pair.second;
         try {
             std::string ip = value["ip_address"]["data"].getString();
@@ -59,10 +63,12 @@ void NetworkState::parseStateUpdate(std::string body, bool ignoreHeartbeat=false
             if (hasNoContent) continue;
             std::shared_ptr<EdgeNode> node = std::make_shared<EdgeNode>(
                 ip, port, nodeAddress, heartbeat);
-            if (config_->geo_ip_enabled) node->setLocation(geo_->lookupCoordinates(ip));
+            if (config_->geo_ip_enabled) 
+                node->setLocation(geo_->lookupCoordinates(ip));
             newList.push_back(node);
         } catch (const std::exception& e) {
-            LOG(ERROR) << "Caught exception when parsing network state: " << e.what();
+            LOG(ERROR) << 
+                "Caught exception when parsing network state: " << e.what();
         }
     }
     
@@ -73,22 +79,26 @@ void NetworkState::parseStateUpdate(std::string body, bool ignoreHeartbeat=false
         geo_->setTreeData(newTreeData);
     }
     // swap the old LockedNodeList out with the new one
-    edgeNodes_ = newList;
+    { // critical section
+        edgeNodes_ = newList;
+    }
 }
 
-std::vector<std::string> NetworkState::getEdgeNodeHostnames() {
+std::vector<std::string> NetworkState::getEdgeNodeHostnames() const {
     std::vector<std::string> v;
     { // critical section for edgeNodes lock
         auto lockedList = edgeNodes_.wlock();
         for (auto& node : *lockedList) {
-            std::string fqdn = node->getFQDN(config_->pool_domain, config_->cdn_subdomain);
+            std::string fqdn = 
+                node->getFQDN(config_->pool_domain, config_->cdn_subdomain);
             v.push_back(fqdn);
         }
     }
     return v;
 }
 
-void NetworkState::setEdgeNodes(std::vector<std::shared_ptr<EdgeNode>> nodes) {
+void NetworkState::setEdgeNodes(
+    std::vector<std::shared_ptr<EdgeNode>> nodes) {
     { // critical section
         edgeNodes_ = nodes;
     }
@@ -97,11 +107,11 @@ void NetworkState::setEdgeNodes(std::vector<std::shared_ptr<EdgeNode>> nodes) {
 std::vector<std::shared_ptr<EdgeNode>> NetworkState::getEdgeNodes() {
     { // critical section
         return edgeNodes_.copy();
-        // todo: may wish to add another method to cast the edge nodes to const for safety
     }
 }
 
-std::vector<std::shared_ptr<EdgeNode>> NetworkState::getNearestEdgeNodes(Location l, int n) {
+std::vector<std::shared_ptr<EdgeNode>> 
+    NetworkState::getNearestEdgeNodes(Location l, int n) {
     std::vector<size_t> indices = geo_->getNearestNodes(l, n);
     std::vector<std::shared_ptr<EdgeNode>> nodes;
     for (auto i : indices) {
@@ -110,7 +120,8 @@ std::vector<std::shared_ptr<EdgeNode>> NetworkState::getNearestEdgeNodes(Locatio
     return nodes;
 }
 
-std::vector<std::shared_ptr<EdgeNode>> NetworkState::getNearestEdgeNodes(std::string ip, int n) {
+std::vector<std::shared_ptr<EdgeNode>> 
+    NetworkState::getNearestEdgeNodes(std::string ip, int n) {
     return getNearestEdgeNodes(geo_->lookupCoordinates(ip), n);
 }
 

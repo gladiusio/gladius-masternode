@@ -6,11 +6,11 @@
 
 class RedirectHandler : public proxygen::RequestHandler {
     public:
-        explicit RedirectHandler(MasternodeConfig *);
-        ~RedirectHandler() override;
+        explicit RedirectHandler(std::shared_ptr<MasternodeConfig>);
 
         // RequestHandler methods
-        void onRequest(std::unique_ptr<proxygen::HTTPMessage> headers) noexcept override;
+        void onRequest(std::unique_ptr<proxygen::HTTPMessage> headers)
+            noexcept override;
         void onBody(std::unique_ptr<folly::IOBuf> body) noexcept override;
         void onUpgrade(proxygen::UpgradeProtocol protocol) noexcept override;
         void onEOM() noexcept override;
@@ -18,7 +18,7 @@ class RedirectHandler : public proxygen::RequestHandler {
         void onError(proxygen::ProxygenError err) noexcept override;
     private:
         // Configuration class
-        MasternodeConfig *config_{nullptr};
+        std::shared_ptr<MasternodeConfig> config_{nullptr};
         // Redirect base URL
         std::string baseURL;
 };

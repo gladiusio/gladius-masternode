@@ -32,7 +32,7 @@ class NetworkState {
         explicit NetworkState(std::shared_ptr<MasternodeConfig> config, std::unique_ptr<Geo> g);
         ~NetworkState();
 
-        std::vector<std::string> getEdgeNodeHostnames();
+        std::vector<std::string> getEdgeNodeHostnames() const;
 
         // Accepts body as a string containing JSON response
         // from the network gateway state request. Parses
@@ -43,7 +43,6 @@ class NetworkState {
 
         void setEdgeNodes(std::vector<std::shared_ptr<EdgeNode>> nodes);
         std::vector<std::shared_ptr<EdgeNode>> getEdgeNodes();
-
         std::vector<std::shared_ptr<EdgeNode>> getNearestEdgeNodes(Location l, int n);
         std::vector<std::shared_ptr<EdgeNode>> getNearestEdgeNodes(std::string ip, int n);
 };
