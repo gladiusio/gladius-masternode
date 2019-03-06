@@ -13,8 +13,6 @@ Router::Router(std::shared_ptr<MasternodeConfig> config,
     state_(state),
     sw_(sw) {}
 
-Router::~Router() {}
-
 void Router::onServerStart(folly::EventBase *evb) noexcept {
     timer_->timer = HHWheelTimer::newTimer(
         evb,

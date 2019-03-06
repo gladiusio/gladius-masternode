@@ -9,7 +9,6 @@ class ServiceWorkerHandler : public proxygen::RequestHandler {
     public:
         ServiceWorkerHandler(std::shared_ptr<MasternodeConfig>,
             std::shared_ptr<ServiceWorker>);
-        ~ServiceWorkerHandler() override;
 
         // RequestHandler methods
         void onRequest(std::unique_ptr<proxygen::HTTPMessage> headers) noexcept override;

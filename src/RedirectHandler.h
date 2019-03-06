@@ -7,7 +7,6 @@
 class RedirectHandler : public proxygen::RequestHandler {
     public:
         explicit RedirectHandler(std::shared_ptr<MasternodeConfig>);
-        ~RedirectHandler() override;
 
         // RequestHandler methods
         void onRequest(std::unique_ptr<proxygen::HTTPMessage> headers) noexcept override;

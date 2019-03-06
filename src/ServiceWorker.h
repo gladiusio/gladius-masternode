@@ -13,7 +13,6 @@ class ServiceWorker {
         };
     public:
         explicit ServiceWorker(std::string);
-        ~ServiceWorker() {}
         folly::fbstring getPayload();
         folly::fbstring getInjectScript();
         folly::fbstring injectServiceWorker(folly::IOBuf);

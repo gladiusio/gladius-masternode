@@ -8,8 +8,6 @@ using namespace proxygen;
 RedirectHandler::RedirectHandler(std::shared_ptr<MasternodeConfig> config):
     config_(config){}
 
-RedirectHandler::~RedirectHandler() {}
-
 void RedirectHandler::onRequest(std::unique_ptr<HTTPMessage> headers) noexcept {
     LOG(INFO) << "Redirect handler received request for: " << headers->getURL();
 

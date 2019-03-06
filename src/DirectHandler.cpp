@@ -14,8 +14,6 @@ DirectHandler::DirectHandler(std::shared_ptr<ContentCache> cache,
         config_(config),
         state_(state) {}
 
-DirectHandler::~DirectHandler() {}
-
 void DirectHandler::onRequest(std::unique_ptr<HTTPMessage> headers) noexcept {
     // Construct network state json response
     auto edgeAddrs = state_->getEdgeNodes(); // vector of edge node addresses

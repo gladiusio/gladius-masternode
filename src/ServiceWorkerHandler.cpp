@@ -10,8 +10,6 @@ ServiceWorkerHandler::ServiceWorkerHandler(
     config_(config),
     sw_(sw) {}
 
-ServiceWorkerHandler::~ServiceWorkerHandler() {}
-
 void ServiceWorkerHandler::onRequest(std::unique_ptr<proxygen::HTTPMessage> headers) noexcept {
     // reply with service worker content
     ResponseBuilder(downstream_)

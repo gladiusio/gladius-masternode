@@ -11,7 +11,6 @@ class DirectHandler : public proxygen::RequestHandler {
         DirectHandler(std::shared_ptr<ContentCache>, 
             std::shared_ptr<MasternodeConfig>, 
             std::shared_ptr<NetworkState>);
-        ~DirectHandler() override;
 
         // RequestHandler methods
         void onRequest(std::unique_ptr<proxygen::HTTPMessage> headers) noexcept override;

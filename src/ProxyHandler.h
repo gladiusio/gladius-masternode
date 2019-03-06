@@ -20,7 +20,6 @@ class ProxyHandler : public proxygen::RequestHandler,
             std::shared_ptr<ContentCache> cache,
             std::shared_ptr<MasternodeConfig> config, 
             std::shared_ptr<ServiceWorker> sw);
-        ~ProxyHandler() override;
 
         // RequestHandler methods
         void onRequest(std::unique_ptr<proxygen::HTTPMessage> headers) noexcept override;

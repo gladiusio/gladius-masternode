@@ -20,8 +20,6 @@ ProxyHandler::ProxyHandler(folly::HHWheelTimer *timer,
         config_(config),
         sw_(sw) {}
 
-ProxyHandler::~ProxyHandler() {}
-
 // RequestHandler methods
 void ProxyHandler::onRequest(std::unique_ptr<HTTPMessage> headers) noexcept {
     LOG(INFO) << "Received new request from " << headers->getClientIP() << "\n";
