@@ -20,14 +20,14 @@ class NetworkState {
         explicit NetworkState(std::shared_ptr<MasternodeConfig> config);
         ~NetworkState();
 
-        std::vector<std::string> getEdgeNodes();
+        std::vector<std::string> getEdgeNodes() const;
 
         // Accepts body as a string containing JSON response
         // from the network gateway state request. Parses
         // this response and sets corresponding fields
         // of this NetworkState class.
         void parseStateUpdate(std::string, bool);
-        std::string createEdgeNodeHostname(std::string, std::string);
+        std::string createEdgeNodeHostname(std::string, std::string) const;
         void beginPollingGateway();
 };
 

@@ -16,12 +16,11 @@ class CachedRoute {
         CachedRoute(std::string& url,
             std::unique_ptr<folly::IOBuf> data,
             std::shared_ptr<proxygen::HTTPMessage> headers);
-        ~CachedRoute();
 
-        std::string getHash();
-        std::string getURL();
-        std::unique_ptr<folly::IOBuf> getContent();
-        std::shared_ptr<proxygen::HTTPMessage> getHeaders();
+        std::string getHash() const;
+        std::string getURL() const;
+        std::unique_ptr<folly::IOBuf> getContent() const;
+        std::shared_ptr<proxygen::HTTPMessage> getHeaders() const;
     private:
         std::string sha256_;
         std::string url_;
@@ -31,16 +30,18 @@ class CachedRoute {
 
 class ContentCache {
     public:
-        ContentCache(size_t size, std::string& dir) : map_(size), cache_directory_(dir) {}
+        ContentCache(size_t size, std::string& dir) : 
+            map_(size), cache_directory_(dir) {}
 
         // Retrieve cached content with the URL as the lookup key
-        std::shared_ptr<CachedRoute> getCachedRoute(std::string);
+        std::shared_ptr<CachedRoute> getCachedRoute(std::string) const;
 
         // Add a new CachedRoute entry to the memory cache
         bool addCachedRoute(std::string url, std::unique_ptr<folly::IOBuf> chain,
             std::shared_ptr<proxygen::HTTPMessage> headers);
 
-        std::shared_ptr<folly::F14FastMap<std::string, std::string>> getAssetHashMap();
+        std::shared_ptr<folly::F14FastMap<std::string, std::string>>
+            getAssetHashMap() const;
 
         size_t size() const;
 
@@ -48,7 +49,8 @@ class ContentCache {
         // Shared cache object that all handler threads use
         // to serve cached content from. Thread-safe!
         // Reads are wait-free, writes are locking.
-        folly::ConcurrentHashMap<std::string /* url */, std::shared_ptr<CachedRoute>> map_;
+        folly::ConcurrentHashMap<std::string /* url */, 
+            std::shared_ptr<CachedRoute>> map_;
         
         // Directory to write cached files to
         std::string cache_directory_;

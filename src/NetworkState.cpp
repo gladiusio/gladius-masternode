@@ -21,8 +21,10 @@ NetworkState::~NetworkState() {
     fs.shutdown();
 }
 
-std::vector<std::string> NetworkState::getEdgeNodes() {
-    return edgeNodes_.copy();
+std::vector<std::string> NetworkState::getEdgeNodes() const {
+    { // critical section
+        return edgeNodes_.copy();
+    }
 }
 
 void NetworkState::parseStateUpdate(std::string body, bool ignoreHeartbeat=false) {
@@ -51,7 +53,8 @@ void NetworkState::parseStateUpdate(std::string body, bool ignoreHeartbeat=false
     }
 }
 
-std::string NetworkState::createEdgeNodeHostname(std::string address, std::string port) {
+std::string NetworkState::createEdgeNodeHostname(
+    std::string address, std::string port) const {
     return std::string("https://" + address + "." + config_->cdn_subdomain + "." 
         + config_->pool_domain + ":" + port);
 }
