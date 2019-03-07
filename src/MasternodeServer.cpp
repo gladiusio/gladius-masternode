@@ -27,6 +27,7 @@ DEFINE_bool(upgrade_insecure, true, "Set to true to redirect HTTP requests to th
 DEFINE_string(pool_domain, "", "Domain to use for pool hosts"); // i.e. examplepool.com
 DEFINE_string(cdn_subdomain, "cdn", "Subdomain of the pool domain to use for content node hostnames");
 DEFINE_string(gladius_base, "", "Path to the Gladius base directory");
+DEFINE_bool(geo_ip_enabled, false, "Set to true to enable geoip request routing");
 
 // debug use only
 DEFINE_bool(ignore_heartbeat, false, "Set to true to disable heartbeat checking for edge nodes");
@@ -76,6 +77,8 @@ int main(int argc, char *argv[]) {
     config->ignore_heartbeat = FLAGS_ignore_heartbeat;
     config->pool_domain = FLAGS_pool_domain;
     config->cdn_subdomain = FLAGS_cdn_subdomain;
+    config->gladius_base = FLAGS_gladius_base;
+    config->geo_ip_enabled = FLAGS_geo_ip_enabled;
     config->options.threads = threads;
     config->options.idleTimeout = std::chrono::milliseconds(60000);
     config->options.shutdownOn = {SIGINT, SIGTERM};
