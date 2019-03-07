@@ -15,7 +15,7 @@ TEST (NetworkState, TestStateParsing) {
   state->parseStateUpdate(sample, true);
 
   EXPECT_EQ(1, state->getEdgeNodes().size());
-  EXPECT_EQ("https://0xdeadbeef.cdn.example.com:8080", state->getEdgeNodes()[0]);
+  EXPECT_EQ("https://0xdeadbeef.cdn.example.com:8080", state->getEdgeNodes()[0]->getFQDN("example.com", "cdn"));
 }
 
 
@@ -40,7 +40,7 @@ TEST (NetworkState, TestStatePolling) {
   std::this_thread::sleep_for(std::chrono::seconds(2));
 
   EXPECT_EQ(1, state->getEdgeNodes().size());
-  EXPECT_EQ("https://0xdeadbeef.cdn.example.com:8080", state->getEdgeNodes()[0]);
+  EXPECT_EQ("https://0xdeadbeef.cdn.example.com:8080", state->getEdgeNodes()[0]->getFQDN("example.com", "cdn"));
 }
 
 TEST (NetworkState, TestGetNearestNodes) {
