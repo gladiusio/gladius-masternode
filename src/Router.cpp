@@ -11,7 +11,9 @@ Router::Router(std::shared_ptr<MasternodeConfig> config,
     cache_(cache),
     config_(config),
     state_(state),
-    sw_(sw) {}
+    sw_(sw) {
+        LOG(ERROR) << "Router created";
+    }
 
 void Router::onServerStart(folly::EventBase *evb) noexcept {
     timer_->timer = HHWheelTimer::newTimer(
@@ -30,6 +32,7 @@ void Router::onServerStop() noexcept {
 
 RequestHandler* Router::onRequest(
     RequestHandler *req, HTTPMessage *m) noexcept {
+    LOG(ERROR) << "Router received a new request!!!";
     // make sure this request always has a Host: header
     m->ensureHostHeader();
     
