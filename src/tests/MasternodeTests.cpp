@@ -56,8 +56,8 @@ TEST (Masternode, TestPassthroughProxy) {
   httplib::Client client("0.0.0.0", 8080);
   auto res = client.Get("/");
   ASSERT_TRUE(res != nullptr);
-  EXPECT_EQ(res->status, 200);
-  EXPECT_EQ(res->body, "Origin server content");
+  EXPECT_EQ(200, res->status);
+  EXPECT_EQ("Origin server content", res->body);
 }
 
 TEST (Masternode, TestSSLPassthroughProxy) {
@@ -99,8 +99,8 @@ TEST (Masternode, TestSSLPassthroughProxy) {
   httplib::SSLClient client("0.0.0.0", 8080);
   auto res = client.Get("/");
   ASSERT_TRUE(res != nullptr);
-  EXPECT_EQ(res->status, 200);
-  EXPECT_EQ(res->body, "Origin server content");
+  EXPECT_EQ(200, res->status);
+  EXPECT_EQ("Origin server content", res->body);
 }
 
 TEST (Masternode, TestServiceWorkerInjection) {
@@ -158,4 +158,45 @@ TEST (Masternode, TestServiceWorkerInjection) {
   ASSERT_TRUE(res != nullptr);
   EXPECT_EQ(res->status, 200);
   EXPECT_NE(res->body.find("service worker script content"), std::string::npos);
+}
+
+TEST (Masternode, TestRedirectHandler) {
+  // Create and start a masternode
+  std::vector<HTTPServer::IPConfig> IPs = {
+        {folly::SocketAddress("0.0.0.0", 8080, true),
+        HTTPServer::Protocol::HTTP}};
+
+  // Enable SSL
+  HTTPServer::IPConfig sslIP = 
+    {folly::SocketAddress("0.0.0.0", 443, true),
+    HTTPServer::Protocol::HTTP};
+  wangle::SSLContextConfig sslCfg;
+  sslCfg.isDefault = true;
+  sslCfg.setCertificate(testDir + "certs/cert.pem", testDir + "certs/key.pem", "");
+  sslIP.sslConfigs.push_back(sslCfg);
+  IPs.push_back(sslIP);
+
+  auto mc = std::make_shared<MasternodeConfig>();
+  mc->origin_host = "0.0.0.0";
+  mc->origin_port = 8085;
+  mc->IPs = IPs;
+  mc->cache_directory = "/dev/null";
+  mc->options.threads = 1;
+  mc->options.idleTimeout = std::chrono::milliseconds(10000);
+  mc->options.shutdownOn = {SIGINT, SIGTERM};
+  mc->options.enableContentCompression = false;
+  mc->upgrade_insecure = true;
+  mc->ssl_port = 443;
+
+  auto master = std::make_unique<masternode::Masternode>(mc);
+  auto master_thread = std::make_unique<MasternodeThread>(master.get());
+  ASSERT_TRUE(master_thread->start());
+
+  // make a request from the client
+  httplib::Client client("0.0.0.0", 8080);
+  auto res = client.Get("/");
+  ASSERT_TRUE(res != nullptr);
+  EXPECT_EQ(307, res->status);
+  EXPECT_EQ(true, res->has_header("Location"));
+  EXPECT_EQ("https://0.0.0.0:443/", res->get_header_value("Location"));
 }

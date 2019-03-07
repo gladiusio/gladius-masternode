@@ -13,8 +13,8 @@ TEST (NetworkState, TestStateParsing) {
   auto state = std::make_unique<NetworkState>(mc);
   auto sample = R"({"response": {"node_data_map": {"0xdeadbeef": {"content_port": {"data": "8080"}, "ip_address": {"data": "127.0.0.1"}, "heartbeat": {"data": "999999999"}, "disk_content": {"data": ["yes", "no", "maybe"]}}}}})";
   state->parseStateUpdate(sample, true);
-  EXPECT_EQ(state->getEdgeNodes().size(), 1);
-  EXPECT_EQ(state->getEdgeNodes()[0], "https://0xdeadbeef.cdn.example.com:8080");
+  EXPECT_EQ(1, state->getEdgeNodes().size());
+  EXPECT_EQ("https://0xdeadbeef.cdn.example.com:8080", state->getEdgeNodes()[0]);
 }
 
 TEST (NetworkState, TestEdgeNodeHostnameCreation) {
@@ -23,7 +23,7 @@ TEST (NetworkState, TestEdgeNodeHostnameCreation) {
   mc->cdn_subdomain = "foobarcdn";
   auto state = std::make_unique<NetworkState>(mc);
   auto actual = state->createEdgeNodeHostname("0xdeadbeeeeeef", "1234");
-  EXPECT_EQ(actual, "https://0xdeadbeeeeeef.foobarcdn.example.com:1234");
+  EXPECT_EQ("https://0xdeadbeeeeeef.foobarcdn.example.com:1234", actual);
 }
 
 TEST (NetworkState, TestStatePolling) {
@@ -44,7 +44,7 @@ TEST (NetworkState, TestStatePolling) {
   auto state = std::make_unique<NetworkState>(mc);
   state->beginPollingGateway();
   std::this_thread::sleep_for(std::chrono::seconds(2));
-  EXPECT_EQ(state->getEdgeNodes().size(), 1);
-  EXPECT_EQ(state->getEdgeNodes()[0], "https://0xdeadbeef.cdn.example.com:8080");
+  EXPECT_EQ(1, state->getEdgeNodes().size());
+  EXPECT_EQ("https://0xdeadbeef.cdn.example.com:8080", state->getEdgeNodes()[0]);
 }
 
