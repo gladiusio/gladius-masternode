@@ -12,12 +12,34 @@ void RedirectHandler::onRequest(
     std::unique_ptr<HTTPMessage> headers) noexcept {
     LOG(INFO) << "Redirect handler received request for: " 
         << headers->getURL();
-
-    proxygen::URL url(headers->getURL());
     std::string host = headers->getHeaders().rawGet("Host");
+    std::string redirect_host{""};
+    proxygen::URL url(headers->getURL());
+    if (url.hasHost()) {
+        redirect_host = url.getHost();
+    } else {
+        // need to use the Host: header to get the destination
+        // host and remove the port, if it's there
+        if (!host.empty()) {
+            size_t colon = host.find_first_of(":");
+            if (colon == std::string::npos) {
+                redirect_host = host;
+            } else {
+                redirect_host = host.substr(0, colon);
+            }
+        } else {
+            ResponseBuilder(downstream_)
+                .status(400, "Bad Request")
+                .sendWithEOM();
+        }
+    }
+    LOG(ERROR) << "getURL() is: " << headers->getURL();
+    
+    LOG(ERROR) << "Host: is : " << host;
+
     proxygen::URL redirect_url(
         "https",
-        host,
+        redirect_host,
         config_->ssl_port,
         url.getPath().substr(1),
         url.getQuery(),
