@@ -21,7 +21,7 @@ RUN useradd -m docker && echo "docker:docker" | chpasswd && adduser docker sudo
 # Clone the ProxyGen library
 RUN git clone https://github.com/facebook/proxygen.git && \
     cd proxygen && \
-    git checkout f4938568b77477cfebaba079f06e5e4b22aeb8fb
+    git checkout 66e6f6846c7035cd7f7fd191f3afccc2b190f400
 
 WORKDIR /proxygen/proxygen
 
