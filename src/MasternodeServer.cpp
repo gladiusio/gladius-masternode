@@ -79,6 +79,7 @@ int main(int argc, char *argv[]) {
     config->options.idleTimeout = std::chrono::milliseconds(60000);
     config->options.shutdownOn = {SIGINT, SIGTERM};
     config->options.enableContentCompression = false;
+    config->options.supportsConnect = false;
 
     Masternode master(config);
 
