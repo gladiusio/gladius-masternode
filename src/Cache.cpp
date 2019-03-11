@@ -1,6 +1,4 @@
 #include "Cache.h"
-#include <proxygen/lib/utils/StreamDecompressor.h>
-#include <proxygen/lib/utils/ZlibStreamDecompressor.h>
 #include <folly/DynamicConverter.h>
 
 CachedRoute::CachedRoute(std::string& url,
@@ -36,23 +34,6 @@ std::shared_ptr<CachedRoute>
 bool ContentCache::addCachedRoute(std::string url,
     std::unique_ptr<folly::IOBuf> chain,
     std::shared_ptr<proxygen::HTTPMessage> headers) {
-
-    // if this content is text/html and compressed, we uncompress it
-    // and cache that instead so service workers can be injected. it can
-    // be recompressed when a user requests it.
-    if (headers->getHeaders().rawGet("Content-Type").find("text/html")
-        != std::string::npos) {
-        if (headers->getHeaders().rawGet("Content-Encoding").compare("gzip") == 0) {
-            // decompress the IOBuf
-            auto zd = std::make_unique<proxygen::ZlibStreamDecompressor>(
-                proxygen::CompressionType::GZIP);
-            auto decom = zd->decompress(chain.get());
-            // store new IOBuf uncompressed in cache
-            // remove compression headers (Content-Encoding)
-            // create new HTTPMessage and set Content-Type header
-
-        }
-    }
 
     // Create a new CachedRoute class
     std::shared_ptr<CachedRoute> newEntry = 
