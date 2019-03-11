@@ -125,6 +125,12 @@ void ProxyHandler::connectSuccess(
     LOG(INFO) << "Connected to origin server";
     originTxn_ = session->newTransaction(&originHandler_);
 
+    // strip compression headers so that we receive an uncompressed
+    // response
+    bool removed = request_->getHeaders().remove(HTTP_HEADER_ACCEPT_ENCODING);
+    if (removed) LOG(INFO) << 
+        "Stripped Accept-Encoding header from origin request";
+
     originTxn_->sendHeaders(*request_);
     LOG(INFO) << "Sent headers to origin server";
     downstream_->resumeIngress();

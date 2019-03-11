@@ -26,6 +26,7 @@ DEFINE_string(sw_path, "", "File path of service worker javascript file to injec
 DEFINE_bool(upgrade_insecure, true, "Set to true to redirect HTTP requests to the HTTPS port");
 DEFINE_string(pool_domain, "", "Domain to use for pool hosts"); // i.e. examplepool.com
 DEFINE_string(cdn_subdomain, "cdn", "Subdomain of the pool domain to use for content node hostnames");
+DEFINE_bool(enable_compression, false, "Set to true to enable compression");
 
 // debug use only
 DEFINE_bool(ignore_heartbeat, false, "Set to true to disable heartbeat checking for edge nodes");
@@ -78,7 +79,7 @@ int main(int argc, char *argv[]) {
     config->options.threads = threads;
     config->options.idleTimeout = std::chrono::milliseconds(60000);
     config->options.shutdownOn = {SIGINT, SIGTERM};
-    config->options.enableContentCompression = false;
+    config->options.enableContentCompression = FLAGS_enable_compression;
     config->options.supportsConnect = false;
 
     Masternode master(config);
