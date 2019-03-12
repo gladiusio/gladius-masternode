@@ -42,20 +42,16 @@ void ProxyHandler::onRequest(std::unique_ptr<HTTPMessage> headers) noexcept {
                     .status(200, "OK")
                     .header("Content-Type", cachedRoute->getHeaders()->
                         getHeaders().rawGet("Content-Type"))
-                    .header("Content-Encoding", cachedRoute->getHeaders()->
-                        getHeaders().rawGet("Content-Encoding"))
                     .body(injected_body)
                     .sendWithEOM();
                 return;
             }
         }
-    
+        
         ResponseBuilder(downstream_)
             .status(200, "OK")
             .header("Content-Type", cachedRoute->getHeaders()->
                 getHeaders().rawGet("Content-Type"))
-            .header("Content-Encoding", cachedRoute->getHeaders()->
-                getHeaders().rawGet("Content-Encoding"))
             .body(cachedRoute->getContent())
             .sendWithEOM();
         return;
@@ -157,13 +153,20 @@ void ProxyHandler::originSetTransaction(
 
 void ProxyHandler::originDetachTransaction() noexcept {
     originTxn_ = nullptr;
+    ResponseBuilder(downstream_)
+        .status(200, "OK")
+        .header("Content-Type", contentHeaders_->
+            getHeaders().rawGet("Content-Type"))
+        .body(contentBody_->clone())
+        .sendWithEOM();
+    
     LOG(INFO) << "Detached origin transaction";
     // TODO: add code to check for conditions to delete this handler here
 }
 
 void ProxyHandler::originOnHeadersComplete(
     std::unique_ptr<proxygen::HTTPMessage> msg) noexcept {
-    downstream_->sendHeaders(*(msg.get()));
+    // downstream_->sendHeaders(*msg);
     contentHeaders_ = std::move(msg);
 }
 
@@ -171,7 +174,6 @@ void ProxyHandler::originOnHeadersComplete(
 // (can be called multiple times for one request as content comes through)
 void ProxyHandler::originOnBody(
     std::unique_ptr<folly::IOBuf> chain) noexcept {
-    proxygen::URL url(request_->getURL());
     // If we've already received some body content
     if (contentBody_) {
         contentBody_->prependChain(chain->clone());
@@ -179,23 +181,30 @@ void ProxyHandler::originOnBody(
         contentBody_ = chain->clone();
     }
     
-    downstream_->sendBody(std::move(chain));
-    LOG(INFO) << "Sent body content from origin to client";
+    LOG(INFO) << "chain length: " << chain->length();
+    LOG(INFO) << "chain size: " << chain->computeChainDataLength();
+    //downstream_->sendBody(std::move(chain));
+    //LOG(INFO) << "Sent body content from origin to client";
 }
 
 void ProxyHandler::originOnChunkHeader(size_t length) noexcept {
-    downstream_->sendChunkHeader(length);
+    // downstream_->sendChunkHeader(length);
+    LOG(INFO) << "originOnChunkHeader()";
 }
 
 void ProxyHandler::originOnChunkComplete() noexcept {
-    downstream_->sendChunkTerminator();
+    // downstream_->sendChunkTerminator();
+    LOG(INFO) << "originOnChunkComplete()";
 }
 
 void ProxyHandler::originOnTrailers(
-    std::unique_ptr<proxygen::HTTPHeaders> trailers) noexcept {}
+    std::unique_ptr<proxygen::HTTPHeaders> trailers) noexcept {
+    LOG(INFO) << "originOnTrailers()";
+}
 
 void ProxyHandler::originOnEOM() noexcept {
-    downstream_->sendEOM();
+    // downstream_->sendEOM();
+    
     LOG(INFO) << "Sent EOM from origin to client";
 }
 
