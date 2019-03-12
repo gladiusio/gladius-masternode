@@ -80,7 +80,10 @@ int main(int argc, char *argv[]) {
     config->options.idleTimeout = std::chrono::milliseconds(60000);
     config->options.shutdownOn = {SIGINT, SIGTERM};
     config->options.enableContentCompression = FLAGS_enable_compression;
+    config->options.contentCompressionLevel = 6;
+    LOG(INFO) << "Compression enabled=" << config->options.enableContentCompression;
     config->options.supportsConnect = false;
+
 
     Masternode master(config);
 
