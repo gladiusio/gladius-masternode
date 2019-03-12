@@ -32,7 +32,7 @@ void Router::onServerStop() noexcept {
 
 RequestHandler* Router::onRequest(
     RequestHandler *req, HTTPMessage *m) noexcept {
-    LOG(ERROR) << "Router received a new request!!!";
+
     // make sure this request always has a Host: header
     m->ensureHostHeader();
     
