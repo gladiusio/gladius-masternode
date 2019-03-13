@@ -32,7 +32,7 @@ void Router::onServerStop() noexcept {
 
 RequestHandler* Router::onRequest(
     RequestHandler *req, HTTPMessage *m) noexcept {
-    LOG(ERROR) << "Router received a new request!!!";
+
     // make sure this request always has a Host: header
     m->ensureHostHeader();
     
@@ -50,9 +50,11 @@ RequestHandler* Router::onRequest(
         return new DirectHandler(cache_, config_, state_);
     }
 
-    // serving the service worker javascript file itself
-    if (m->getURL() == "/gladius-service-worker.js") {
-        return new ServiceWorkerHandler(config_, sw_);
+    if (config_->enableServiceWorker && sw_) {
+        // serving the service worker javascript file itself
+        if (m->getURL() == "/gladius-service-worker.js") {
+            return new ServiceWorkerHandler(config_, sw_);
+        }
     }
 
     // all other requests for proxied content

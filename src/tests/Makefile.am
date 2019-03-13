@@ -33,6 +33,7 @@ masternode_tests_LDADD = \
     -lcrypto \
     -lssl \
     -ldouble-conversion \
-    -lmyhtml
+    -lmyhtml \
+    -lz
     
 masternode_tests_LDFLAGS = -pthread

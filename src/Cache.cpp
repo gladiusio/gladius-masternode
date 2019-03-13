@@ -9,7 +9,6 @@ CachedRoute::CachedRoute(std::string& url,
     auto out = std::vector<uint8_t>(32);
     folly::ssl::OpenSSLHash::sha256(folly::range(out), *(content_.get()));
     sha256_ = folly::hexlify(out);
-    LOG(INFO) << "Created a CachedRoute object\n";
 }
 
 std::string CachedRoute::getHash() const { return sha256_; }
@@ -42,12 +41,12 @@ bool ContentCache::addCachedRoute(std::string url,
     
     // Insert the CachedRoute class into the cache
     if (!map_.insert(url, newEntry).second) {
-        LOG(INFO) << "Could not add route into cache: " << url << "\n";
+        LOG(INFO) << "Could not add route into cache: " << url;
         return false;
     }
-    LOG(INFO) << "Route byte size: " << newEntry->getContent()->length() << "\n";
-    LOG(INFO) << "Route chain byte size: " << newEntry->getContent()->computeChainDataLength() << "\n";
-    LOG(INFO) << "Added new cached route: " << url << "\n";
+    LOG(INFO) << "Route byte size: " << newEntry->getContent()->length();
+    LOG(INFO) << "Route chain byte size: " << newEntry->getContent()->computeChainDataLength();
+    LOG(INFO) << "Added new cached route: " << url;
 
     // write bytes to file
     // todo: use thread pool to do this off of the event IO threads
