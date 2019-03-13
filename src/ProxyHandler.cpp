@@ -166,7 +166,6 @@ void ProxyHandler::originDetachTransaction() noexcept {
 
 void ProxyHandler::originOnHeadersComplete(
     std::unique_ptr<proxygen::HTTPMessage> msg) noexcept {
-    // downstream_->sendHeaders(*msg);
     contentHeaders_ = std::move(msg);
 }
 
@@ -180,20 +179,13 @@ void ProxyHandler::originOnBody(
     } else {
         contentBody_ = chain->clone();
     }
-    
-    LOG(INFO) << "chain length: " << chain->length();
-    LOG(INFO) << "chain size: " << chain->computeChainDataLength();
-    //downstream_->sendBody(std::move(chain));
-    //LOG(INFO) << "Sent body content from origin to client";
 }
 
 void ProxyHandler::originOnChunkHeader(size_t length) noexcept {
-    // downstream_->sendChunkHeader(length);
     LOG(INFO) << "originOnChunkHeader()";
 }
 
 void ProxyHandler::originOnChunkComplete() noexcept {
-    // downstream_->sendChunkTerminator();
     LOG(INFO) << "originOnChunkComplete()";
 }
 
@@ -203,8 +195,6 @@ void ProxyHandler::originOnTrailers(
 }
 
 void ProxyHandler::originOnEOM() noexcept {
-    // downstream_->sendEOM();
-    
     LOG(INFO) << "Sent EOM from origin to client";
 }
 
