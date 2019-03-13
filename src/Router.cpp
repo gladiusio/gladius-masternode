@@ -50,9 +50,11 @@ RequestHandler* Router::onRequest(
         return new DirectHandler(cache_, config_, state_);
     }
 
-    // serving the service worker javascript file itself
-    if (m->getURL() == "/gladius-service-worker.js") {
-        return new ServiceWorkerHandler(config_, sw_);
+    if (config_->enableServiceWorker && sw_) {
+        // serving the service worker javascript file itself
+        if (m->getURL() == "/gladius-service-worker.js") {
+            return new ServiceWorkerHandler(config_, sw_);
+        }
     }
 
     // all other requests for proxied content
