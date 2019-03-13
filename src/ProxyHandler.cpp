@@ -196,7 +196,7 @@ void ProxyHandler::originOnTrailers(
 }
 
 void ProxyHandler::originOnEOM() noexcept {
-    LOG(INFO) << "Sent EOM from origin to client";
+
 }
 
 void ProxyHandler::originOnUpgrade(
