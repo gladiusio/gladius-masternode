@@ -48,9 +48,9 @@ bool ContentCache::addCachedRoute(std::string url,
     VLOG(1) << "Route chain byte size: " << dataSize;
     LOG(INFO) << "Added new cached route: " << url;
 
-    // write bytes to file
-    // todo: use thread pool to do this off of the event IO threads
-    if (config_->enableP2P) {
+    if (this.writeToDisk) {
+        // write bytes to file
+        // todo: use thread pool to do this off of the event IO threads
         folly::File f(cache_directory_ + newEntry->getHash(),
             O_WRONLY | O_CREAT | O_TRUNC, 0666);
         folly::gen::from(*newEntry->getContent()) | 
