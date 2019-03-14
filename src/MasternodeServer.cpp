@@ -28,7 +28,7 @@ DEFINE_string(pool_domain, "", "Domain to use for pool hosts"); // i.e. examplep
 DEFINE_string(cdn_subdomain, "cdn", "Subdomain of the pool domain to use for content node hostnames");
 DEFINE_bool(enable_compression, false, "Set to true to enable compression");
 DEFINE_bool(enable_service_worker, true, "Set to true to enable service worker injection");
-DEFINE_int32(max_cached_routes, 2048, "Maximum number of routes to cache");
+DEFINE_int32(max_cached_routes, 1024, "Maximum number of routes to cache");
 DEFINE_bool(enable_p2p, false, "Set to true if running masternode alongside a Gladius p2p network");
 
 // debug use only
