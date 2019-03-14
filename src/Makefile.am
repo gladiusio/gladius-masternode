@@ -42,10 +42,11 @@ libmasternode_la_LIBADD = \
 
 bin_PROGRAMS = masternode
 
-masternode_LDFLAGS = -static -pthread -pie -Wl,-z,relro,-z,now
+masternode_LDFLAGS = -pthread -pie -Wl,-z,relro,-z,now
 
 masternode_SOURCES = \
     MasternodeServer.cpp 
 
 masternode_LDADD = \
-    libmasternode.la
+    libmasternode.la \
+    -lproxygenhttpserver
