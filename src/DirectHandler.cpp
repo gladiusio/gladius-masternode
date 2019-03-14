@@ -10,29 +10,33 @@ using namespace proxygen;
 DirectHandler::DirectHandler(std::shared_ptr<ContentCache> cache, 
     std::shared_ptr<MasternodeConfig> config,
     std::shared_ptr<NetworkState> state):
-        cache_(cache),
-        config_(config),
-        state_(state) {}
+        cache_(CHECK_NOTNULL(cache.get())),
+        config_(CHECK_NOTNULL(config.get())),
+        state_(CHECK_NOTNULL(state.get())) {}
 
 void DirectHandler::onRequest(std::unique_ptr<HTTPMessage> headers) noexcept {
     // Construct network state json response
-    const auto& edgeAddrs = state_->getEdgeNodes(); // vector of edge node addresses
-    const auto& assetMap = cache_->getAssetHashMap(); // map of urls : hashes
+    folly::dynamic jsonResponse = folly::dynamic::object;
 
-    folly::dynamic jsonRes = folly::dynamic::object;
-    jsonRes["edgeNodes"] = folly::dynamic::array;
-    for (auto edge : edgeAddrs) {
-        jsonRes["edgeNodes"].push_back(edge);
+    if (config_->enableP2P) {
+        // vector of edge node addresses
+        const auto& edgeAddrs = state_->getEdgeNodes(); 
+        jsonResponse["edgeNodes"] = folly::dynamic::array;
+        for (auto edge : edgeAddrs) {
+            jsonResponse["edgeNodes"].push_back(edge);
+        }
     }
-    jsonRes["assetHashes"] = folly::dynamic::object;
+    
+    const auto& assetMap = cache_->getAssetHashMap(); // map of urls : hashes
+    jsonResponse["assetHashes"] = folly::dynamic::object;
     for (auto kv : *assetMap.get()) {
-        jsonRes["assetHashes"][kv.first] = kv.second;
+        jsonResponse["assetHashes"][kv.first] = kv.second;
     }
 
     ResponseBuilder(downstream_)
         .status(200, "OK")
         .header("Content-Type", "application/json")
-        .body(folly::toJson(jsonRes))
+        .body(folly::toJson(jsonResponse))
         .sendWithEOM();
 }
 

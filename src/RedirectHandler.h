@@ -19,6 +19,4 @@ class RedirectHandler : public proxygen::RequestHandler {
     private:
         // Configuration class
         std::shared_ptr<MasternodeConfig> config_{nullptr};
-        // Redirect base URL
-        std::string baseURL;
 };

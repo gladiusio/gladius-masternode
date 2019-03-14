@@ -121,7 +121,7 @@ class ProxyHandler : public proxygen::RequestHandler,
         proxygen::HTTPTransaction* originTxn_{nullptr};
 
         // Incoming request (headers)
-        std::unique_ptr<proxygen::HTTPMessage> request_;
+        std::unique_ptr<proxygen::HTTPMessage> request_{nullptr};
 
         // Content received from the origin. Used to collect data as it
         // comes in from the origin and later pass in to the cache once
@@ -135,12 +135,12 @@ class ProxyHandler : public proxygen::RequestHandler,
         bool clientTerminated_{false};
 
         // HTTP content cache
-        std::shared_ptr<ContentCache> cache_;
+        std::shared_ptr<ContentCache> cache_{nullptr};
 
         // Configuration class
-        std::shared_ptr<MasternodeConfig> config_;
+        std::shared_ptr<MasternodeConfig> config_{nullptr};
 
         // Service worker wrapper
-        std::shared_ptr<ServiceWorker> sw_;
+        std::shared_ptr<ServiceWorker> sw_{nullptr};
 }; 
 

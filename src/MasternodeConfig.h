@@ -41,4 +41,6 @@ class MasternodeConfig {
         std::string cdn_subdomain{"cdn"};
         // Maximum number of routes to cache
         size_t maxRoutesToCache{2048};
+        // Enable p2p network integration
+        bool enableP2P{false};
 };

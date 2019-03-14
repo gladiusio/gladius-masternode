@@ -29,6 +29,7 @@ DEFINE_string(cdn_subdomain, "cdn", "Subdomain of the pool domain to use for con
 DEFINE_bool(enable_compression, false, "Set to true to enable compression");
 DEFINE_bool(enable_service_worker, true, "Set to true to enable service worker injection");
 DEFINE_int32(max_cached_routes, 2048, "Maximum number of routes to cache");
+DEFINE_bool(enable_p2p, false, "Set to true if running masternode alongside a Gladius p2p network");
 
 // debug use only
 DEFINE_bool(ignore_heartbeat, false, "Set to true to disable heartbeat checking for edge nodes");
@@ -60,16 +61,17 @@ int main(int argc, char *argv[]) {
         sslCfg.setCertificate(FLAGS_cert_path, FLAGS_key_path, "");
         sslIP.sslConfigs.push_back(sslCfg);
         IPs.push_back(sslIP);
-        LOG(INFO) << "Binding to " << FLAGS_ip << ":" << FLAGS_ssl_port << " for SSL requests\n";
+        LOG(INFO) << "Binding to " << FLAGS_ip << ":" << FLAGS_ssl_port << " for SSL requests";
         if (FLAGS_upgrade_insecure) {
             config->upgrade_insecure = true;
-            LOG(INFO) << "Configured to upgrade requests from HTTP --> HTTPS\n";
+            LOG(INFO) << "Configured to upgrade requests from HTTP --> HTTPS";
         }
     }
     
     config->origin_host = FLAGS_origin_host;
     config->origin_port = FLAGS_origin_port;
     config->protected_domain = FLAGS_protected_domain;
+    config->enableP2P = FLAGS_enable_p2p;
     config->gateway_address = FLAGS_gateway_address;
     config->gateway_port = FLAGS_gateway_port;
     config->service_worker_path = FLAGS_sw_path;
@@ -93,7 +95,7 @@ int main(int argc, char *argv[]) {
     std::thread t([&]() { master.start(); });
     t.join();
 
-    LOG(INFO) << "Process exiting now\n";
+    LOG(INFO) << "Process exiting now";
 
     return 0;
 }

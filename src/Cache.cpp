@@ -41,11 +41,11 @@ bool ContentCache::addCachedRoute(std::string url,
     
     // Insert the CachedRoute class into the cache
     if (!map_.insert(url, newEntry).second) { // blocks for write access
-        LOG(INFO) << "Could not add route into cache: " << url;
+        VLOG(1) << "Could not add route into cache: " << url;
         return false;
     }
     size_t dataSize = newEntry->getContent()->computeChainDataLength();
-    LOG(INFO) << "Route chain byte size: " << dataSize;
+    VLOG(1) << "Route chain byte size: " << dataSize;
     LOG(INFO) << "Added new cached route: " << url;
 
     // write bytes to file

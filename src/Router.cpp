@@ -12,7 +12,7 @@ Router::Router(std::shared_ptr<MasternodeConfig> config,
     config_(config),
     state_(state),
     sw_(sw) {
-        LOG(ERROR) << "Router created";
+        VLOG(1) << "Router created";
     }
 
 void Router::onServerStart(folly::EventBase *evb) noexcept {
@@ -27,7 +27,7 @@ void Router::onServerStart(folly::EventBase *evb) noexcept {
 
 void Router::onServerStop() noexcept {
     timer_->timer.reset();
-    LOG(INFO) << "Server stopped";
+    LOG(INFO) << "Server thread stopped";
 }
 
 RequestHandler* Router::onRequest(

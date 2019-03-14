@@ -5,10 +5,9 @@
 
 ServiceWorker::ServiceWorker(const std::string& path) {
     if (!folly::readFile(path.c_str(), payload_)) {
-        LOG(ERROR) << 
+        LOG(FATAL) << 
             "Could not read service worker javascript file: " << path;
     }
-    LOG(INFO) << "Service worker content: " << payload_;
 }
 
 // todo: optimize use of threads with the myhtml library
@@ -22,14 +21,14 @@ folly::fbstring ServiceWorker::injectServiceWorker(
     mystatus_t status = myhtml_parse(tree, MyENCODING_UTF_8, 
         reinterpret_cast<const char*>(buf.data()), buf.length());
     if (status != MyHTML_STATUS_OK) {
-        LOG(ERROR) << "Could not parse cached HTML content";
+        VLOG(1) << "Could not parse cached HTML content";
         return "";
     }
     // find the head tag
     myhtml_tree_node_t* head = myhtml_tree_get_node_head(tree);
 
     if (!head) {
-        LOG(ERROR) << "Could not parse <head>";
+        VLOG(1) << "Could not parse <head>";
         return "";
     }
     // insert service worker script tag
