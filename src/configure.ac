@@ -7,4 +7,5 @@ AC_CONFIG_FILES([
     Makefile
     tests/Makefile
 ])
+AC_PROG_LIBTOOL
 AC_OUTPUT

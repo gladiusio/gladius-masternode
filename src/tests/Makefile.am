@@ -9,18 +9,10 @@ check_PROGRAMS = masternode_tests
 masternode_tests_SOURCES = \
     MasternodeTests.cpp \
     NetworkStateTests.cpp \
-    TestRunner.cpp \
-    $(top_builddir)/Masternode.cpp \
-    $(top_builddir)/Router.cpp \
-    $(top_builddir)/ProxyHandler.cpp \
-    $(top_builddir)/Cache.cpp \
-    $(top_builddir)/DirectHandler.cpp \
-    $(top_builddir)/ServiceWorkerHandler.cpp \
-    $(top_builddir)/NetworkState.cpp \
-    $(top_builddir)/ServiceWorker.cpp \
-    $(top_builddir)/RedirectHandler.cpp
+    TestRunner.cpp
 
 masternode_tests_LDADD = \
+    $(top_builddir)/libmasternode.la \
     -lproxygenhttpserver \
     -lproxygenlib \
     -lwangle \

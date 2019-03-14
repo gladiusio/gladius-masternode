@@ -1,8 +1,7 @@
 *.o
-
-# Build folder
-build/
-
+*.lo
+*.a
+*.la
 aclocal.m4
 config.log
 config.status
@@ -22,3 +21,17 @@ masternode_tests
 test-driver
 
 .DS_store
+.vscode/settings.json
+.vscode/c_cpp_properties.json
+src/compile
+src/config.guess
+src/config.sub
+
+src/libtool
+src/.libs/
+src/m4/ltoptions.m4
+src/m4/ltversion.m4
+src/m4/libtool.m4
+src/m4/ltsugar.m4
+src/m4/lt~obsolete.m4
+src/ltmain.sh

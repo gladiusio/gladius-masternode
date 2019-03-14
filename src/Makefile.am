@@ -2,6 +2,8 @@ AUTOMAKE_OPTIONS = foreign
 
 SUBDIRS = . tests
 
+ACLOCAL_AMFLAGS = -I m4
+
 AM_CPPFLAGS = -I$(top_srcdir) -I$(top_srcdir)/libs \
     -Wall \
     -Wextra \
@@ -10,9 +12,22 @@ AM_CPPFLAGS = -I$(top_srcdir) -I$(top_srcdir)/libs \
     -fstack-protector \
     -fPIE
 
-bin_PROGRAMS = masternode
+lib_LTLIBRARIES = libmasternode.la
 
-masternode_LDADD = \
+libmasternode_la_SOURCES= \
+    Masternode.cpp \
+    ProxyHandler.cpp \
+    Cache.cpp \
+    Router.cpp \
+    DirectHandler.cpp \
+    ServiceWorkerHandler.cpp \
+    NetworkState.cpp \
+    ServiceWorker.cpp \
+    RedirectHandler.cpp
+
+libmasternode_la_LDFLAGS = -static -pthread -pie -Wl,-z,relro,-z,now
+
+libmasternode_la_LIBADD = \
     -lproxygenhttpserver \
     -lproxygenlib \
     -lwangle \
@@ -25,16 +40,12 @@ masternode_LDADD = \
     -ldouble-conversion \
     -lmyhtml
 
-masternode_LDFLAGS = -pthread -pie -Wl,-z,relro,-z,now
+bin_PROGRAMS = masternode
+
+masternode_LDFLAGS = -static -pthread -pie -Wl,-z,relro,-z,now
 
 masternode_SOURCES = \
-    MasternodeServer.cpp \
-    Masternode.cpp \
-    ProxyHandler.cpp \
-    Cache.cpp \
-    Router.cpp \
-    DirectHandler.cpp \
-    ServiceWorkerHandler.cpp \
-    NetworkState.cpp \
-    ServiceWorker.cpp \
-    RedirectHandler.cpp
+    MasternodeServer.cpp 
+
+masternode_LDADD = \
+    libmasternode.la
