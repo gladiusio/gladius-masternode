@@ -47,6 +47,7 @@ TEST (Masternode, TestPassthroughProxy) {
   mc->options.idleTimeout = std::chrono::milliseconds(10000);
   mc->options.shutdownOn = {SIGINT, SIGTERM};
   mc->options.enableContentCompression = false;
+  mc->enableServiceWorker = false;
  
   auto master = std::make_unique<masternode::Masternode>(mc);
   auto master_thread = std::make_unique<MasternodeThread>(master.get());
@@ -90,6 +91,7 @@ TEST (Masternode, TestSSLPassthroughProxy) {
   mc->options.idleTimeout = std::chrono::milliseconds(10000);
   mc->options.shutdownOn = {SIGINT, SIGTERM};
   mc->options.enableContentCompression = false;
+  mc->enableServiceWorker = false;
  
   auto master = std::make_unique<masternode::Masternode>(mc);
   auto master_thread = std::make_unique<MasternodeThread>(master.get());
@@ -186,6 +188,7 @@ TEST (Masternode, TestRedirectHandler) {
   mc->options.idleTimeout = std::chrono::milliseconds(10000);
   mc->options.shutdownOn = {SIGINT, SIGTERM};
   mc->options.enableContentCompression = false;
+  mc->enableServiceWorker = false;
   mc->upgrade_insecure = true;
   mc->ssl_port = 443;
 
@@ -225,6 +228,7 @@ TEST (Masternode, TestCompression) {
   mc->options.threads = 1;
   mc->options.idleTimeout = std::chrono::milliseconds(10000);
   mc->options.shutdownOn = {SIGINT, SIGTERM};
+  mc->enableServiceWorker = false;
   mc->options.enableContentCompression = true;
   mc->options.contentCompressionLevel = 6;
   mc->enableServiceWorker = false;
