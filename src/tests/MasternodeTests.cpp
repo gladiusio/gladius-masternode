@@ -106,6 +106,44 @@ TEST (Masternode, TestSSLPassthroughProxy) {
   EXPECT_EQ("Origin server content", res->body);
 }
 
+TEST (Masternode, TestPassthroughProxyPOST) {
+  // Create and start an origin server
+  auto origin = std::make_unique<httplib::Server>();
+  auto origin_thread = std::make_unique<OriginThread>(origin.get()
+    ->Post("/", [](const httplib::Request& req, httplib::Response& res) {
+        res.set_content(req.body, "text/plain"); // echo client data
+      }));
+  origin_thread->start();
+
+  // Create and start a masternode
+  std::vector<HTTPServer::IPConfig> IPs = {
+        {folly::SocketAddress("0.0.0.0", 8080, true),
+        HTTPServer::Protocol::HTTP}};
+
+  auto mc = std::make_shared<MasternodeConfig>();
+  mc->origin_host = "0.0.0.0";
+  mc->origin_port = 8085;
+  mc->IPs = IPs;
+  mc->cache_directory = "/dev/null";
+  mc->options.threads = 1;
+  mc->options.idleTimeout = std::chrono::milliseconds(10000);
+  mc->options.shutdownOn = {SIGINT, SIGTERM};
+  mc->options.enableContentCompression = false;
+  mc->enableServiceWorker = false;
+ 
+  auto master = std::make_unique<masternode::Masternode>(mc);
+  auto master_thread = std::make_unique<MasternodeThread>(master.get());
+
+  EXPECT_TRUE(master_thread->start());
+
+  // Make a request from the client's perspective to the masternode
+  httplib::Client client("0.0.0.0", 8080);
+  auto res = client.Post("/", "this is my POST body", "text/plain");
+  ASSERT_TRUE(res != nullptr);
+  EXPECT_EQ(200, res->status);
+  EXPECT_EQ("this is my POST body", res->body);
+}
+
 TEST (Masternode, TestServiceWorkerInjection) {
   // Create and start an origin server
   auto origin = std::make_unique<httplib::Server>();
