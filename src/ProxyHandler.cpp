@@ -40,37 +40,40 @@ void ProxyHandler::onRequest(std::unique_ptr<HTTPMessage> headers) noexcept {
     request_ = std::move(headers);
     proxygen::URL url(request_->getURL());
 
-    // check the cache for this url
-    const auto& cachedRoute = cache_->getCachedRoute(url.getUrl());
-    
-    // if we have it cached, reply to client
-    if (cachedRoute) {
-        LOG(INFO) << "Serving from cache for " << url.getUrl();
-        if (config_->enableServiceWorker &&
-            cachedRoute->getHeaders()->getHeaders().rawGet("Content-Type")
-            .find("text/html") != std::string::npos) {
-            // inject service worker bootstrap into <head> tag
-            folly::fbstring injected_body = 
-                sw_->injectServiceWorker(*cachedRoute->getContent());
-            if (!injected_body.empty()) {
-                ResponseBuilder(downstream_)
-                    .status(200, "OK")
-                    .header("Content-Type", cachedRoute->getHeaders()->
-                        getHeaders().rawGet("Content-Type"))
-                    .body(injected_body)
-                    .sendWithEOM();
-                return;
-            }
-        }
+    if (request_->getMethod() == HTTPMethod::GET) {
+        // check the cache for this url
+        const auto& cachedRoute = cache_->getCachedRoute(url.getUrl());
         
-        ResponseBuilder(downstream_)
-            .status(200, "OK")
-            .header("Content-Type", cachedRoute->getHeaders()->
-                getHeaders().rawGet("Content-Type"))
-            .body(cachedRoute->getContent())
-            .sendWithEOM();
-        return;
+        // if we have it cached, reply to client
+        if (cachedRoute) {
+            LOG(INFO) << "Serving from cache for " << url.getUrl();
+            if (config_->enableServiceWorker &&
+                cachedRoute->getHeaders()->getHeaders().rawGet("Content-Type")
+                .find("text/html") != std::string::npos) {
+                // inject service worker bootstrap into <head> tag
+                folly::fbstring injected_body = 
+                    sw_->injectServiceWorker(*cachedRoute->getContent());
+                if (!injected_body.empty()) {
+                    ResponseBuilder(downstream_)
+                        .status(200, "OK")
+                        .header("Content-Type", cachedRoute->getHeaders()->
+                            getHeaders().rawGet("Content-Type"))
+                        .body(injected_body)
+                        .sendWithEOM();
+                    return;
+                }
+            }
+            
+            ResponseBuilder(downstream_)
+                .status(200, "OK")
+                .header("Content-Type", cachedRoute->getHeaders()->
+                    getHeaders().rawGet("Content-Type"))
+                .body(cachedRoute->getContent())
+                .sendWithEOM();
+            return;
+        }
     }
+    
     // otherwise, connect to origin server to fetch content
     request_->stripPerHopHeaders();
     folly::SocketAddress addr;
