@@ -31,7 +31,7 @@ class CachedRoute {
 class ContentCache {
     public:
         const size_t DEFAULT_INITIAL_CACHE_SIZE = 64;
-        const size_t DEFAULT_MAX_CACHE_SIZE = 2048;
+        const size_t DEFAULT_MAX_CACHE_SIZE = 1024;
 
         ContentCache(size_t maxSize, std::string& dir) : 
             map_(DEFAULT_INITIAL_CACHE_SIZE, maxSize), cache_directory_(dir) {
