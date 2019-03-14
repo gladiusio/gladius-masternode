@@ -30,8 +30,11 @@ class CachedRoute {
 
 class ContentCache {
     public:
-        ContentCache(size_t size, std::string& dir) : 
-            map_(size), cache_directory_(dir) {}
+        const size_t DEFAULT_INITIAL_CACHE_SIZE = 64;
+        const size_t DEFAULT_MAX_CACHE_SIZE = 2048;
+
+        ContentCache(size_t maxSize, std::string& dir) : 
+            map_(DEFAULT_INITIAL_CACHE_SIZE, maxSize), cache_directory_(dir) {}
 
         // Retrieve cached content with the URL as the lookup key
         std::shared_ptr<CachedRoute> getCachedRoute(std::string) const;

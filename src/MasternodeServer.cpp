@@ -28,6 +28,7 @@ DEFINE_string(pool_domain, "", "Domain to use for pool hosts"); // i.e. examplep
 DEFINE_string(cdn_subdomain, "cdn", "Subdomain of the pool domain to use for content node hostnames");
 DEFINE_bool(enable_compression, false, "Set to true to enable compression");
 DEFINE_bool(enable_service_worker, true, "Set to true to enable service worker injection");
+DEFINE_int32(max_cached_routes, 2048, "Maximum number of routes to cache");
 
 // debug use only
 DEFINE_bool(ignore_heartbeat, false, "Set to true to disable heartbeat checking for edge nodes");
@@ -75,6 +76,7 @@ int main(int argc, char *argv[]) {
     config->enableServiceWorker = FLAGS_enable_service_worker;
     config->IPs = IPs;
     config->cache_directory = FLAGS_cache_dir;
+    config->maxRoutesToCache = FLAGS_max_cached_routes;
     config->ignore_heartbeat = FLAGS_ignore_heartbeat;
     config->pool_domain = FLAGS_pool_domain;
     config->cdn_subdomain = FLAGS_cdn_subdomain;
@@ -82,7 +84,7 @@ int main(int argc, char *argv[]) {
     config->options.idleTimeout = std::chrono::milliseconds(60000);
     config->options.shutdownOn = {SIGINT, SIGTERM};
     config->options.enableContentCompression = FLAGS_enable_compression;
-    config->options.contentCompressionLevel = 6;
+    config->options.contentCompressionLevel = 4;
     config->options.supportsConnect = false;
 
     Masternode master(config);

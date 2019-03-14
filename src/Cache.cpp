@@ -34,18 +34,18 @@ std::shared_ptr<CachedRoute>
 bool ContentCache::addCachedRoute(std::string url,
     std::unique_ptr<folly::IOBuf> chain,
     std::shared_ptr<proxygen::HTTPMessage> headers) {
-
+    
     // Create a new CachedRoute class
     std::shared_ptr<CachedRoute> newEntry = 
         std::make_shared<CachedRoute>(url, chain->clone(), std::move(headers));
     
     // Insert the CachedRoute class into the cache
-    if (!map_.insert(url, newEntry).second) {
+    if (!map_.insert(url, newEntry).second) { // blocks for write access
         LOG(INFO) << "Could not add route into cache: " << url;
         return false;
     }
-    LOG(INFO) << "Route byte size: " << newEntry->getContent()->length();
-    LOG(INFO) << "Route chain byte size: " << newEntry->getContent()->computeChainDataLength();
+    size_t dataSize = newEntry->getContent()->computeChainDataLength();
+    LOG(INFO) << "Route chain byte size: " << dataSize;
     LOG(INFO) << "Added new cached route: " << url;
 
     // write bytes to file
@@ -53,7 +53,7 @@ bool ContentCache::addCachedRoute(std::string url,
     folly::File f(cache_directory_ + newEntry->getHash(),
         O_WRONLY | O_CREAT | O_TRUNC, 0666);
     folly::gen::from(*newEntry->getContent()) | 
-        folly::gen::toFile(folly::File(f.fd()), newEntry->getContent()->computeChainDataLength());
+        folly::gen::toFile(f.dup(), dataSize);
     return true;
 }
 

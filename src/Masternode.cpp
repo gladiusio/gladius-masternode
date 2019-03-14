@@ -6,7 +6,8 @@ using namespace masternode;
 Masternode::Masternode(std::shared_ptr<MasternodeConfig> config):
     config_(config) {
     state_ = std::make_shared<NetworkState>(config_);
-    cache_ = std::make_shared<ContentCache>(256, config_->cache_directory);
+    cache_ = std::make_shared<ContentCache>(
+        config_->maxRoutesToCache, config_->cache_directory);
     if (config_->enableServiceWorker) {
         sw_ = std::make_shared<ServiceWorker>(config_->service_worker_path);
     }
