@@ -3,6 +3,7 @@
 #include "RedirectHandler.h"
 #include "ProxyHandler.h"
 #include "ServiceWorkerHandler.h"
+#include "RejectHandler.h"
 
 Router::Router(std::shared_ptr<MasternodeConfig> config,
     std::shared_ptr<NetworkState> state,
@@ -12,6 +13,8 @@ Router::Router(std::shared_ptr<MasternodeConfig> config,
     config_(config),
     state_(state),
     sw_(sw) {
+        CHECK(config_) << "Config object was null";
+        CHECK(cache_) << "Cache object was null";
         VLOG(1) << "Router created";
     }
 
@@ -36,6 +39,12 @@ RequestHandler* Router::onRequest(
     logRequest(m);
     // make sure this request always has a Host: header
     m->ensureHostHeader();
+    
+    std::string host = m->getHeaders().getSingleOrEmpty(HTTP_HEADER_HOST);
+    if (host != config_->protected_domain) {
+        // reject this request
+        return new RejectHandler(400, "Bad Request");
+    }
     
     // logic to determine which handler to create based on the request
 

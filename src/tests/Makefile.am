@@ -18,7 +18,8 @@ masternode_tests_SOURCES = \
     $(top_builddir)/ServiceWorkerHandler.cpp \
     $(top_builddir)/NetworkState.cpp \
     $(top_builddir)/ServiceWorker.cpp \
-    $(top_builddir)/RedirectHandler.cpp
+    $(top_builddir)/RedirectHandler.cpp \
+    $(top_builddir)/RejectHandler.cpp
 
 masternode_tests_LDADD = \
     -lproxygenhttpserver \
