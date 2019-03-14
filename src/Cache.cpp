@@ -48,7 +48,7 @@ bool ContentCache::addCachedRoute(std::string url,
     VLOG(1) << "Route chain byte size: " << dataSize;
     LOG(INFO) << "Added new cached route: " << url;
 
-    if (this.writeToDisk) {
+    if (this->writeToDisk_) {
         // write bytes to file
         // todo: use thread pool to do this off of the event IO threads
         folly::File f(cache_directory_ + newEntry->getHash(),
