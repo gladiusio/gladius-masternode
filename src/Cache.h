@@ -34,7 +34,9 @@ class ContentCache {
         const size_t DEFAULT_MAX_CACHE_SIZE = 2048;
 
         ContentCache(size_t maxSize, std::string& dir) : 
-            map_(DEFAULT_INITIAL_CACHE_SIZE, maxSize), cache_directory_(dir) {}
+            map_(DEFAULT_INITIAL_CACHE_SIZE, maxSize), cache_directory_(dir) {
+                CHECK(!cache_directory_.empty()) << "Cache directory string was empty";
+            }
 
         // Retrieve cached content with the URL as the lookup key
         std::shared_ptr<CachedRoute> getCachedRoute(std::string) const;

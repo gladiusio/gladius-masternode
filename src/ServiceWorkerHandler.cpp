@@ -8,7 +8,10 @@ ServiceWorkerHandler::ServiceWorkerHandler(
     std::shared_ptr<MasternodeConfig> config,
     std::shared_ptr<ServiceWorker> sw):
     config_(config),
-    sw_(sw) {}
+    sw_(sw) {
+        CHECK(config_) << "Config object was null";
+        CHECK(sw_) << "Service Worker object was null";
+    }
 
 void ServiceWorkerHandler::onRequest(
     std::unique_ptr<proxygen::HTTPMessage> headers) noexcept {
