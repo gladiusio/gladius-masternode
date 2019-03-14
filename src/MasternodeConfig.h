@@ -39,4 +39,6 @@ class MasternodeConfig {
         std::string pool_domain{""};
         // Subdomain of the pool domain to use for content node hostnames
         std::string cdn_subdomain{"cdn"};
+        // Maximum number of routes to cache
+        size_t maxRoutesToCache{2048};
 };
