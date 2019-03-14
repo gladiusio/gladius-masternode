@@ -66,6 +66,5 @@ void Router::logRequest(HTTPMessage *m) {
     // ip [time] method url protocol
     LOG(INFO) << m->getClientIP() << " " <<
         "[" << getDateTimeStr(m->getStartTime()) << "] " <<
-        m->getMethodString() << " " << m->getURL() << " " <<
-        m->getProtocolString();
+        m->getMethodString() << " " << m->getURL();
 }
