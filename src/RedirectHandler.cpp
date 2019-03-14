@@ -33,9 +33,6 @@ void RedirectHandler::onRequest(
                 .sendWithEOM();
         }
     }
-    LOG(ERROR) << "getURL() is: " << headers->getURL();
-    
-    LOG(ERROR) << "Host: is : " << host;
 
     proxygen::URL redirect_url(
         "https",

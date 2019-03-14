@@ -36,7 +36,6 @@ void ProxyHandler::abortDownstream() {
 
 // RequestHandler methods
 void ProxyHandler::onRequest(std::unique_ptr<HTTPMessage> headers) noexcept {
-    LOG(INFO) << "Received new request from " << headers->getClientIP();
     request_ = std::move(headers);
     proxygen::URL url(request_->getURL());
 

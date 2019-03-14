@@ -22,8 +22,12 @@ void ServiceWorkerHandler::onRequest(
 
 void ServiceWorkerHandler::onBody(
     std::unique_ptr<folly::IOBuf> body) noexcept {}
+
 void ServiceWorkerHandler::onUpgrade(
     proxygen::UpgradeProtocol protocol) noexcept {}
+
 void ServiceWorkerHandler::onEOM() noexcept {}
-void ServiceWorkerHandler::requestComplete() noexcept {}
-void ServiceWorkerHandler::onError(proxygen::ProxygenError err) noexcept {}
+
+void ServiceWorkerHandler::requestComplete() noexcept { delete this; }
+
+void ServiceWorkerHandler::onError(proxygen::ProxygenError err) noexcept { delete this; }

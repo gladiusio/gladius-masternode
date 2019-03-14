@@ -33,6 +33,7 @@ void Router::onServerStop() noexcept {
 RequestHandler* Router::onRequest(
     RequestHandler *req, HTTPMessage *m) noexcept {
 
+    logRequest(m);
     // make sure this request always has a Host: header
     m->ensureHostHeader();
     
@@ -59,4 +60,12 @@ RequestHandler* Router::onRequest(
 
     // all other requests for proxied content
     return new ProxyHandler(timer_->timer.get(), cache_, config_, sw_);
+}
+
+void Router::logRequest(HTTPMessage *m) {
+    // ip [time] method url protocol
+    LOG(INFO) << m->getClientIP() << " " <<
+        "[" << getDateTimeStr(m->getStartTime()) << "] " <<
+        m->getMethodString() << " " << m->getURL() << " " <<
+        m->getProtocolString();
 }
