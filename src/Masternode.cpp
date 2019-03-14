@@ -5,7 +5,7 @@ using namespace masternode;
 
 Masternode::Masternode(std::shared_ptr<MasternodeConfig> config):
     config_(config) {
-
+    CHECK(config) << "Config object was null";
     if (config_->enableP2P) {
         state_ = std::make_shared<NetworkState>(config_);
     }
