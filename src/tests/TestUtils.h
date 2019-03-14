@@ -89,7 +89,7 @@ class MasternodeThread {
                               std::rethrow_exception(ep);
                             }
                           } catch(const std::exception& e) {
-                            LOG(ERROR) << "Caught exception: " << e.what() << "\n";
+                            LOG(ERROR) << "Caught exception: " << e.what();
                           }
                           throws = true;
                           master_ = nullptr;

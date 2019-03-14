@@ -42,12 +42,12 @@ int main(int argc, char *argv[]) {
     auto config = std::make_shared<MasternodeConfig>();
 
     size_t threads = sysconf(_SC_NPROCESSORS_ONLN);
-    LOG(INFO) << "Configuring server to use " << threads << " I/O threads...\n";
+    LOG(INFO) << "Configuring server to use " << threads << " I/O threads...";
 
     std::vector<HTTPServer::IPConfig> IPs = {
         {folly::SocketAddress(FLAGS_ip, FLAGS_port, true),
         HTTPServer::Protocol::HTTP}};
-    LOG(INFO) << "Binding to " << FLAGS_ip << ":" << FLAGS_port << "\n";
+    LOG(INFO) << "Binding to " << FLAGS_ip << ":" << FLAGS_port;
 
     if (!(FLAGS_cert_path.empty() || FLAGS_key_path.empty())) {
         // Enable SSL
