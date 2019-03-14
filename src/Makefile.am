@@ -1,7 +1,5 @@
 AUTOMAKE_OPTIONS = foreign
 
-SUBDIRS = . tests
-
 ACLOCAL_AMFLAGS = -I m4
 
 AM_CPPFLAGS = -I$(top_srcdir) -I$(top_srcdir)/libs \
@@ -50,3 +48,21 @@ masternode_SOURCES = \
 masternode_LDADD = \
     libmasternode.la \
     -lproxygenhttpserver
+
+
+TESTS = masternode_tests
+
+check_PROGRAMS = masternode_tests
+
+masternode_tests_SOURCES = \
+    tests/MasternodeTests.cpp \
+    tests/NetworkStateTests.cpp \
+    tests/TestRunner.cpp
+
+masternode_tests_LDADD = \
+    libmasternode.la \
+    -lproxygenhttpserver \
+    -lgtest \
+    -lz
+    
+masternode_tests_LDFLAGS = -pthread
