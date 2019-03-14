@@ -50,10 +50,13 @@ bool ContentCache::addCachedRoute(std::string url,
 
     // write bytes to file
     // todo: use thread pool to do this off of the event IO threads
-    folly::File f(cache_directory_ + newEntry->getHash(),
-        O_WRONLY | O_CREAT | O_TRUNC, 0666);
-    folly::gen::from(*newEntry->getContent()) | 
-        folly::gen::toFile(f.dup(), dataSize);
+    if (config_->enableP2P) {
+        folly::File f(cache_directory_ + newEntry->getHash(),
+            O_WRONLY | O_CREAT | O_TRUNC, 0666);
+        folly::gen::from(*newEntry->getContent()) | 
+            folly::gen::toFile(f.dup(), dataSize);
+    }
+    
     return true;
 }
 
