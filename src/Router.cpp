@@ -33,6 +33,16 @@ void Router::onServerStop() noexcept {
     LOG(INFO) << "Server thread stopped";
 }
 
+bool Router::requestIsValid(std::string host) {
+    if (host == config_->protected_domain) return true;
+    if (config_->ssl_enabled) {
+        if (host == config_->protected_domain + ":" + std::to_string(config_->ssl_port)) return true;
+    }
+    if (host == config_->protected_domain + ":" + std::to_string(config_->port)) return true;
+    return false;
+}
+
+
 RequestHandler* Router::onRequest(
     RequestHandler *req, HTTPMessage *m) noexcept {
 
@@ -41,10 +51,12 @@ RequestHandler* Router::onRequest(
     m->ensureHostHeader();
     
     std::string host = m->getHeaders().getSingleOrEmpty(HTTP_HEADER_HOST);
-    if (host != config_->protected_domain) {
+
+    if (!requestIsValid(host)) {
         // reject this request
         return new RejectHandler(400, "Bad Request");
     }
+ 
     
     // logic to determine which handler to create based on the request
 

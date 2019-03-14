@@ -7,6 +7,9 @@
 
 class MasternodeConfig {
     public:
+        std::string ip{""};
+        uint16_t port{80};
+        bool ssl_enabled{false};
         // IP or hostname of the origin server (required)
         std::string origin_host{""};
         // Port of the origin server (required)

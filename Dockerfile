@@ -70,7 +70,7 @@ RUN aclocal && autoconf && automake --add-missing
 WORKDIR /app/build
 
 # Generates actual Makefile
-RUN ../configure
+RUN ../configure CXXFLAGS="-O3"
 
 # Build the masternode
 RUN make -j $(printf %.0f $(echo "$(nproc) * 1.5" | bc -l)) \

@@ -61,6 +61,7 @@ int main(int argc, char *argv[]) {
         sslCfg.setCertificate(FLAGS_cert_path, FLAGS_key_path, "");
         sslIP.sslConfigs.push_back(sslCfg);
         IPs.push_back(sslIP);
+        config->ssl_enabled = true;
         LOG(INFO) << "Binding to " << FLAGS_ip << ":" << FLAGS_ssl_port << " for SSL requests";
         if (FLAGS_upgrade_insecure) {
             config->upgrade_insecure = true;
@@ -68,6 +69,8 @@ int main(int argc, char *argv[]) {
         }
     }
     
+    config->ip = FLAGS_ip;
+    config->port = FLAGS_port;
     config->origin_host = FLAGS_origin_host;
     config->origin_port = FLAGS_origin_port;
     config->protected_domain = FLAGS_protected_domain;
