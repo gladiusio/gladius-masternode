@@ -20,43 +20,60 @@ ProxyHandler::ProxyHandler(folly::HHWheelTimer *timer,
         config_(config),
         sw_(sw) {}
 
+bool ProxyHandler::checkForShutdown() {
+    if (clientTerminated_ && !originTxn_) {
+        delete this;
+        return true;
+    }
+    return false;
+}
+
+void ProxyHandler::abortDownstream() {
+    if (!clientTerminated_) {
+        downstream_->sendAbort();
+    }
+}
+
 // RequestHandler methods
 void ProxyHandler::onRequest(std::unique_ptr<HTTPMessage> headers) noexcept {
     LOG(INFO) << "Received new request from " << headers->getClientIP();
     request_ = std::move(headers);
     proxygen::URL url(request_->getURL());
 
-    // check the cache for this url
-    const auto& cachedRoute = cache_->getCachedRoute(url.getUrl());
-    
-    // if we have it cached, reply to client
-    if (cachedRoute) {
-        LOG(INFO) << "Serving from cache for " << url.getUrl();
-        if (config_->enableServiceWorker &&
-            cachedRoute->getHeaders()->getHeaders().rawGet("Content-Type")
-            .find("text/html") != std::string::npos) {
-            // inject service worker bootstrap into <head> tag
-            folly::fbstring injected_body = 
-                sw_->injectServiceWorker(*cachedRoute->getContent());
-            if (!injected_body.empty()) {
-                ResponseBuilder(downstream_)
-                    .status(200, "OK")
-                    .header("Content-Type", cachedRoute->getHeaders()->
-                        getHeaders().rawGet("Content-Type"))
-                    .body(injected_body)
-                    .sendWithEOM();
-                return;
-            }
-        }
+    if (request_->getMethod() == HTTPMethod::GET) {
+        // check the cache for this url
+        const auto& cachedRoute = cache_->getCachedRoute(url.getUrl());
         
-        ResponseBuilder(downstream_)
-            .status(200, "OK")
-            .header("Content-Type", cachedRoute->getHeaders()->
-                getHeaders().rawGet("Content-Type"))
-            .body(cachedRoute->getContent())
-            .sendWithEOM();
-        return;
+        // if we have it cached, reply to client
+        if (cachedRoute) {
+            LOG(INFO) << "Serving from cache for " << url.getUrl();
+            if (config_->enableServiceWorker &&
+                cachedRoute->getHeaders()->getHeaders().rawGet("Content-Type")
+                .find("text/html") != std::string::npos) {
+                // inject service worker bootstrap into <head> tag
+                folly::fbstring injected_body = 
+                    sw_->injectServiceWorker(*cachedRoute->getContent());
+                if (!injected_body.empty()) {
+                    ResponseBuilder(downstream_)
+                        .status(200, "OK")
+                        .header("Content-Type", cachedRoute->getHeaders()->
+                            getHeaders().rawGet("Content-Type"))
+                        .body(injected_body)
+                        .sendWithEOM();
+                    return;
+                }
+            }
+            
+            ResponseBuilder(downstream_)
+                .status(200, "OK")
+                .header("Content-Type", cachedRoute->getHeaders()->
+                    getHeaders().rawGet("Content-Type"))
+                .body(cachedRoute->getContent())
+                .sendWithEOM();
+            return;
+        }
     }
+    
     // otherwise, connect to origin server to fetch content
     request_->stripPerHopHeaders();
     folly::SocketAddress addr;
@@ -83,7 +100,16 @@ void ProxyHandler::onRequest(std::unique_ptr<HTTPMessage> headers) noexcept {
     connector_.connect(evb, addr, std::chrono::milliseconds(60000), opts);
 }
 
-void ProxyHandler::onBody(std::unique_ptr<folly::IOBuf> body) noexcept {}
+void ProxyHandler::onBody(std::unique_ptr<folly::IOBuf> body) noexcept {
+    int bytes = ((body) ? body->computeChainDataLength() : 0);
+    if (originTxn_) {
+        LOG(INFO) << "Forwarding " << bytes << " body bytes to origin";
+        originTxn_->sendBody(std::move(body));
+    } else {
+        LOG(WARNING) << "Dropping " << bytes << 
+            " body bytes from client to origin";
+    }
+}
 void ProxyHandler::onUpgrade(UpgradeProtocol protocol) noexcept {}
 
 // Called when the client sends their EOM to the masternode
@@ -93,12 +119,15 @@ void ProxyHandler::onEOM() noexcept {
         // Forward the client's EOM to the origin server
         originTxn_->sendEOM();
         LOG(INFO) << "Sending EOM to origin";
+    } else {
+        LOG(WARNING) << "Dropping client EOM to origin";
     }
 }
 void ProxyHandler::requestComplete() noexcept {
     LOG(INFO) << "Completed request";
     // If we stored new content to cache
-    if (contentBody_ && contentHeaders_) {
+    if (request_->getMethod() == HTTPMethod::GET &&
+        contentBody_ && contentHeaders_) {
         proxygen::URL url(request_->getURL());
         LOG(INFO) << "Adding " << url.getUrl() << " to memory cache";
         // todo: may want to do this asynchronously
@@ -106,12 +135,17 @@ void ProxyHandler::requestComplete() noexcept {
             contentBody_->cloneCoalesced(), contentHeaders_); 
     }
 
-    delete this;
+    clientTerminated_ = true;
+    checkForShutdown();
 }
 void ProxyHandler::onError(ProxygenError err) noexcept {
-    LOG(ERROR) << "Request Handler encounted an error:\n" 
+    LOG(ERROR) << "Request Handler encounted a client error:\n" 
         << getErrorString(err);
-    delete this; 
+    clientTerminated_ = true;
+    if (originTxn_) {
+        originTxn_->sendAbort();
+    }
+    checkForShutdown();
 }
 
 // HTTPConnector::Callback methods
@@ -136,11 +170,16 @@ void ProxyHandler::connectSuccess(
 // Called when the masternode fails to connect to an origin server
 void ProxyHandler::connectError(
     const folly::AsyncSocketException& ex) noexcept {
-    ResponseBuilder(downstream_)
-        .status(502, "Bad Gateway")
-        .sendWithEOM();
     LOG(ERROR) << "Encountered an error when connecting to the origin server: "
         << ex.what();
+    if (!clientTerminated_) {
+        ResponseBuilder(downstream_)
+            .status(503, "Bad Gateway")
+            .sendWithEOM();
+    } else {
+        abortDownstream();
+        checkForShutdown();
+    }
 }
 
 /////////////////////////////////////////////////////////////
@@ -153,20 +192,14 @@ void ProxyHandler::originSetTransaction(
 }
 
 void ProxyHandler::originDetachTransaction() noexcept {
-    originTxn_ = nullptr;
-    ResponseBuilder(downstream_)
-        .status(200, "OK")
-        .header("Content-Type", contentHeaders_->
-            getHeaders().rawGet("Content-Type"))
-        .body(contentBody_->clone())
-        .sendWithEOM();
-    
     LOG(INFO) << "Detached origin transaction";
-    // TODO: add code to check for conditions to delete this handler here
+    originTxn_ = nullptr;
+    checkForShutdown();
 }
 
 void ProxyHandler::originOnHeadersComplete(
     std::unique_ptr<proxygen::HTTPMessage> msg) noexcept {
+    if (clientTerminated_) return;
     contentHeaders_ = std::move(msg);
 }
 
@@ -174,6 +207,7 @@ void ProxyHandler::originOnHeadersComplete(
 // (can be called multiple times for one request as content comes through)
 void ProxyHandler::originOnBody(
     std::unique_ptr<folly::IOBuf> chain) noexcept {
+    if (clientTerminated_) return;
     // If we've already received some body content
     if (contentBody_) {
         contentBody_->prependChain(chain->clone());
@@ -196,22 +230,39 @@ void ProxyHandler::originOnTrailers(
 }
 
 void ProxyHandler::originOnEOM() noexcept {
-
+    // check that there's still a connection and body/headers
+    // to be able to send back to the client
+    if (!clientTerminated_ && contentHeaders_ && contentBody_){
+        ResponseBuilder(downstream_)
+            .status(200, "OK")
+            .header("Content-Type", contentHeaders_->
+                getHeaders().rawGet("Content-Type"))
+            .body(contentBody_->clone())
+            .sendWithEOM();
+    }
 }
 
 void ProxyHandler::originOnUpgrade(
     proxygen::UpgradeProtocol protocol) noexcept {}
+
 void ProxyHandler::originOnError(
     const proxygen::HTTPException& error) noexcept {
     LOG(INFO) << "Received error from origin: " << error.describe();
+    // todo: send an error back to the client and set condtions so
+    // request handling doesn't proceed
+    abortDownstream();
 }
 
 void ProxyHandler::originOnEgressPaused() noexcept {
-    originTxn_->pauseIngress();
+    if (!clientTerminated_) {
+        originTxn_->pauseIngress();
+    }
 }
 
 void ProxyHandler::originOnEgressResumed() noexcept {
-    originTxn_->resumeIngress();
+    if (!clientTerminated_) {
+        originTxn_->resumeIngress();
+    }
 }
 
 void ProxyHandler::originOnPushedTransaction(

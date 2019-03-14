@@ -21,6 +21,9 @@ class ProxyHandler : public proxygen::RequestHandler,
             std::shared_ptr<MasternodeConfig> config, 
             std::shared_ptr<ServiceWorker> sw);
 
+        bool checkForShutdown();
+        void abortDownstream();
+
         // RequestHandler methods
         void onRequest(std::unique_ptr<proxygen::HTTPMessage> headers) noexcept override;
         void onBody(std::unique_ptr<folly::IOBuf> body) noexcept override;
@@ -127,6 +130,9 @@ class ProxyHandler : public proxygen::RequestHandler,
 
         // Origin response headers
         std::shared_ptr<proxygen::HTTPMessage> contentHeaders_{nullptr};
+
+        // if the client's request is finished/cancelled
+        bool clientTerminated_{false};
 
         // HTTP content cache
         std::shared_ptr<ContentCache> cache_;
