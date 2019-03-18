@@ -28,7 +28,5 @@ namespace masternode {
             void start(std::function<void()> onSuccess = nullptr,
                 std::function<void(std::exception_ptr)> onError = nullptr);
             void stop();
-
-            std::shared_ptr<NetworkState> getNetworkState();
     };
 }

@@ -36,7 +36,6 @@ void ProxyHandler::abortDownstream() {
 
 // RequestHandler methods
 void ProxyHandler::onRequest(std::unique_ptr<HTTPMessage> headers) noexcept {
-    LOG(INFO) << "Received new request from " << headers->getClientIP();
     request_ = std::move(headers);
     proxygen::URL url(request_->getURL());
 
@@ -46,7 +45,7 @@ void ProxyHandler::onRequest(std::unique_ptr<HTTPMessage> headers) noexcept {
         
         // if we have it cached, reply to client
         if (cachedRoute) {
-            LOG(INFO) << "Serving from cache for " << url.getUrl();
+            VLOG(1) << "Serving from cache for " << url.getUrl();
             if (config_->enableServiceWorker &&
                 cachedRoute->getHeaders()->getHeaders().rawGet("Content-Type")
                 .find("text/html") != std::string::npos) {
@@ -57,7 +56,15 @@ void ProxyHandler::onRequest(std::unique_ptr<HTTPMessage> headers) noexcept {
                     ResponseBuilder(downstream_)
                         .status(200, "OK")
                         .header("Content-Type", cachedRoute->getHeaders()->
-                            getHeaders().rawGet("Content-Type"))
+                            getHeaders().getSingleOrEmpty(HTTP_HEADER_CONTENT_TYPE))
+                        .header("Cache-Control", cachedRoute->getHeaders()->
+                            getHeaders().getSingleOrEmpty(HTTP_HEADER_CACHE_CONTROL))
+                        .header("ETag", cachedRoute->getHeaders()->
+                            getHeaders().getSingleOrEmpty(HTTP_HEADER_ETAG))
+                        .header("Expires", cachedRoute->getHeaders()->
+                            getHeaders().getSingleOrEmpty(HTTP_HEADER_EXPIRES))
+                        .header("Last-Modified", cachedRoute->getHeaders()->
+                            getHeaders().getSingleOrEmpty(HTTP_HEADER_LAST_MODIFIED))
                         .body(injected_body)
                         .sendWithEOM();
                     return;
@@ -67,7 +74,15 @@ void ProxyHandler::onRequest(std::unique_ptr<HTTPMessage> headers) noexcept {
             ResponseBuilder(downstream_)
                 .status(200, "OK")
                 .header("Content-Type", cachedRoute->getHeaders()->
-                    getHeaders().rawGet("Content-Type"))
+                    getHeaders().getSingleOrEmpty(HTTP_HEADER_CONTENT_TYPE))
+                .header("Cache-Control", cachedRoute->getHeaders()->
+                    getHeaders().getSingleOrEmpty(HTTP_HEADER_CACHE_CONTROL))
+                .header("ETag", cachedRoute->getHeaders()->
+                    getHeaders().getSingleOrEmpty(HTTP_HEADER_ETAG))
+                .header("Expires", cachedRoute->getHeaders()->
+                    getHeaders().getSingleOrEmpty(HTTP_HEADER_EXPIRES))
+                .header("Last-Modified", cachedRoute->getHeaders()->
+                    getHeaders().getSingleOrEmpty(HTTP_HEADER_LAST_MODIFIED))
                 .body(cachedRoute->getContent())
                 .sendWithEOM();
             return;
@@ -96,17 +111,17 @@ void ProxyHandler::onRequest(std::unique_ptr<HTTPMessage> headers) noexcept {
     };
 
     // Make a connection to the origin server
-    LOG(INFO) << "Connecting to origin server...";
+    VLOG(1) << "Connecting to origin server...";
     connector_.connect(evb, addr, std::chrono::milliseconds(60000), opts);
 }
 
 void ProxyHandler::onBody(std::unique_ptr<folly::IOBuf> body) noexcept {
     int bytes = ((body) ? body->computeChainDataLength() : 0);
     if (originTxn_) {
-        LOG(INFO) << "Forwarding " << bytes << " body bytes to origin";
+        VLOG(1) << "Forwarding " << bytes << " body bytes to origin";
         originTxn_->sendBody(std::move(body));
     } else {
-        LOG(WARNING) << "Dropping " << bytes << 
+        VLOG(1) << "Dropping " << bytes << 
             " body bytes from client to origin";
     }
 }
@@ -114,22 +129,22 @@ void ProxyHandler::onUpgrade(UpgradeProtocol protocol) noexcept {}
 
 // Called when the client sends their EOM to the masternode
 void ProxyHandler::onEOM() noexcept {
-    LOG(INFO) << "Client sent EOM";
+    VLOG(1) << "Client sent EOM";
     if (originTxn_) {
         // Forward the client's EOM to the origin server
         originTxn_->sendEOM();
-        LOG(INFO) << "Sending EOM to origin";
+        VLOG(1) << "Sending EOM to origin";
     } else {
-        LOG(WARNING) << "Dropping client EOM to origin";
+        VLOG(1) << "Dropping client EOM to origin";
     }
 }
 void ProxyHandler::requestComplete() noexcept {
-    LOG(INFO) << "Completed request";
+    VLOG(1) << "Completed request";
     // If we stored new content to cache
     if (request_->getMethod() == HTTPMethod::GET &&
         contentBody_ && contentHeaders_) {
         proxygen::URL url(request_->getURL());
-        LOG(INFO) << "Adding " << url.getUrl() << " to memory cache";
+        VLOG(1) << "Adding " << url.getUrl() << " to memory cache";
         // todo: may want to do this asynchronously
         cache_->addCachedRoute(url.getUrl(),
             contentBody_->cloneCoalesced(), contentHeaders_); 
@@ -139,7 +154,7 @@ void ProxyHandler::requestComplete() noexcept {
     checkForShutdown();
 }
 void ProxyHandler::onError(ProxygenError err) noexcept {
-    LOG(ERROR) << "Request Handler encounted a client error:\n" 
+    LOG(ERROR) << "Proxy Request Handler encountered a client error:" 
         << getErrorString(err);
     clientTerminated_ = true;
     if (originTxn_) {
@@ -153,17 +168,17 @@ void ProxyHandler::onError(ProxygenError err) noexcept {
 // Called when the masternode connects to an origin server
 void ProxyHandler::connectSuccess(
     proxygen::HTTPUpstreamSession* session) noexcept {
-    LOG(INFO) << "Connected to origin server";
+    VLOG(1) << "Connected to origin server";
     originTxn_ = session->newTransaction(&originHandler_);
 
     // strip compression headers so that we receive an uncompressed
     // response
     bool removed = request_->getHeaders().remove(HTTP_HEADER_ACCEPT_ENCODING);
-    if (removed) LOG(INFO) << 
+    if (removed) VLOG(1) << 
         "Stripped Accept-Encoding header from origin request";
 
     originTxn_->sendHeaders(*request_);
-    LOG(INFO) << "Sent headers to origin server";
+    VLOG(1) << "Sent headers to origin server";
     downstream_->resumeIngress();
 }
 
@@ -188,11 +203,11 @@ void ProxyHandler::connectError(
 void ProxyHandler::originSetTransaction(
     proxygen::HTTPTransaction* txn) noexcept {
     originTxn_ = txn;
-    LOG(INFO) << "Set the origin transaction in request handler";
+    VLOG(1) << "Set the origin transaction in request handler";
 }
 
 void ProxyHandler::originDetachTransaction() noexcept {
-    LOG(INFO) << "Detached origin transaction";
+    VLOG(1) << "Detached origin transaction";
     originTxn_ = nullptr;
     checkForShutdown();
 }
@@ -217,16 +232,16 @@ void ProxyHandler::originOnBody(
 }
 
 void ProxyHandler::originOnChunkHeader(size_t length) noexcept {
-    LOG(INFO) << "originOnChunkHeader()";
+    VLOG(1) << "originOnChunkHeader()";
 }
 
 void ProxyHandler::originOnChunkComplete() noexcept {
-    LOG(INFO) << "originOnChunkComplete()";
+    VLOG(1) << "originOnChunkComplete()";
 }
 
 void ProxyHandler::originOnTrailers(
     std::unique_ptr<proxygen::HTTPHeaders> trailers) noexcept {
-    LOG(INFO) << "originOnTrailers()";
+    VLOG(1) << "originOnTrailers()";
 }
 
 void ProxyHandler::originOnEOM() noexcept {
@@ -247,20 +262,20 @@ void ProxyHandler::originOnUpgrade(
 
 void ProxyHandler::originOnError(
     const proxygen::HTTPException& error) noexcept {
-    LOG(INFO) << "Received error from origin: " << error.describe();
+    LOG(ERROR) << "Received error from origin: " << error.describe();
     // todo: send an error back to the client and set condtions so
     // request handling doesn't proceed
     abortDownstream();
 }
 
 void ProxyHandler::originOnEgressPaused() noexcept {
-    if (!clientTerminated_) {
+    if (!clientTerminated_ && originTxn_) {
         originTxn_->pauseIngress();
     }
 }
 
 void ProxyHandler::originOnEgressResumed() noexcept {
-    if (!clientTerminated_) {
+    if (!clientTerminated_ && originTxn_) {
         originTxn_->resumeIngress();
     }
 }

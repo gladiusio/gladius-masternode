@@ -41,19 +41,22 @@ bool ContentCache::addCachedRoute(std::string url,
     
     // Insert the CachedRoute class into the cache
     if (!map_.insert(url, newEntry).second) { // blocks for write access
-        LOG(INFO) << "Could not add route into cache: " << url;
+        VLOG(1) << "Could not add route into cache: " << url;
         return false;
     }
     size_t dataSize = newEntry->getContent()->computeChainDataLength();
-    LOG(INFO) << "Route chain byte size: " << dataSize;
+    VLOG(1) << "Route chain byte size: " << dataSize;
     LOG(INFO) << "Added new cached route: " << url;
 
-    // write bytes to file
-    // todo: use thread pool to do this off of the event IO threads
-    folly::File f(cache_directory_ + newEntry->getHash(),
-        O_WRONLY | O_CREAT | O_TRUNC, 0666);
-    folly::gen::from(*newEntry->getContent()) | 
-        folly::gen::toFile(f.dup(), dataSize);
+    if (this->writeToDisk_) {
+        // write bytes to file
+        // todo: use thread pool to do this off of the event IO threads
+        folly::File f(cache_directory_ + newEntry->getHash(),
+            O_WRONLY | O_CREAT | O_TRUNC, 0666);
+        folly::gen::from(*newEntry->getContent()) | 
+            folly::gen::toFile(f.dup(), dataSize);
+    }
+    
     return true;
 }
 

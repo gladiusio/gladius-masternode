@@ -10,8 +10,7 @@ RedirectHandler::RedirectHandler(std::shared_ptr<MasternodeConfig> config):
 
 void RedirectHandler::onRequest(
     std::unique_ptr<HTTPMessage> headers) noexcept {
-    LOG(INFO) << "Redirect handler received request for: " 
-        << headers->getURL();
+
     std::string host = headers->getHeaders().rawGet("Host");
     std::string redirect_host{""};
     proxygen::URL url(headers->getURL());
@@ -33,9 +32,6 @@ void RedirectHandler::onRequest(
                 .sendWithEOM();
         }
     }
-    LOG(ERROR) << "getURL() is: " << headers->getURL();
-    
-    LOG(ERROR) << "Host: is : " << host;
 
     proxygen::URL redirect_url(
         "https",

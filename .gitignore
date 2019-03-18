@@ -22,3 +22,4 @@ masternode_tests
 test-driver
 
 .DS_store
+.vscode/settings.json

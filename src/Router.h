@@ -31,7 +31,9 @@ class Router : public RequestHandlerFactory {
         std::shared_ptr<ServiceWorker> sw_{nullptr};
 
         std::string DIRECT_HEADER_NAME = "Gladius-Masternode-Direct";
+        bool requestIsValid(std::string host);
     private:
+        void logRequest(HTTPMessage *m);
         struct TimerWrapper {
             HHWheelTimer::UniquePtr timer;
         };

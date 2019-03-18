@@ -31,16 +31,19 @@ class CachedRoute {
 class ContentCache {
     public:
         const size_t DEFAULT_INITIAL_CACHE_SIZE = 64;
-        const size_t DEFAULT_MAX_CACHE_SIZE = 2048;
+        const size_t DEFAULT_MAX_CACHE_SIZE = 1024;
 
-        ContentCache(size_t maxSize, std::string& dir) : 
-            map_(DEFAULT_INITIAL_CACHE_SIZE, maxSize), cache_directory_(dir) {}
+        ContentCache(size_t maxSize, std::string& dir, bool writeToDisk) : 
+            map_(DEFAULT_INITIAL_CACHE_SIZE, maxSize),
+            cache_directory_(dir),
+            writeToDisk_(writeToDisk) {}
 
         // Retrieve cached content with the URL as the lookup key
         std::shared_ptr<CachedRoute> getCachedRoute(std::string) const;
 
         // Add a new CachedRoute entry to the memory cache
-        bool addCachedRoute(std::string url, std::unique_ptr<folly::IOBuf> chain,
+        bool addCachedRoute(std::string url,
+            std::unique_ptr<folly::IOBuf> chain,
             std::shared_ptr<proxygen::HTTPMessage> headers);
 
         std::shared_ptr<folly::F14FastMap<std::string, std::string>>
@@ -57,4 +60,7 @@ class ContentCache {
         
         // Directory to write cached files to
         std::string cache_directory_;
+
+        // Flag to enable writing cached content to disk
+        bool writeToDisk_{false};
 };

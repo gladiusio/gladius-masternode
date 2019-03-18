@@ -37,4 +37,5 @@ masternode_SOURCES = \
     ServiceWorkerHandler.cpp \
     NetworkState.cpp \
     ServiceWorker.cpp \
-    RedirectHandler.cpp
+    RedirectHandler.cpp \
+    RejectHandler.cpp
