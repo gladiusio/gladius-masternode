@@ -56,7 +56,15 @@ void ProxyHandler::onRequest(std::unique_ptr<HTTPMessage> headers) noexcept {
                     ResponseBuilder(downstream_)
                         .status(200, "OK")
                         .header("Content-Type", cachedRoute->getHeaders()->
-                            getHeaders().rawGet("Content-Type"))
+                            getHeaders().getSingleOrEmpty(HTTP_HEADER_CONTENT_TYPE))
+                        .header("Cache-Control", cachedRoute->getHeaders()->
+                            getHeaders().getSingleOrEmpty(HTTP_HEADER_CACHE_CONTROL))
+                        .header("ETag", cachedRoute->getHeaders()->
+                            getHeaders().getSingleOrEmpty(HTTP_HEADER_ETAG))
+                        .header("Expires", cachedRoute->getHeaders()->
+                            getHeaders().getSingleOrEmpty(HTTP_HEADER_EXPIRES))
+                        .header("Last-Modified", cachedRoute->getHeaders()->
+                            getHeaders().getSingleOrEmpty(HTTP_HEADER_LAST_MODIFIED))
                         .body(injected_body)
                         .sendWithEOM();
                     return;
@@ -66,7 +74,15 @@ void ProxyHandler::onRequest(std::unique_ptr<HTTPMessage> headers) noexcept {
             ResponseBuilder(downstream_)
                 .status(200, "OK")
                 .header("Content-Type", cachedRoute->getHeaders()->
-                    getHeaders().rawGet("Content-Type"))
+                    getHeaders().getSingleOrEmpty(HTTP_HEADER_CONTENT_TYPE))
+                .header("Cache-Control", cachedRoute->getHeaders()->
+                    getHeaders().getSingleOrEmpty(HTTP_HEADER_CACHE_CONTROL))
+                .header("ETag", cachedRoute->getHeaders()->
+                    getHeaders().getSingleOrEmpty(HTTP_HEADER_ETAG))
+                .header("Expires", cachedRoute->getHeaders()->
+                    getHeaders().getSingleOrEmpty(HTTP_HEADER_EXPIRES))
+                .header("Last-Modified", cachedRoute->getHeaders()->
+                    getHeaders().getSingleOrEmpty(HTTP_HEADER_LAST_MODIFIED))
                 .body(cachedRoute->getContent())
                 .sendWithEOM();
             return;
