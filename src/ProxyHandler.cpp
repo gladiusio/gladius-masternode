@@ -1,9 +1,5 @@
 #include "ProxyHandler.h"
 
-#include <iostream>
-
-#include <folly/io/async/EventBaseManager.h>
-
 #include <proxygen/httpserver/ResponseBuilder.h>
 #include <proxygen/lib/http/session/HTTPUpstreamSession.h>
 #include <proxygen/lib/utils/URL.h>
@@ -45,29 +41,16 @@ void ProxyHandler::onRequest(std::unique_ptr<HTTPMessage> headers) noexcept {
         
         // if we have it cached, reply to client
         if (cachedRoute) {
+            std::unique_ptr<folly::IOBuf> content = cachedRoute->getContent();
             VLOG(1) << "Serving from cache for " << url.getUrl();
             if (config_->enableServiceWorker &&
                 cachedRoute->getHeaders()->getHeaders().rawGet("Content-Type")
                 .find("text/html") != std::string::npos) {
                 // inject service worker bootstrap into <head> tag
-                folly::fbstring injected_body = 
+                auto injected_body = 
                     sw_->injectServiceWorker(*cachedRoute->getContent());
                 if (!injected_body.empty()) {
-                    ResponseBuilder(downstream_)
-                        .status(200, "OK")
-                        .header("Content-Type", cachedRoute->getHeaders()->
-                            getHeaders().getSingleOrEmpty(HTTP_HEADER_CONTENT_TYPE))
-                        .header("Cache-Control", cachedRoute->getHeaders()->
-                            getHeaders().getSingleOrEmpty(HTTP_HEADER_CACHE_CONTROL))
-                        .header("ETag", cachedRoute->getHeaders()->
-                            getHeaders().getSingleOrEmpty(HTTP_HEADER_ETAG))
-                        .header("Expires", cachedRoute->getHeaders()->
-                            getHeaders().getSingleOrEmpty(HTTP_HEADER_EXPIRES))
-                        .header("Last-Modified", cachedRoute->getHeaders()->
-                            getHeaders().getSingleOrEmpty(HTTP_HEADER_LAST_MODIFIED))
-                        .body(injected_body)
-                        .sendWithEOM();
-                    return;
+                    content = folly::IOBuf::copyBuffer(injected_body);
                 }
             }
             
@@ -83,7 +66,7 @@ void ProxyHandler::onRequest(std::unique_ptr<HTTPMessage> headers) noexcept {
                     getHeaders().getSingleOrEmpty(HTTP_HEADER_EXPIRES))
                 .header("Last-Modified", cachedRoute->getHeaders()->
                     getHeaders().getSingleOrEmpty(HTTP_HEADER_LAST_MODIFIED))
-                .body(cachedRoute->getContent())
+                .body(content->clone())
                 .sendWithEOM();
             return;
         }

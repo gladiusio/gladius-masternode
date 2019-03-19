@@ -1,14 +1,11 @@
 #pragma once
 
-#include <stdint.h>
-
 #include "MasternodeConfig.h"
 #include "Cache.h"
 #include "NetworkState.h"
 #include "ServiceWorker.h"
 
 #include <proxygen/httpserver/HTTPServer.h>
-
 
 namespace masternode {
     class Masternode {

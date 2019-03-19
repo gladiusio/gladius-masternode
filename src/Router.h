@@ -1,8 +1,5 @@
 #pragma once
 
-#include <unistd.h>
-
-#include <folly/io/async/EventBaseManager.h>
 #include <proxygen/httpserver/RequestHandlerFactory.h>
 
 #include "NetworkState.h"

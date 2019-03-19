@@ -1,5 +1,6 @@
 #include "Cache.h"
 #include <folly/DynamicConverter.h>
+#include <folly/ssl/OpenSSLHash.h>
 
 CachedRoute::CachedRoute(std::string& url,
     std::unique_ptr<folly::IOBuf> data,

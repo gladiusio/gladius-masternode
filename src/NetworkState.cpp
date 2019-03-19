@@ -1,5 +1,4 @@
 #include <chrono>
-#include <algorithm>
 
 #include <folly/dynamic.h>
 #include <folly/json.h>
