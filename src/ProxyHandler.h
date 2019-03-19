@@ -4,10 +4,6 @@
 #include "MasternodeConfig.h"
 #include "ServiceWorker.h"
 
-#include <folly/Memory.h>
-#include <folly/executors/IOThreadPoolExecutor.h>
-#include <folly/futures/Future.h>
-
 #include <proxygen/httpserver/RequestHandler.h>
 #include <proxygen/lib/http/HTTPConnector.h>
 #include <proxygen/lib/http/session/HTTPTransaction.h>
