@@ -56,5 +56,5 @@ std::string ServiceWorker::injectServiceWorker(
     return injected;
 }
 
-folly::fbstring ServiceWorker::getPayload() const { return payload_; }
-folly::fbstring ServiceWorker::getInjectScript() const { return inject_script_; }
+std::string ServiceWorker::getPayload() const { return payload_; }
+std::string ServiceWorker::getInjectScript() const { return inject_script_; }
