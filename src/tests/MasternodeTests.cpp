@@ -181,6 +181,7 @@ TEST (Masternode, TestServiceWorkerInjection) {
   mc->protected_domain = "0.0.0.0";
   mc->origin_port = 8085;
   mc->IPs = IPs;
+  mc->enableServiceWorker = true;
   mc->service_worker_path = inject;
   mc->cache_directory = "/dev/null";
   mc->options.threads = 1;

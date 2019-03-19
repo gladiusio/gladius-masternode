@@ -51,11 +51,10 @@ void ProxyHandler::onRequest(std::unique_ptr<HTTPMessage> headers) noexcept {
                 cachedRoute->getHeaders()->getHeaders().rawGet("Content-Type")
                 .find("text/html") != std::string::npos) {
                 // inject service worker bootstrap into <head> tag
-                folly::fbstring injected_body = 
+                auto injected_body = 
                     sw_->injectServiceWorker(*cachedRoute->getContent());
                 if (!injected_body.empty()) {
-                    content = folly::IOBuf::wrapBuffer(injected_body.data(),
-                        injected_body.capacity());
+                    content = folly::IOBuf::copyBuffer(injected_body);
                 }
             }
             
@@ -71,7 +70,7 @@ void ProxyHandler::onRequest(std::unique_ptr<HTTPMessage> headers) noexcept {
                     getHeaders().getSingleOrEmpty(HTTP_HEADER_EXPIRES))
                 .header("Last-Modified", cachedRoute->getHeaders()->
                     getHeaders().getSingleOrEmpty(HTTP_HEADER_LAST_MODIFIED))
-                .body(std::move(content))
+                .body(content->clone())
                 .sendWithEOM();
             return;
         }

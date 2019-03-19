@@ -11,7 +11,7 @@ ServiceWorker::ServiceWorker(const std::string& path) {
 }
 
 // todo: optimize use of threads with the myhtml library
-folly::fbstring ServiceWorker::injectServiceWorker(
+std::string ServiceWorker::injectServiceWorker(
     folly::IOBuf buf) const {
     myhtml_t* myhtml = myhtml_create(); // create instance of myhtml
     myhtml_init(myhtml, MyHTML_OPTIONS_DEFAULT, 1, 0);
@@ -47,7 +47,7 @@ folly::fbstring ServiceWorker::injectServiceWorker(
     mycore_string_raw_clean_all(&str);
     myhtml_serialization_tree_buffer(myhtml_tree_get_document(tree), &str);
 
-    folly::fbstring injected(str.data, str.length);
+    std::string injected(str.data, str.length);
     
     mycore_string_raw_destroy(&str, false);
     myhtml_tree_destroy(tree);
