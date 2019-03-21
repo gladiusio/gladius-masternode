@@ -8,13 +8,13 @@
 
 class NetworkState {
     private:
-        std::shared_ptr<MasternodeConfig> config_;
+        std::shared_ptr<MasternodeConfig> config_{nullptr};
         // List of addresses of edge nodes
         folly::Synchronized<std::vector<std::string>> edgeNodes_;
         // Used to fetch p2p network state on a repeated basis
         folly::FunctionScheduler fs;
         // Used to make simple requests to the local gladius network gateway
-        std::unique_ptr<httplib::Client> httpClient_;
+        std::unique_ptr<httplib::Client> httpClient_{nullptr};
 
     public:
         explicit NetworkState(std::shared_ptr<MasternodeConfig> config);

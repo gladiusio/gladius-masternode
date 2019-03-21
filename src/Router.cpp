@@ -3,6 +3,7 @@
 #include "RedirectHandler.h"
 #include "ProxyHandler.h"
 #include "ServiceWorkerHandler.h"
+#include "RejectHandler.h"
 
 Router::Router(std::shared_ptr<MasternodeConfig> config,
     std::shared_ptr<NetworkState> state,
@@ -12,7 +13,9 @@ Router::Router(std::shared_ptr<MasternodeConfig> config,
     config_(config),
     state_(state),
     sw_(sw) {
-        LOG(ERROR) << "Router created";
+        CHECK(config_) << "Config object was null";
+        CHECK(cache_) << "Cache object was null";
+        VLOG(1) << "Router created";
     }
 
 void Router::onServerStart(folly::EventBase *evb) noexcept {
@@ -27,14 +30,33 @@ void Router::onServerStart(folly::EventBase *evb) noexcept {
 
 void Router::onServerStop() noexcept {
     timer_->timer.reset();
-    LOG(INFO) << "Server stopped";
+    LOG(INFO) << "Server thread stopped";
 }
+
+bool Router::requestIsValid(std::string host) {
+    if (host == config_->protected_domain) return true;
+    if (config_->ssl_enabled) {
+        if (host == config_->protected_domain + ":" + std::to_string(config_->ssl_port)) return true;
+    }
+    if (host == config_->protected_domain + ":" + std::to_string(config_->port)) return true;
+    return false;
+}
+
 
 RequestHandler* Router::onRequest(
     RequestHandler *req, HTTPMessage *m) noexcept {
 
+    logRequest(m);
     // make sure this request always has a Host: header
     m->ensureHostHeader();
+    
+    std::string host = m->getHeaders().getSingleOrEmpty(HTTP_HEADER_HOST);
+
+    if (!requestIsValid(host)) {
+        // reject this request
+        return new RejectHandler(400, "Bad Request");
+    }
+ 
     
     // logic to determine which handler to create based on the request
 
@@ -59,4 +81,11 @@ RequestHandler* Router::onRequest(
 
     // all other requests for proxied content
     return new ProxyHandler(timer_->timer.get(), cache_, config_, sw_);
+}
+
+void Router::logRequest(HTTPMessage *m) {
+    // ip [time] method url protocol
+    LOG(INFO) << m->getClientIP() << " " <<
+        "[" << getDateTimeStr(m->getStartTime()) << "] " <<
+        m->getMethodString() << " " << m->getURL();
 }

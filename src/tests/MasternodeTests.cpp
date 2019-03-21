@@ -39,7 +39,10 @@ TEST (Masternode, TestPassthroughProxy) {
         HTTPServer::Protocol::HTTP}};
 
   auto mc = std::make_shared<MasternodeConfig>();
+  mc->ip = "0.0.0.0";
+  mc->port = 8080;
   mc->origin_host = "0.0.0.0";
+  mc->protected_domain = "0.0.0.0";
   mc->origin_port = 8085;
   mc->IPs = IPs;
   mc->cache_directory = "/dev/null";
@@ -48,6 +51,7 @@ TEST (Masternode, TestPassthroughProxy) {
   mc->options.shutdownOn = {SIGINT, SIGTERM};
   mc->options.enableContentCompression = false;
   mc->enableServiceWorker = false;
+
  
   auto master = std::make_unique<masternode::Masternode>(mc);
   auto master_thread = std::make_unique<MasternodeThread>(master.get());
@@ -83,7 +87,11 @@ TEST (Masternode, TestSSLPassthroughProxy) {
   IPs[0].sslConfigs.push_back(sslCfg);
 
   auto mc = std::make_shared<MasternodeConfig>();
+  mc->ip = "0.0.0.0";
+  mc->port = 8080;
   mc->origin_host = "0.0.0.0";
+  mc->protected_domain = "0.0.0.0";
+  mc->ssl_enabled = true;
   mc->origin_port = 8085;
   mc->IPs = IPs;
   mc->cache_directory = "/dev/null";
@@ -121,7 +129,10 @@ TEST (Masternode, TestPassthroughProxyPOST) {
         HTTPServer::Protocol::HTTP}};
 
   auto mc = std::make_shared<MasternodeConfig>();
+  mc->ip = "0.0.0.0";
+  mc->port = 8080;
   mc->origin_host = "0.0.0.0";
+  mc->protected_domain = "0.0.0.0";
   mc->origin_port = 8085;
   mc->IPs = IPs;
   mc->cache_directory = "/dev/null";
@@ -164,9 +175,13 @@ TEST (Masternode, TestServiceWorkerInjection) {
         HTTPServer::Protocol::HTTP}};
 
   auto mc = std::make_shared<MasternodeConfig>();
+  mc->ip = "0.0.0.0";
+  mc->port = 8080;
   mc->origin_host = "0.0.0.0";
+  mc->protected_domain = "0.0.0.0";
   mc->origin_port = 8085;
   mc->IPs = IPs;
+  mc->enableServiceWorker = true;
   mc->service_worker_path = inject;
   mc->cache_directory = "/dev/null";
   mc->options.threads = 1;
@@ -218,7 +233,10 @@ TEST (Masternode, TestRedirectHandler) {
   IPs.push_back(sslIP);
 
   auto mc = std::make_shared<MasternodeConfig>();
+  mc->ip = "0.0.0.0";
+  mc->port = 8080;
   mc->origin_host = "0.0.0.0";
+  mc->protected_domain = "0.0.0.0";
   mc->origin_port = 8085;
   mc->IPs = IPs;
   mc->cache_directory = "/dev/null";
@@ -259,7 +277,10 @@ TEST (Masternode, TestCompression) {
         HTTPServer::Protocol::HTTP}};
 
   auto mc = std::make_shared<MasternodeConfig>();
+  mc->ip = "0.0.0.0";
+  mc->port = 8080;
   mc->origin_host = "0.0.0.0";
+  mc->protected_domain = "0.0.0.0";
   mc->origin_port = 8085;
   mc->IPs = IPs;
   mc->cache_directory = "/dev/null";

@@ -70,7 +70,7 @@ RUN aclocal && autoconf && automake --add-missing
 WORKDIR /app/build
 
 # Generates actual Makefile
-RUN ../configure
+RUN ../configure CXXFLAGS="-O3"
 
 # Build the masternode
 RUN make -j $(printf %.0f $(echo "$(nproc) * 1.5" | bc -l)) \
@@ -95,4 +95,4 @@ COPY --from=masternode-builder /app/build/masternode .
 # masternode executable can be set by providing environment variables
 # to the docker container individually or with an env file.
 # See: https://docs.docker.com/engine/reference/commandline/run/#set-environment-variables--e---env---env-file
-ENTRYPOINT ./masternode --logtostderr=1 --tryfromenv=ip,port,ssl_port,origin_host,origin_port,protected_domain,cert_path,key_path,cache_dir,gateway_address,gateway_port,sw_path,upgrade_insecure,pool_domain,cdn_subdomain,enable_compression,enable_service_worker,max_cached_routes
+ENTRYPOINT ./masternode --v=$VERBOSE_LOG_LEVEL --logtostderr=1 --tryfromenv=ip,port,ssl_port,origin_host,origin_port,protected_domain,cert_path,key_path,cache_dir,gateway_address,gateway_port,sw_path,upgrade_insecure,pool_domain,cdn_subdomain,enable_compression,enable_service_worker,max_cached_routes,enable_p2p

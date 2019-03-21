@@ -5,9 +5,16 @@ using namespace masternode;
 
 Masternode::Masternode(std::shared_ptr<MasternodeConfig> config):
     config_(config) {
-    state_ = std::make_shared<NetworkState>(config_);
+    CHECK(config) << "Config object was null";
+    if (config_->enableP2P) {
+        state_ = std::make_shared<NetworkState>(config_);
+    }
+    
     cache_ = std::make_shared<ContentCache>(
-        config_->maxRoutesToCache, config_->cache_directory);
+        config_->maxRoutesToCache,
+        config_->cache_directory,
+        config->enableP2P);
+
     if (config_->enableServiceWorker) {
         sw_ = std::make_shared<ServiceWorker>(config_->service_worker_path);
     }
@@ -22,7 +29,9 @@ Masternode::Masternode(std::shared_ptr<MasternodeConfig> config):
 
 void Masternode::start(std::function<void()> onSuccess,
     std::function<void(std::exception_ptr)> onError) {
-    if (state_) {
+    
+    LOG(INFO) << "Starting masternode...";
+    if (config_->enableP2P && state_) {
         state_->beginPollingGateway();
     }
     server_->bind(config_->IPs);
@@ -30,9 +39,8 @@ void Masternode::start(std::function<void()> onSuccess,
 }
 
 void Masternode::stop() {
-    if (server_.get()) {
+    LOG(INFO) << "Stopping masternode...";
+    if (server_) {
         server_->stop();
     }
 }
-
-std::shared_ptr<NetworkState> Masternode::getNetworkState() { return state_; }

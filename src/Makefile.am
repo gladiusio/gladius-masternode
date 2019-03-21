@@ -21,7 +21,8 @@ libmasternode_la_SOURCES= \
     ServiceWorkerHandler.cpp \
     NetworkState.cpp \
     ServiceWorker.cpp \
-    RedirectHandler.cpp
+    RedirectHandler.cpp \
+    RejectHandler.cpp
 
 libmasternode_la_LDFLAGS = -static -pthread -pie -Wl,-z,relro,-z,now
 

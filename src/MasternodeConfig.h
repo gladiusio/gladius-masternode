@@ -1,12 +1,14 @@
 #pragma once
 
 #include <string.h>
-#include <stdint.h>
 
 #include <proxygen/httpserver/HTTPServer.h>
 
 class MasternodeConfig {
     public:
+        std::string ip{""};
+        uint16_t port{80};
+        bool ssl_enabled{false};
         // IP or hostname of the origin server (required)
         std::string origin_host{""};
         // Port of the origin server (required)
@@ -18,12 +20,14 @@ class MasternodeConfig {
         // IPs for the server to locally bind to
         std::vector<proxygen::HTTPServer::IPConfig> IPs;
         // Directory to store cached files
-        std::string cache_directory{""};
+        std::string cache_directory{"/dev/null"};
+        // Enable p2p network integration
+        bool enableP2P{false};
         // Address of the masternode's Gladius network gateway process
         std::string gateway_address{""};
         // Port of the masternode's Gladius network gateway process
         uint16_t gateway_port{3001};
-        // P2P polling interval
+        // P2P polling interval in seconds
         uint16_t gateway_poll_interval{5};
         // file path to service worker file to serve
         std::string service_worker_path{""};
@@ -40,5 +44,5 @@ class MasternodeConfig {
         // Subdomain of the pool domain to use for content node hostnames
         std::string cdn_subdomain{"cdn"};
         // Maximum number of routes to cache
-        size_t maxRoutesToCache{2048};
+        size_t maxRoutesToCache{1024};
 };

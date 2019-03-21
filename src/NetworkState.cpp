@@ -1,5 +1,4 @@
 #include <chrono>
-#include <algorithm>
 
 #include <folly/dynamic.h>
 #include <folly/json.h>
@@ -48,7 +47,7 @@ void NetworkState::parseStateUpdate(std::string body, bool ignoreHeartbeat=false
             if (hasNoContent) continue;
             lockedList->push_back(createEdgeNodeHostname(nodeAddress, port));
         } catch (const std::exception& e) {
-            LOG(ERROR) << "Caught exception when parsing network state: " << e.what() << "\n";
+            LOG(ERROR) << "Caught exception when parsing network state: " << e.what();
         }
     }
 }
@@ -61,17 +60,17 @@ std::string NetworkState::createEdgeNodeHostname(
 
 void NetworkState::beginPollingGateway() {
     fs.addFunction([&] {
-        LOG(INFO) << "Fetching network state from gateway...\n";
+        LOG(INFO) << "Fetching network state from gateway...";
         // Make a GET request to the Gladius network gateway
         // to fetch state
         auto res = httpClient_->Get("/api/p2p/state");
         if (res && res->status == 200) {
-            LOG(INFO) << "Received network state from gateway\n";
+            LOG(INFO) << "Received network state from gateway";
             // parse the JSON into state structs/classes
             parseStateUpdate(res->body, config_->ignore_heartbeat);
         }
     }, std::chrono::seconds(config_->gateway_poll_interval), "GatewayPoller");
     fs.setSteady(true);
     fs.start();
-    LOG(INFO) << "Started network state polling thread...\n";
+    LOG(INFO) << "Started network state polling thread...";
 }
