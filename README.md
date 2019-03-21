@@ -42,14 +42,14 @@ docker-compose -f develop-compose.yml run --name devenv dev bash
 
 ### Build the Masternode inside the dev container
 ```shell
-aclocal && autoconf && automake --add-missing
+autoreconf --install
 ./configure
-make -j8
+make
 ```
 
 ### Debug tests with development container (once inside it)
 ```shell
-make -j8 check
+make check
 cd tests
 gdb ./masternode_tests
 ```
@@ -97,22 +97,26 @@ where `/home/.gladius/` on the host machine contains your SSL certificate, certi
 
 ### Command Line Flags
 
-Flag | Description | Example
----- | ----------- | -------
---ip | The IP address/hostname to listen for requests on | --ip=0.0.0.0
---port | The port to listen for HTTP requests on | --port=80
---origin_host | The IP/Hostname of the origin server to proxy for | --origin_host=192.168.2.12
---origin_port | The port of the origin server to connect to | --origin_port=80
---protected_domain | The domain name we are protecting | --protected_domain=www.example.com
---cache_dir | Path to directory to write cached content to | --cache_dir=/home/bob/content_cache/
---gateway_address | IP/Hostname of Gladius network gateway process | --gateway_address=127.0.0.1
---gateway_port | Port to reach the Gladius network gateway process on | --gateway_port=3001
---sw_path | File path of service worker javascript file to inject | --sw_path=/home/bob/my_service_worker.js
---ssl_port | The port to listen for HTTPS requests on | --ssl_port=443
---cert_path | File path to SSL certificate | --cert_path=/home/bob/cert.pem
---key_path | File path to the private key for the SSL cert | --key_path=/home/bob/key.pem
---upgrade_insecure | Set to true to redirect HTTP requests to the HTTPS port | --upgrade_insecure=true
---pool_domain | Domain to use for pool hosts | --pool_domain=examplepool.com
---cdn_subdomain | Subdomain of the pool domain to use for content node hostnames | --cdn_subdomain=cdn1
---ignore_heartbeat | Set to true to disable heartbeat checking for edge nodes | --ignore_heartbeat=true
---logtostderr | Set to 1 to write logs to stderr instead of /tmp files | --logtostderr=1
+Flag | Description
+---- | -----------
+--ip | The IP address/hostname to listen for requests on
+--port | The port to listen for HTTP requests on
+--origin_host | The IP/Hostname of the origin server to proxy for
+--origin_port | The port of the origin server to connect to
+--protected_domain | The domain name we are protecting
+--cache_dir | Path to directory to write cached content to
+--gateway_address | IP/Hostname of Gladius network gateway process
+--gateway_port | Port to reach the Gladius network gateway process on
+--enable_service_worker | Set to true to enable service worker injection
+--sw_path | File path of service worker javascript file to inject
+--ssl_port | The port to listen for HTTPS requests on
+--cert_path | File path to SSL certificate
+--key_path | File path to the private key for the SSL cert
+--upgrade_insecure | Set to true to redirect HTTP requests to the HTTPS port
+--pool_domain | Domain to use for pool hosts
+--cdn_subdomain | Subdomain of the pool domain to use for content node hostnames
+--ignore_heartbeat | Set to true to disable heartbeat checking for edge nodes
+--logtostderr | Set to 1 to write logs to stderr instead of /tmp files
+--enable_compression | Set to true to enable gzip compression
+--max_cached_routes | Maximum number of HTTP routes to cache
+--enable_p2p | Set to true if running masternode alongside a Gladius p2p network
