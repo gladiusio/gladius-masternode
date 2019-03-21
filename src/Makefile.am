@@ -62,7 +62,9 @@ check_PROGRAMS = masternode_tests
 masternode_tests_SOURCES = \
     tests/MasternodeTests.cpp \
     tests/NetworkStateTests.cpp \
-    tests/TestRunner.cpp
+    tests/TestRunner.cpp \
+    tests/GeoTests.cpp \
+    tests/EdgeNodeTests.cpp
 
 masternode_tests_LDADD = \
     libmasternode.la \
