@@ -1,0 +1,14 @@
+version: '3'
+services:
+  masternode:
+    build: ../../
+    env_file: ./env.list
+    ports:
+      - "80:80/tcp"
+
+  origin:
+    build:
+      context: .
+      dockerfile: origin.Dockerfile
+    ports:
+      - "8080:8080/tcp"

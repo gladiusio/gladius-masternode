@@ -21,7 +21,7 @@ RUN useradd -m docker && echo "docker:docker" | chpasswd && adduser docker sudo
 # Clone the ProxyGen library
 RUN git clone https://github.com/facebook/proxygen.git && \
     cd proxygen && \
-    git checkout f4938568b77477cfebaba079f06e5e4b22aeb8fb
+    git checkout 19d117815c5fb898d54468592514bc08f83129f7
 
 WORKDIR /proxygen/proxygen
 
@@ -87,14 +87,14 @@ WORKDIR /app
 # Move src and build template files over from host
 COPY src/ .
 
-# Invoke autotools toolchain to create configure file and Makefiles
-RUN aclocal && autoconf && automake --add-missing
+# Invoke autotools toolchain to create configuration files
+RUN autoreconf --install
 
 # Make a separate directory for build artifacts
 WORKDIR /app/build
 
 # Generates actual Makefile
-RUN ../configure
+RUN ../configure CXXFLAGS="-O3"
 
 # Build the masternode
 RUN make -j $(printf %.0f $(echo "$(nproc) * 1.5" | bc -l)) \
@@ -123,4 +123,5 @@ COPY --from=masternode-builder /gladius_base/* /gladius_base
 # masternode executable can be set by providing environment variables
 # to the docker container individually or with an env file.
 # See: https://docs.docker.com/engine/reference/commandline/run/#set-environment-variables--e---env---env-file
-ENTRYPOINT ./masternode --logtostderr=1 --tryfromenv=ip,port,ssl_port,origin_host,origin_port,protected_domain,cert_path,key_path,cache_dir,gateway_address,gateway_port,sw_path,upgrade_insecure,pool_domain,cdn_subdomain,gladius_base,geo_ip_enabled
+
+ENTRYPOINT ./masternode --v=$VERBOSE_LOG_LEVEL --logtostderr=1 --tryfromenv=ip,port,ssl_port,origin_host,origin_port,protected_domain,cert_path,key_path,cache_dir,gateway_address,gateway_port,sw_path,upgrade_insecure,pool_domain,cdn_subdomain,enable_compression,enable_service_worker,max_cached_routes,enable_p2p,gladius_base,geo_ip_enabled

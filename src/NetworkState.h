@@ -15,7 +15,7 @@ typedef folly::Synchronized<std::vector
 class NetworkState {
     private:
         // pointer to shared global config
-        std::shared_ptr<MasternodeConfig> config_;
+        std::shared_ptr<MasternodeConfig> config_{nullptr};
 
         // List of edge node data classes
         LockedNodeList edgeNodes_;
@@ -24,10 +24,10 @@ class NetworkState {
         folly::FunctionScheduler fs;
 
         // Used to make simple requests to the local gladius network gateway
-        std::unique_ptr<httplib::Client> httpClient_;
+        std::unique_ptr<httplib::Client> httpClient_{nullptr};
 
         // Used to perform geographic lookups
-        std::unique_ptr<Geo> geo_;
+        std::unique_ptr<Geo> geo_{nullptr};
 
     public:
         explicit NetworkState(std::shared_ptr<MasternodeConfig> config);

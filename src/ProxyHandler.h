@@ -4,10 +4,6 @@
 #include "MasternodeConfig.h"
 #include "ServiceWorker.h"
 
-#include <folly/Memory.h>
-#include <folly/executors/IOThreadPoolExecutor.h>
-#include <folly/futures/Future.h>
-
 #include <proxygen/httpserver/RequestHandler.h>
 #include <proxygen/lib/http/HTTPConnector.h>
 #include <proxygen/lib/http/session/HTTPTransaction.h>
@@ -20,6 +16,9 @@ class ProxyHandler : public proxygen::RequestHandler,
             std::shared_ptr<ContentCache> cache,
             std::shared_ptr<MasternodeConfig> config, 
             std::shared_ptr<ServiceWorker> sw);
+
+        bool checkForShutdown();
+        void abortDownstream();
 
         // RequestHandler methods
         void onRequest(std::unique_ptr<proxygen::HTTPMessage> headers) noexcept override;
@@ -118,7 +117,7 @@ class ProxyHandler : public proxygen::RequestHandler,
         proxygen::HTTPTransaction* originTxn_{nullptr};
 
         // Incoming request (headers)
-        std::unique_ptr<proxygen::HTTPMessage> request_;
+        std::unique_ptr<proxygen::HTTPMessage> request_{nullptr};
 
         // Content received from the origin. Used to collect data as it
         // comes in from the origin and later pass in to the cache once
@@ -128,13 +127,16 @@ class ProxyHandler : public proxygen::RequestHandler,
         // Origin response headers
         std::shared_ptr<proxygen::HTTPMessage> contentHeaders_{nullptr};
 
+        // if the client's request is finished/cancelled
+        bool clientTerminated_{false};
+
         // HTTP content cache
-        std::shared_ptr<ContentCache> cache_;
+        std::shared_ptr<ContentCache> cache_{nullptr};
 
         // Configuration class
-        std::shared_ptr<MasternodeConfig> config_;
+        std::shared_ptr<MasternodeConfig> config_{nullptr};
 
         // Service worker wrapper
-        std::shared_ptr<ServiceWorker> sw_;
+        std::shared_ptr<ServiceWorker> sw_{nullptr};
 }; 
 

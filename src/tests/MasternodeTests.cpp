@@ -8,6 +8,7 @@
 #include <proxygen/httpserver/HTTPServer.h>
 
 #define CPPHTTPLIB_OPENSSL_SUPPORT
+#define CPPHTTPLIB_ZLIB_SUPPORT
 #include <httplib.h>
 
 #include "TestUtils.h"
@@ -38,7 +39,10 @@ TEST (Masternode, TestPassthroughProxy) {
         HTTPServer::Protocol::HTTP}};
 
   auto mc = std::make_shared<MasternodeConfig>();
+  mc->ip = "0.0.0.0";
+  mc->port = 8080;
   mc->origin_host = "0.0.0.0";
+  mc->protected_domain = "0.0.0.0";
   mc->origin_port = 8085;
   mc->IPs = IPs;
   mc->cache_directory = "/dev/null";
@@ -46,6 +50,8 @@ TEST (Masternode, TestPassthroughProxy) {
   mc->options.idleTimeout = std::chrono::milliseconds(10000);
   mc->options.shutdownOn = {SIGINT, SIGTERM};
   mc->options.enableContentCompression = false;
+  mc->enableServiceWorker = false;
+
  
   auto master = std::make_unique<masternode::Masternode>(mc);
   auto master_thread = std::make_unique<MasternodeThread>(master.get());
@@ -81,7 +87,11 @@ TEST (Masternode, TestSSLPassthroughProxy) {
   IPs[0].sslConfigs.push_back(sslCfg);
 
   auto mc = std::make_shared<MasternodeConfig>();
+  mc->ip = "0.0.0.0";
+  mc->port = 8080;
   mc->origin_host = "0.0.0.0";
+  mc->protected_domain = "0.0.0.0";
+  mc->ssl_enabled = true;
   mc->origin_port = 8085;
   mc->IPs = IPs;
   mc->cache_directory = "/dev/null";
@@ -89,6 +99,7 @@ TEST (Masternode, TestSSLPassthroughProxy) {
   mc->options.idleTimeout = std::chrono::milliseconds(10000);
   mc->options.shutdownOn = {SIGINT, SIGTERM};
   mc->options.enableContentCompression = false;
+  mc->enableServiceWorker = false;
  
   auto master = std::make_unique<masternode::Masternode>(mc);
   auto master_thread = std::make_unique<MasternodeThread>(master.get());
@@ -101,6 +112,47 @@ TEST (Masternode, TestSSLPassthroughProxy) {
   ASSERT_TRUE(res != nullptr);
   EXPECT_EQ(200, res->status);
   EXPECT_EQ("Origin server content", res->body);
+}
+
+TEST (Masternode, TestPassthroughProxyPOST) {
+  // Create and start an origin server
+  auto origin = std::make_unique<httplib::Server>();
+  auto origin_thread = std::make_unique<OriginThread>(origin.get()
+    ->Post("/", [](const httplib::Request& req, httplib::Response& res) {
+        res.set_content(req.body, "text/plain"); // echo client data
+      }));
+  origin_thread->start();
+
+  // Create and start a masternode
+  std::vector<HTTPServer::IPConfig> IPs = {
+        {folly::SocketAddress("0.0.0.0", 8080, true),
+        HTTPServer::Protocol::HTTP}};
+
+  auto mc = std::make_shared<MasternodeConfig>();
+  mc->ip = "0.0.0.0";
+  mc->port = 8080;
+  mc->origin_host = "0.0.0.0";
+  mc->protected_domain = "0.0.0.0";
+  mc->origin_port = 8085;
+  mc->IPs = IPs;
+  mc->cache_directory = "/dev/null";
+  mc->options.threads = 1;
+  mc->options.idleTimeout = std::chrono::milliseconds(10000);
+  mc->options.shutdownOn = {SIGINT, SIGTERM};
+  mc->options.enableContentCompression = false;
+  mc->enableServiceWorker = false;
+ 
+  auto master = std::make_unique<masternode::Masternode>(mc);
+  auto master_thread = std::make_unique<MasternodeThread>(master.get());
+
+  EXPECT_TRUE(master_thread->start());
+
+  // Make a request from the client's perspective to the masternode
+  httplib::Client client("0.0.0.0", 8080);
+  auto res = client.Post("/", "this is my POST body", "text/plain");
+  ASSERT_TRUE(res != nullptr);
+  EXPECT_EQ(200, res->status);
+  EXPECT_EQ("this is my POST body", res->body);
 }
 
 TEST (Masternode, TestServiceWorkerInjection) {
@@ -123,9 +175,13 @@ TEST (Masternode, TestServiceWorkerInjection) {
         HTTPServer::Protocol::HTTP}};
 
   auto mc = std::make_shared<MasternodeConfig>();
+  mc->ip = "0.0.0.0";
+  mc->port = 8080;
   mc->origin_host = "0.0.0.0";
+  mc->protected_domain = "0.0.0.0";
   mc->origin_port = 8085;
   mc->IPs = IPs;
+  mc->enableServiceWorker = true;
   mc->service_worker_path = inject;
   mc->cache_directory = "/dev/null";
   mc->options.threads = 1;
@@ -177,7 +233,10 @@ TEST (Masternode, TestRedirectHandler) {
   IPs.push_back(sslIP);
 
   auto mc = std::make_shared<MasternodeConfig>();
+  mc->ip = "0.0.0.0";
+  mc->port = 8080;
   mc->origin_host = "0.0.0.0";
+  mc->protected_domain = "0.0.0.0";
   mc->origin_port = 8085;
   mc->IPs = IPs;
   mc->cache_directory = "/dev/null";
@@ -185,6 +244,7 @@ TEST (Masternode, TestRedirectHandler) {
   mc->options.idleTimeout = std::chrono::milliseconds(10000);
   mc->options.shutdownOn = {SIGINT, SIGTERM};
   mc->options.enableContentCompression = false;
+  mc->enableServiceWorker = false;
   mc->upgrade_insecure = true;
   mc->ssl_port = 443;
 
@@ -199,4 +259,60 @@ TEST (Masternode, TestRedirectHandler) {
   EXPECT_EQ(307, res->status);
   EXPECT_EQ(true, res->has_header("Location"));
   EXPECT_EQ("https://0.0.0.0:443/", res->get_header_value("Location"));
+}
+
+TEST (Masternode, TestCompression) {
+  //Create and start an origin server
+  auto origin = std::make_unique<httplib::Server>();
+  std::string filler(5000, '@');
+  auto origin_thread = std::make_unique<OriginThread>(origin.get()
+    ->Get("/", [filler](const httplib::Request& req, httplib::Response& res) {
+        res.set_content("<html><head></head><body>Test Body: "+filler+"</body></html>", "text/html");
+      }));
+  origin_thread->start();
+
+  // Create and start a masternode
+  std::vector<HTTPServer::IPConfig> IPs = {
+        {folly::SocketAddress("0.0.0.0", 8080, true),
+        HTTPServer::Protocol::HTTP}};
+
+  auto mc = std::make_shared<MasternodeConfig>();
+  mc->ip = "0.0.0.0";
+  mc->port = 8080;
+  mc->origin_host = "0.0.0.0";
+  mc->protected_domain = "0.0.0.0";
+  mc->origin_port = 8085;
+  mc->IPs = IPs;
+  mc->cache_directory = "/dev/null";
+  mc->options.threads = 1;
+  mc->options.idleTimeout = std::chrono::milliseconds(10000);
+  mc->options.shutdownOn = {SIGINT, SIGTERM};
+  mc->enableServiceWorker = false;
+  mc->options.enableContentCompression = true;
+  mc->options.contentCompressionLevel = 6;
+  mc->enableServiceWorker = false;
+ 
+  auto master = std::make_unique<masternode::Masternode>(mc);
+  auto master_thread = std::make_unique<MasternodeThread>(master.get());
+
+  EXPECT_TRUE(master_thread->start());
+
+  // Make a request from the client's perspective to the masternode
+  // to prime the cache
+  httplib::Client client("0.0.0.0", 8080);
+  httplib::Headers hs;
+  hs.emplace("accept-encoding", "gzip");
+  auto res = client.Get("/", hs);
+  ASSERT_TRUE(res != nullptr);
+  EXPECT_EQ(200, res->status);
+  EXPECT_TRUE(res->has_header("Content-Encoding"));
+  EXPECT_EQ("gzip", res->get_header_value("Content-Encoding"));
+  res = nullptr;
+
+  // Make the same request to serve from cache
+  res = client.Get("/", hs);
+  ASSERT_TRUE(res != nullptr);
+  EXPECT_EQ(200, res->status);
+  EXPECT_EQ(true, res->has_header("Content-Encoding"));
+  EXPECT_EQ("gzip", res->get_header_value("Content-Encoding"));
 }

@@ -1,5 +1,6 @@
 #include "Cache.h"
 #include <folly/DynamicConverter.h>
+#include <folly/ssl/OpenSSLHash.h>
 
 CachedRoute::CachedRoute(std::string& url,
     std::unique_ptr<folly::IOBuf> data,
@@ -9,7 +10,6 @@ CachedRoute::CachedRoute(std::string& url,
     auto out = std::vector<uint8_t>(32);
     folly::ssl::OpenSSLHash::sha256(folly::range(out), *(content_.get()));
     sha256_ = folly::hexlify(out);
-    LOG(INFO) << "Created a CachedRoute object\n";
 }
 
 std::string CachedRoute::getHash() const { return sha256_; }
@@ -35,26 +35,29 @@ std::shared_ptr<CachedRoute>
 bool ContentCache::addCachedRoute(std::string url,
     std::unique_ptr<folly::IOBuf> chain,
     std::shared_ptr<proxygen::HTTPMessage> headers) {
-
+    
     // Create a new CachedRoute class
     std::shared_ptr<CachedRoute> newEntry = 
         std::make_shared<CachedRoute>(url, chain->clone(), std::move(headers));
     
     // Insert the CachedRoute class into the cache
-    if (!map_.insert(url, newEntry).second) {
-        LOG(INFO) << "Could not add route into cache: " << url << "\n";
+    if (!map_.insert(url, newEntry).second) { // blocks for write access
+        VLOG(1) << "Could not add route into cache: " << url;
         return false;
     }
-    LOG(INFO) << "Route byte size: " << newEntry->getContent()->length() << "\n";
-    LOG(INFO) << "Route chain byte size: " << newEntry->getContent()->computeChainDataLength() << "\n";
-    LOG(INFO) << "Added new cached route: " << url << "\n";
+    size_t dataSize = newEntry->getContent()->computeChainDataLength();
+    VLOG(1) << "Route chain byte size: " << dataSize;
+    LOG(INFO) << "Added new cached route: " << url;
 
-    // write bytes to file
-    // todo: use thread pool to do this off of the event IO threads
-    folly::File f(cache_directory_ + newEntry->getHash(),
-        O_WRONLY | O_CREAT | O_TRUNC, 0666);
-    folly::gen::from(*newEntry->getContent()) | 
-        folly::gen::toFile(folly::File(f.fd()), newEntry->getContent()->computeChainDataLength());
+    if (this->writeToDisk_) {
+        // write bytes to file
+        // todo: use thread pool to do this off of the event IO threads
+        folly::File f(cache_directory_ + newEntry->getHash(),
+            O_WRONLY | O_CREAT | O_TRUNC, 0666);
+        folly::gen::from(*newEntry->getContent()) | 
+            folly::gen::toFile(f.dup(), dataSize);
+    }
+    
     return true;
 }
 
