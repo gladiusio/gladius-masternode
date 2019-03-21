@@ -63,8 +63,8 @@ WORKDIR /app
 # Move src and build template files over from host
 COPY src/ .
 
-# Invoke autotools toolchain to create configure file and Makefiles
-RUN aclocal && autoconf && automake --add-missing
+# Invoke autotools toolchain to create configuration files
+RUN autoreconf --install
 
 # Make a separate directory for build artifacts
 WORKDIR /app/build
