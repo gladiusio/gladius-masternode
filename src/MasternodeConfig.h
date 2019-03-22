@@ -6,8 +6,12 @@
 
 class MasternodeConfig {
     public:
+        // IP address to bind to locally to serve requests
         std::string ip{""};
+        // Port to bind to locally to serve requests
         uint16_t port{80};
+        // Internal indicator for whether SSL features should be used
+        // (not exposed to user config)
         bool ssl_enabled{false};
         // IP or hostname of the origin server (required)
         std::string origin_host{""};
