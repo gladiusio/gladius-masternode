@@ -47,8 +47,8 @@ class MasternodeConfig {
         std::string pool_domain{""};
         // Subdomain of the pool domain to use for content node hostnames
         std::string cdn_subdomain{"cdn"};
-        // Path to the Gladius base directory
-        std::string gladius_base{""};
+        // Path to the directory for storing geographic IP data
+        std::string geoip_path{""};
         // GeoIP enabled
         bool geo_ip_enabled{false};
         // Maximum number of routes to cache

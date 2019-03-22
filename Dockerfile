@@ -39,7 +39,7 @@ ENV LD_LIBRARY_PATH /usr/local/lib
 # ###################################################
 FROM proxygen-env as masternode-builder
 
-RUN mkdir /gladius_base
+RUN mkdir /geoip
 
 # Install google test libs
 RUN apt-get install -y libgtest-dev gdb
@@ -76,8 +76,7 @@ RUN wget https://www.ccoderun.ca/GeoLite2PP/download/geolite2++-0.0.1-2561-Sourc
         cmake CMakeLists.txt && \
         make && \
         sudo make install && \
-        ./scripts/geolite2pp_get_database.sh && \
-        mv GeoLite2-City.mmdb /gladius_base
+        mv scripts/geolite2pp_get_database.sh /geoip
 
 # Clean up APT when done
 RUN apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
@@ -115,13 +114,13 @@ COPY --from=masternode-builder /tmp/dist/* /usr/lib/x86_64-linux-gnu/
 # Copies the masternode binary to this image
 COPY --from=masternode-builder /app/build/masternode .
 
-RUN mkdir /gladius_base
+RUN mkdir /geoip
 
-COPY --from=masternode-builder /gladius_base/* /gladius_base
+COPY --from=masternode-builder /geoip/* /geoip
 
 # Command to run the masternode. The command line flags passed to the
 # masternode executable can be set by providing environment variables
 # to the docker container individually or with an env file.
 # See: https://docs.docker.com/engine/reference/commandline/run/#set-environment-variables--e---env---env-file
 
-ENTRYPOINT ./masternode --v=$VERBOSE_LOG_LEVEL --logtostderr=1 --tryfromenv=ip,port,ssl_port,origin_host,origin_port,protected_domain,cert_path,key_path,cache_dir,gateway_address,gateway_port,sw_path,upgrade_insecure,pool_domain,cdn_subdomain,enable_compression,enable_service_worker,max_cached_routes,enable_p2p,gladius_base,geo_ip_enabled
+ENTRYPOINT ./masternode --v=$VERBOSE_LOG_LEVEL --logtostderr=1 --tryfromenv=ip,port,ssl_port,origin_host,origin_port,protected_domain,cert_path,key_path,cache_dir,gateway_address,gateway_port,sw_path,upgrade_insecure,pool_domain,cdn_subdomain,enable_compression,enable_service_worker,max_cached_routes,enable_p2p,geoip_path,geo_ip_enabled

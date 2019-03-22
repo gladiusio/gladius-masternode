@@ -17,7 +17,7 @@ NetworkState::NetworkState(std::shared_ptr<MasternodeConfig> config):
     if (config_->geo_ip_enabled) {
         try {
             geo_ = std::make_unique<Geo>(
-                config_->gladius_base + "GeoLite2-City.mmdb");
+                config_->geoip_path + "GeoLite2-City.mmdb");
         } catch (const std::system_error& e) {
             LOG(ERROR) << "Could not instantiate Geo module\n" << e.what();
             config_->geo_ip_enabled = false;
