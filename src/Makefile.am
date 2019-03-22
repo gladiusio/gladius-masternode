@@ -5,6 +5,7 @@ ACLOCAL_AMFLAGS = -I m4
 AM_CPPFLAGS = -I$(top_srcdir) -I$(top_srcdir)/libs \
     -Wall \
     -Wextra \
+    -Wno-unused-parameter \
     -Wformat-security \
     -D_FORTIFY_SOURCE=2 \
     -fstack-protector \
