@@ -12,7 +12,6 @@ typedef folly::Synchronized<std::vector
 
 using namespace nanoflann;
 
-
 struct PointCloud {
 
     std::vector<std::shared_ptr<EdgeNode>> pts;

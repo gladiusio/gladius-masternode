@@ -30,7 +30,6 @@ Location Geo::lookupCoordinates(const std::string ip) {
     return location;
 }
 
-
 std::shared_ptr<TreeData> Geo::buildTreeData(const std::vector<std::shared_ptr<EdgeNode>>& nodes) {
     auto td = std::make_shared<TreeData>();
     td->cloud.pts = nodes;
@@ -41,17 +40,17 @@ std::shared_ptr<TreeData> Geo::buildTreeData(const std::vector<std::shared_ptr<E
 }
 
 std::vector<size_t> Geo::getNearestNodes(Location l, int n) {
+    // do a knn search
+    std::vector<size_t> ret_indices(n);
+    std::vector<double> out_dist_sqr(n);
+    nanoflann::KNNResultSet<double> resultSet(n);
+    resultSet.init(&ret_indices[0], &out_dist_sqr[0]);
+    std::vector<double> query_pt{l.x, l.y, l.z};
     { // critical section
-        // do a knn search
-		std::vector<size_t> ret_indices(n);
-		std::vector<double> out_dist_sqr(n);
-		nanoflann::KNNResultSet<double> resultSet(n);
-		resultSet.init(&ret_indices[0], &out_dist_sqr[0]);
-        std::vector<double> query_pt{l.x, l.y, l.z};
-        treeData_.rlock()->get()->tree->findNeighbors(resultSet, &query_pt[0], nanoflann::SearchParams(10));
-
-        return ret_indices;
+        treeData_.rlock()->get()->tree->findNeighbors(resultSet, 
+            &query_pt[0], nanoflann::SearchParams(10));
     }
+    return ret_indices;
 }
 
 void Geo::setTreeData(std::shared_ptr<TreeData> treeData) {
@@ -59,5 +58,3 @@ void Geo::setTreeData(std::shared_ptr<TreeData> treeData) {
         treeData_ = treeData;
     }   
 }
-
-
