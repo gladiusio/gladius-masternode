@@ -105,6 +105,10 @@ RUN make -j $(printf %.0f $(echo "$(nproc) * 1.5" | bc -l)) \
 # ###################################################
 FROM ubuntu:16.04 as production
 
+RUN apt-get update && \
+        apt-get upgrade -y && \
+        apt-get install -y wget
+
 WORKDIR /app
 
 # Copies only the libraries necessary to run the masternode from the
@@ -118,9 +122,12 @@ RUN mkdir /geoip
 
 COPY --from=masternode-builder /geoip/* /geoip
 
+COPY docker_entrypoint.sh .
+RUN chmod 077 docker_entrypoint.sh
+
 # Command to run the masternode. The command line flags passed to the
 # masternode executable can be set by providing environment variables
 # to the docker container individually or with an env file.
 # See: https://docs.docker.com/engine/reference/commandline/run/#set-environment-variables--e---env---env-file
 
-ENTRYPOINT ./masternode --v=$VERBOSE_LOG_LEVEL --logtostderr=1 --tryfromenv=ip,port,ssl_port,origin_host,origin_port,protected_domain,cert_path,key_path,cache_dir,gateway_address,gateway_port,sw_path,upgrade_insecure,pool_domain,cdn_subdomain,enable_compression,enable_service_worker,max_cached_routes,enable_p2p,geoip_path,geo_ip_enabled
+ENTRYPOINT ./docker_entrypoint.sh
