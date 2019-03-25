@@ -49,7 +49,6 @@ class Geo {
 		Geo();
         explicit Geo(std::string);
 		
-        // find the geo coordinates of an IP address
         Location lookupCoordinates(std::string);
         std::shared_ptr<TreeData> buildTreeData(const std::vector<std::shared_ptr<EdgeNode>>&);
 		void setTreeData(std::shared_ptr<TreeData> tree);
