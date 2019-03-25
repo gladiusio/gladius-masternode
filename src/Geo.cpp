@@ -24,13 +24,15 @@ Location Geo::lookupCoordinates(const std::string ip) {
     VLOG(1) << "Looking up coordinates for IP address: " << ip;
     Location location = { 0.0, 0.0, 0.0, 0.0, 0.0 };
 
-    std::string latitude_str = db_->get_field(
-        ip, "en", GeoLite2PP::VCStr{ "location", "latitude" });
-    VLOG(1) << "Latitude string: " << latitude_str;
-    std::string longitude_str = db_->get_field(
-        ip, "en", GeoLite2PP::VCStr{ "location", "longitude" });
-    VLOG(1) << "Longitude string: " << longitude_str;
     try {
+        std::string latitude_str = db_->get_field(
+            ip, "en", GeoLite2PP::VCStr{ "location", "latitude" });
+        VLOG(1) << "Latitude string: " << latitude_str;
+
+        std::string longitude_str = db_->get_field(
+            ip, "en", GeoLite2PP::VCStr{ "location", "longitude" });
+        VLOG(1) << "Longitude string: " << longitude_str;
+        
         if (!latitude_str.empty()) {
             location.latitude = std::stod(latitude_str); // can throw
         }
@@ -43,6 +45,9 @@ Location Geo::lookupCoordinates(const std::string ip) {
     } catch (const std::out_of_range& oor) {
         LOG(ERROR) << "Out of range exception when converting string to double: " 
             << oor.what();
+    } catch (const std::exception& e) {
+        LOG(ERROR) << "Exception encountered when looking up coordinates: "
+            << e.what();
     }
     location.convertToCartesian();
     return location;

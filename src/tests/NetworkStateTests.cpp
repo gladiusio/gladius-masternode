@@ -34,10 +34,10 @@ TEST (NetworkState, TestStatePolling) {
   mc->gateway_port = 8085;
   mc->ignore_heartbeat = true;
   mc->pool_domain = "example.com";
-  mc->geo_ip_enabled = true;
+  mc->geo_ip_enabled = false;
   auto state = std::make_unique<NetworkState>(mc);
   state->beginPollingGateway();
-  std::this_thread::sleep_for(std::chrono::seconds(2));
+  std::this_thread::sleep_for(std::chrono::milliseconds(300));
 
   EXPECT_EQ(1, state->getEdgeNodes().size());
   EXPECT_EQ("https://0xdeadbeef.cdn.example.com:8080", state->getEdgeNodes()[0]->getFQDN("example.com", "cdn"));
