@@ -25,12 +25,13 @@ Location Geo::lookupCoordinates(const std::string ip) {
     Location location = { 0.0, 0.0, 0.0, 0.0, 0.0 };
 
     try {
+        MMDB_lookup_result_s result = db_->lookup_raw(ip);
         std::string latitude_str = db_->get_field(
-            ip, "en", GeoLite2PP::VCStr{ "location", "latitude" });
+            &result, "", GeoLite2PP::VCStr{ "location", "latitude" });
         VLOG(1) << "Latitude string: " << latitude_str;
 
         std::string longitude_str = db_->get_field(
-            ip, "en", GeoLite2PP::VCStr{ "location", "longitude" });
+            &result, "", GeoLite2PP::VCStr{ "location", "longitude" });
         VLOG(1) << "Longitude string: " << longitude_str;
         
         if (!latitude_str.empty()) {
