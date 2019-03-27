@@ -1,12 +1,12 @@
 #pragma once
 
-#include "MasternodeConfig.h"
+#include "Config.h"
 
 #include <proxygen/httpserver/RequestHandler.h>
 
 class RedirectHandler : public proxygen::RequestHandler {
     public:
-        explicit RedirectHandler(std::shared_ptr<MasternodeConfig>);
+        explicit RedirectHandler(std::shared_ptr<Config>);
 
         // RequestHandler methods
         void onRequest(std::unique_ptr<proxygen::HTTPMessage> headers)
@@ -18,5 +18,5 @@ class RedirectHandler : public proxygen::RequestHandler {
         void onError(proxygen::ProxygenError err) noexcept override;
     private:
         // Configuration class
-        std::shared_ptr<MasternodeConfig> config_{nullptr};
+        std::shared_ptr<Config> config_{nullptr};
 };

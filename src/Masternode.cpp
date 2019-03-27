@@ -3,7 +3,7 @@
 
 using namespace masternode;
 
-Masternode::Masternode(std::shared_ptr<MasternodeConfig> config):
+Masternode::Masternode(std::shared_ptr<Config> config):
     config_(config) {
     CHECK(config) << "Config object was null";
     if (config_->enableP2P) {

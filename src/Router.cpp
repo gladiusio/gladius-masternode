@@ -5,7 +5,7 @@
 #include "ServiceWorkerHandler.h"
 #include "RejectHandler.h"
 
-Router::Router(std::shared_ptr<MasternodeConfig> config,
+Router::Router(std::shared_ptr<Config> config,
     std::shared_ptr<NetworkState> state,
     std::shared_ptr<ContentCache> cache,
     std::shared_ptr<ServiceWorker> sw):

@@ -15,7 +15,7 @@
 
 #include "NetworkState.h"
 #include "Masternode.h"
-#include "MasternodeConfig.h"
+#include "Config.h"
 
 using namespace folly;
 using namespace proxygen;
@@ -38,7 +38,7 @@ TEST (Masternode, TestPassthroughProxy) {
         {folly::SocketAddress("0.0.0.0", 8080, true),
         HTTPServer::Protocol::HTTP}};
 
-  auto mc = std::make_shared<MasternodeConfig>();
+  auto mc = std::make_shared<Config>();
   mc->ip = "0.0.0.0";
   mc->port = 8080;
   mc->origin_host = "0.0.0.0";
@@ -86,7 +86,7 @@ TEST (Masternode, TestSSLPassthroughProxy) {
   sslCfg.setCertificate(testDir + "certs/cert.pem", testDir + "certs/key.pem", "");
   IPs[0].sslConfigs.push_back(sslCfg);
 
-  auto mc = std::make_shared<MasternodeConfig>();
+  auto mc = std::make_shared<Config>();
   mc->ip = "0.0.0.0";
   mc->port = 8080;
   mc->origin_host = "0.0.0.0";
@@ -128,7 +128,7 @@ TEST (Masternode, TestPassthroughProxyPOST) {
         {folly::SocketAddress("0.0.0.0", 8080, true),
         HTTPServer::Protocol::HTTP}};
 
-  auto mc = std::make_shared<MasternodeConfig>();
+  auto mc = std::make_shared<Config>();
   mc->ip = "0.0.0.0";
   mc->port = 8080;
   mc->origin_host = "0.0.0.0";
@@ -174,7 +174,7 @@ TEST (Masternode, TestServiceWorkerInjection) {
         {folly::SocketAddress("0.0.0.0", 8080, true),
         HTTPServer::Protocol::HTTP}};
 
-  auto mc = std::make_shared<MasternodeConfig>();
+  auto mc = std::make_shared<Config>();
   mc->ip = "0.0.0.0";
   mc->port = 8080;
   mc->origin_host = "0.0.0.0";
@@ -232,7 +232,7 @@ TEST (Masternode, TestRedirectHandler) {
   sslIP.sslConfigs.push_back(sslCfg);
   IPs.push_back(sslIP);
 
-  auto mc = std::make_shared<MasternodeConfig>();
+  auto mc = std::make_shared<Config>();
   mc->ip = "0.0.0.0";
   mc->port = 8080;
   mc->origin_host = "0.0.0.0";
@@ -276,7 +276,7 @@ TEST (Masternode, TestCompression) {
         {folly::SocketAddress("0.0.0.0", 8080, true),
         HTTPServer::Protocol::HTTP}};
 
-  auto mc = std::make_shared<MasternodeConfig>();
+  auto mc = std::make_shared<Config>();
   mc->ip = "0.0.0.0";
   mc->port = 8080;
   mc->origin_host = "0.0.0.0";

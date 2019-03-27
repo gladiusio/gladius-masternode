@@ -8,7 +8,7 @@ using namespace proxygen;
 
 ProxyHandler::ProxyHandler(folly::HHWheelTimer *timer,
     std::shared_ptr<ContentCache> cache, 
-    std::shared_ptr<MasternodeConfig> config,
+    std::shared_ptr<Config> config,
     std::shared_ptr<ServiceWorker> sw):
         connector_{this, timer},
         originHandler_(*this),

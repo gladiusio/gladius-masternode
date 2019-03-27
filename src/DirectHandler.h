@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Cache.h"
-#include "MasternodeConfig.h"
+#include "Config.h"
 #include "NetworkState.h"
 
 #include <proxygen/httpserver/RequestHandler.h>
@@ -9,7 +9,7 @@
 class DirectHandler : public proxygen::RequestHandler {
     public:
         DirectHandler(std::shared_ptr<ContentCache>, 
-            std::shared_ptr<MasternodeConfig>, 
+            std::shared_ptr<Config>, 
             std::shared_ptr<NetworkState>);
 
         // RequestHandler methods
@@ -24,7 +24,7 @@ class DirectHandler : public proxygen::RequestHandler {
         std::shared_ptr<ContentCache> cache_{nullptr};
 
         // Configuration class
-        std::shared_ptr<MasternodeConfig> config_{nullptr};
+        std::shared_ptr<Config> config_{nullptr};
 
         // Network state
         std::shared_ptr<NetworkState> state_{nullptr};

@@ -1,13 +1,13 @@
 #pragma once
 
-#include "MasternodeConfig.h"
+#include "Config.h"
 #include "ServiceWorker.h"
 
 #include <proxygen/httpserver/RequestHandler.h>
 
 class ServiceWorkerHandler : public proxygen::RequestHandler {
     public:
-        ServiceWorkerHandler(std::shared_ptr<MasternodeConfig>,
+        ServiceWorkerHandler(std::shared_ptr<Config>,
             std::shared_ptr<ServiceWorker>);
 
         // RequestHandler methods
@@ -20,7 +20,7 @@ class ServiceWorkerHandler : public proxygen::RequestHandler {
         void onError(proxygen::ProxygenError err) noexcept override;
     private:
         // Configuration class
-        std::shared_ptr<MasternodeConfig> config_{nullptr};
+        std::shared_ptr<Config> config_{nullptr};
         // Service worker wrapper
         std::shared_ptr<ServiceWorker> sw_{nullptr};
 };

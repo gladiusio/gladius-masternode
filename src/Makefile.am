@@ -13,16 +13,17 @@ AM_CPPFLAGS = -I$(top_srcdir) -I$(top_srcdir)/libs \
 lib_LTLIBRARIES = libmasternode.la
 
 libmasternode_la_SOURCES= \
-    Masternode.cpp \
-    ProxyHandler.cpp \
     Cache.cpp \
-    Router.cpp \
+    Config.cpp \
     DirectHandler.cpp \
-    ServiceWorkerHandler.cpp \
+    Masternode.cpp \
     NetworkState.cpp \
-    ServiceWorker.cpp \
+    ProxyHandler.cpp \
     RedirectHandler.cpp \
-    RejectHandler.cpp
+    RejectHandler.cpp \
+    Router.cpp \
+    ServiceWorker.cpp \
+    ServiceWorkerHandler.cpp
 
 libmasternode_la_LDFLAGS = -static -pthread -pie -Wl,-z,relro,-z,now
 

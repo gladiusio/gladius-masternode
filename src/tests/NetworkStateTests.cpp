@@ -4,11 +4,11 @@
 #include "TestUtils.h"
 
 #include "NetworkState.h"
-#include "MasternodeConfig.h"
+#include "Config.h"
 
 
 TEST (NetworkState, TestStateParsing) {
-  auto mc = std::make_shared<MasternodeConfig>();
+  auto mc = std::make_shared<Config>();
   mc->pool_domain = "example.com";
   auto state = std::make_unique<NetworkState>(mc);
   auto sample = R"({"response": {"node_data_map": {"0xdeadbeef": {"content_port": {"data": "8080"}, "ip_address": {"data": "127.0.0.1"}, "heartbeat": {"data": "999999999"}, "disk_content": {"data": ["yes", "no", "maybe"]}}}}})";
@@ -18,7 +18,7 @@ TEST (NetworkState, TestStateParsing) {
 }
 
 TEST (NetworkState, TestEdgeNodeHostnameCreation) {
-  auto mc = std::make_shared<MasternodeConfig>();
+  auto mc = std::make_shared<Config>();
   mc->pool_domain = "example.com";
   mc->cdn_subdomain = "foobarcdn";
   auto state = std::make_unique<NetworkState>(mc);
@@ -35,7 +35,7 @@ TEST (NetworkState, TestStatePolling) {
       }));
   gw_thread->start();
 
-  auto mc = std::make_shared<MasternodeConfig>();
+  auto mc = std::make_shared<Config>();
   mc->gateway_poll_interval = 1;
   mc->gateway_address = "0.0.0.0";
   mc->gateway_port = 8085;

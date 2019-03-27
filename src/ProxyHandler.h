@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Cache.h"
-#include "MasternodeConfig.h"
+#include "Config.h"
 #include "ServiceWorker.h"
 
 #include <proxygen/httpserver/RequestHandler.h>
@@ -14,7 +14,7 @@ class ProxyHandler : public proxygen::RequestHandler,
     public:
         ProxyHandler(folly::HHWheelTimer *timer,
             std::shared_ptr<ContentCache> cache,
-            std::shared_ptr<MasternodeConfig> config, 
+            std::shared_ptr<Config> config, 
             std::shared_ptr<ServiceWorker> sw);
 
         bool checkForShutdown();
@@ -134,7 +134,7 @@ class ProxyHandler : public proxygen::RequestHandler,
         std::shared_ptr<ContentCache> cache_{nullptr};
 
         // Configuration class
-        std::shared_ptr<MasternodeConfig> config_{nullptr};
+        std::shared_ptr<Config> config_{nullptr};
 
         // Service worker wrapper
         std::shared_ptr<ServiceWorker> sw_{nullptr};

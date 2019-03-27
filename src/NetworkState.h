@@ -4,11 +4,11 @@
 #include <folly/Synchronized.h>
 
 #include "httplib.h"
-#include "MasternodeConfig.h"
+#include "Config.h"
 
 class NetworkState {
     private:
-        std::shared_ptr<MasternodeConfig> config_{nullptr};
+        std::shared_ptr<Config> config_{nullptr};
         // List of addresses of edge nodes
         folly::Synchronized<std::vector<std::string>> edgeNodes_;
         // Used to fetch p2p network state on a repeated basis
@@ -17,7 +17,7 @@ class NetworkState {
         std::unique_ptr<httplib::Client> httpClient_{nullptr};
 
     public:
-        explicit NetworkState(std::shared_ptr<MasternodeConfig> config);
+        explicit NetworkState(std::shared_ptr<Config> config);
         ~NetworkState();
 
         std::vector<std::string> getEdgeNodes() const;

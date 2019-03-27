@@ -4,7 +4,7 @@
 
 #include <proxygen/httpserver/HTTPServer.h>
 
-class MasternodeConfig {
+class Config {
     public:
         std::string ip{""};
         uint16_t port{80};

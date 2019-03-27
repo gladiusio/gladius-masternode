@@ -34,12 +34,16 @@ DEFINE_bool(enable_p2p, false, "Set to true if running masternode alongside a Gl
 // debug use only
 DEFINE_bool(ignore_heartbeat, false, "Set to true to disable heartbeat checking for edge nodes");
 
+
+DEFINE_string(config, "", "Path to the config file to use");
+
+
 int main(int argc, char *argv[]) {
     gflags::ParseCommandLineFlags(&argc, &argv, true);
     google::InitGoogleLogging(argv[0]);
     google::InstallFailureSignalHandler();
 
-    auto config = std::make_shared<MasternodeConfig>();
+    auto config = std::make_shared<Config>();
 
     size_t threads = sysconf(_SC_NPROCESSORS_ONLN);
     LOG(INFO) << "Configuring server to use " << threads << " I/O threads...";

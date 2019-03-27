@@ -8,7 +8,7 @@
 using namespace proxygen;
 
 DirectHandler::DirectHandler(std::shared_ptr<ContentCache> cache, 
-    std::shared_ptr<MasternodeConfig> config,
+    std::shared_ptr<Config> config,
     std::shared_ptr<NetworkState> state):
         cache_(cache),
         config_(config),

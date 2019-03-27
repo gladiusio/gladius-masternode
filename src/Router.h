@@ -11,7 +11,7 @@ using folly::HHWheelTimer;
 
 class Router : public RequestHandlerFactory {
     public:
-        Router(std::shared_ptr<MasternodeConfig>,
+        Router(std::shared_ptr<Config>,
             std::shared_ptr<NetworkState>,
             std::shared_ptr<ContentCache>,
             std::shared_ptr<ServiceWorker>);
@@ -23,7 +23,7 @@ class Router : public RequestHandlerFactory {
             noexcept override;
     protected:
         std::shared_ptr<ContentCache> cache_{nullptr};
-        std::shared_ptr<MasternodeConfig> config_{nullptr};
+        std::shared_ptr<Config> config_{nullptr};
         std::shared_ptr<NetworkState> state_{nullptr};
         std::shared_ptr<ServiceWorker> sw_{nullptr};
 
