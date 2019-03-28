@@ -23,10 +23,16 @@ class Config {
 
         // Port that the masternode is listening on for HTTP requests
         uint16_t port{80};
+        void setPort(const int port);
+
         // Toggle for SSL functionality
         bool ssl_enabled{false};
+        void setSSLEnabled(const bool enabled);
+
         // IP or hostname of the origin server (required)
         std::string origin_host{""};
+        void setOriginHost(const std::string& host);
+
         // Port of the origin server (required)
         uint16_t origin_port{80};
         // Domain we're protecting (singular for now) (required)

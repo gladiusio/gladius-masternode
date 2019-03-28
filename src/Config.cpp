@@ -12,9 +12,11 @@ Config::Config(const std::string& path, bool validate):
 {
     // read config file (can throw, let it bubble up)
     auto toml = cpptoml::parse_file(path);
-    // read IP from TOML, call setIP()
-    auto ip = toml->get_as<std::string>("ip_address").value_or("0.0.0.0");
-    setIP(ip);
+    setIP(toml->get_qualified_as<std::string>("server.ip")
+        .value_or("0.0.0.0"));
+    setPort(toml->get_qualified_as<int>("server.port").value_or(80));
+    //setSSLEnabled(toml->get_as<bool>("ssl_enabled").value_or(false));
+
 }
 
 // validates the config as a whole to check that settings
@@ -31,3 +33,18 @@ void Config::setIP(const std::string& ip) {
     // set value
     this->ip = ip;
 }
+
+void Config::setPort(const int port) {
+    if (validate_) {
+        if (port < 1 || port > 65535) {
+            throw "Invalid port number: " + port;
+        }
+    }
+    this->port = port;
+}
+
+void Config::setSSLEnabled(const bool enabled) {
+    this->ssl_enabled = enabled;
+}
+
+void Config::
