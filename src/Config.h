@@ -5,9 +5,25 @@
 #include <proxygen/httpserver/HTTPServer.h>
 
 class Config {
+    private:
+        bool validate_{false};
     public:
+
+        // constructor to use if you are going to manually set
+        // individual fields in the config
+        Config(bool validate = false);
+        
+        // constructor to use if you wish to populate the config
+        // values using a TOML config file
+        Config(const std::string& path, bool validate = true);
+
+        // IP that the masternode is listening on
         std::string ip{""};
+        void setIP(const std::string& ip);
+
+        // Port that the masternode is listening on for HTTP requests
         uint16_t port{80};
+        // Toggle for SSL functionality
         bool ssl_enabled{false};
         // IP or hostname of the origin server (required)
         std::string origin_host{""};

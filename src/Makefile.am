@@ -57,6 +57,7 @@ TESTS = masternode_tests
 check_PROGRAMS = masternode_tests
 
 masternode_tests_SOURCES = \
+    tests/ConfigTests.cpp \
     tests/MasternodeTests.cpp \
     tests/NetworkStateTests.cpp \
     tests/TestRunner.cpp
