@@ -21,8 +21,7 @@ masternode_tests
 test-driver
 
 .DS_store
-.vscode/settings.json
-.vscode/c_cpp_properties.json
+.vscode/
 src/compile
 src/config.guess
 src/config.sub
