@@ -4,6 +4,23 @@
 
 #include <proxygen/httpserver/HTTPServer.h>
 
+struct CompressionConfig {
+    bool enabled;
+    uint8_t level;      
+};
+
+struct CacheConfig {
+    uint32_t maxEntries;
+    std::string diskPath;
+};
+
+struct ServerConfig {
+    std::string ip;
+    uint16_t port;
+    CompressionOptions compression;
+    CacheConfig cache;
+};
+
 class Config {
     private:
         bool validate_{false};

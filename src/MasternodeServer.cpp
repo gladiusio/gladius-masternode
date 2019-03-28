@@ -8,35 +8,10 @@ using namespace proxygen;
 using namespace folly::ssl;
 using namespace masternode;
 
-DEFINE_string(ip, "0.0.0.0", "The IP address/hostname to listen for requests on");
-DEFINE_int32(port, 80, "The port to listen for HTTP requests on");
-DEFINE_int32(ssl_port, 443, "The port to listen for HTTPS requests on");
-DEFINE_string(origin_host, "0.0.0.0", "The IP/Hostname of the origin server to proxy for");
-DEFINE_int32(origin_port, 80, "The port of the origin server to connect to");
-DEFINE_string(protected_domain, 
-    "localhost", "The domain name we are protecting"); // i.e. www.example.com
-DEFINE_string(cert_path, "", "File path to SSL certificate");
-DEFINE_string(key_path, "", "File path to the private key for the SSL cert");
-DEFINE_string(cache_dir, "", "Path to directory to write cached content to");
-DEFINE_string(gateway_address, "0.0.0.0", 
-    "IP/Hostname of Gladius network gateway process");
-DEFINE_int32(gateway_port, 3001, 
-    "Port to reach the Gladius network gateway process on");
-DEFINE_string(sw_path, "", "File path of service worker javascript file to inject");
-DEFINE_bool(upgrade_insecure, true, "Set to true to redirect HTTP requests to the HTTPS port");
-DEFINE_string(pool_domain, "", "Domain to use for pool hosts"); // i.e. examplepool.com
-DEFINE_string(cdn_subdomain, "cdn", "Subdomain of the pool domain to use for content node hostnames");
-DEFINE_bool(enable_compression, false, "Set to true to enable compression");
-DEFINE_bool(enable_service_worker, true, "Set to true to enable service worker injection");
-DEFINE_int32(max_cached_routes, 1024, "Maximum number of routes to cache");
-DEFINE_bool(enable_p2p, false, "Set to true if running masternode alongside a Gladius p2p network");
+DEFINE_string(config, "", "Path to the config file to use");
 
 // debug use only
 DEFINE_bool(ignore_heartbeat, false, "Set to true to disable heartbeat checking for edge nodes");
-
-
-DEFINE_string(config, "", "Path to the config file to use");
-
 
 int main(int argc, char *argv[]) {
     gflags::ParseCommandLineFlags(&argc, &argv, true);

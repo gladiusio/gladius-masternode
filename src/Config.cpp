@@ -15,7 +15,7 @@ Config::Config(const std::string& path, bool validate):
     setIP(toml->get_qualified_as<std::string>("server.ip")
         .value_or("0.0.0.0"));
     setPort(toml->get_qualified_as<int>("server.port").value_or(80));
-    //setSSLEnabled(toml->get_as<bool>("ssl_enabled").value_or(false));
+    setSSLEnabled(toml->get_qualifed_as<bool>("ssl_enabled").value_or(false));
 
 }
 
@@ -47,4 +47,4 @@ void Config::setSSLEnabled(const bool enabled) {
     this->ssl_enabled = enabled;
 }
 
-void Config::
+
