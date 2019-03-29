@@ -4,26 +4,81 @@
 
 #include <proxygen/httpserver/HTTPServer.h>
 
-struct CompressionConfig {
+typedef struct CompressionConfig {
     bool enabled;
     uint8_t level;      
-};
+} CompressionConfig;
 
-struct CacheConfig {
+typedef struct CacheConfig {
     uint32_t maxEntries;
     std::string diskPath;
-};
+} CacheConfig;
 
-struct ServerConfig {
+typedef struct ServerConfig {
     std::string ip;
     uint16_t port;
-    CompressionOptions compression;
     CacheConfig cache;
-};
+} ServerConfig;
+
+typedef struct P2PConfig {
+    bool enabled;
+    std::string gatewayHost;
+    uint16_t gatewayPort;
+    std::string poolDomain;
+    std::string cdnSubdomain;
+    uint16_t pollInterval;
+} P2PConfig;
+
+typedef struct ServiceWorkerConfig {
+    bool enabled;
+    std::string path;
+} ServiceWorkerConfig;
+
+typedef struct FeaturesConfig {
+    P2PConfig p2pConfig;
+    ServiceWorkerConfig swConfig;
+    CompressionConfig compressionConfig;
+} FeaturesConfig;
+
+typedef struct ProtectedDomain {
+    std::string domain;
+    std::string originHost;
+    uint16_t originPort;
+} ProtectedDomain;
+
+typedef struct ProtectedDomainsConfig {
+    std::vector<ProtectedDomain> protectedDomains;
+} ProtectedDomainsConfig;
+
+typedef SSLCertificateConfig {
+    std::string certPath;
+    std::string keyPath;
+} SSLCertificateConfig;
+
+typedef struct SSLConfig {
+    bool enabled;
+    bool upgradeInsecure;
+    uint16_t port;
+    std::vector<SSLCertificateConfig> certs;
+} SSLConfig;
 
 class Config {
     private:
         bool validate_{false};
+        ServerConfig serverConfig_{nullptr};
+        FeaturesConfig featConfig_{nullptr};
+        ProtectedDomainsConfig protDomainsConfig_{nullptr};
+        SSLConfig sslConfig_{nullptr};
+
+        ServerConfig createServerConfig(std::shared_ptr<cpptoml::table> c);
+        CacheConfig createCacheConfig(std::shared_ptr<cpptoml::table> c);
+        FeaturesConfig createFeaturesConfig(std::shared_ptr<cpptoml::table> c);
+        P2PConfig createP2PConfig(std::shared_ptr<cpptoml::table> c);
+        ServiceWorkerConfig createSWConfig(std::shared_ptr<cpptoml::table> c);
+        CompressionConfig createCompressionConfig(
+            std::shared_ptr<cpptoml::table> c);
+        ProtectedDomainsConfig createProtectedDomainsConfig(std::shared_ptr<cpptoml::table> c);
+        SSLConfig createSSLConfig(std::shared_ptr<cpptoml::table> c);
     public:
 
         // constructor to use if you are going to manually set
@@ -33,55 +88,16 @@ class Config {
         // constructor to use if you wish to populate the config
         // values using a TOML config file
         Config(const std::string& path, bool validate = true);
+    
+        // todo: move HTTPServerOptions and IPConfig structures/creation
+        // to Masternode.cpp. not needed in config 
 
-        // IP that the masternode is listening on
-        std::string ip{""};
-        void setIP(const std::string& ip);
-
-        // Port that the masternode is listening on for HTTP requests
-        uint16_t port{80};
-        void setPort(const int port);
-
-        // Toggle for SSL functionality
-        bool ssl_enabled{false};
-        void setSSLEnabled(const bool enabled);
-
-        // IP or hostname of the origin server (required)
-        std::string origin_host{""};
-        void setOriginHost(const std::string& host);
-
-        // Port of the origin server (required)
-        uint16_t origin_port{80};
-        // Domain we're protecting (singular for now) (required)
-        std::string protected_domain{""};
         // Proxygen server options
         proxygen::HTTPServerOptions options;
+
         // IPs for the server to locally bind to
         std::vector<proxygen::HTTPServer::IPConfig> IPs;
-        // Directory to store cached files
-        std::string cache_directory{"/dev/null"};
-        // Enable p2p network integration
-        bool enableP2P{false};
-        // Address of the masternode's Gladius network gateway process
-        std::string gateway_address{""};
-        // Port of the masternode's Gladius network gateway process
-        uint16_t gateway_port{3001};
-        // P2P polling interval in seconds
-        uint16_t gateway_poll_interval{5};
-        // file path to service worker file to serve
-        std::string service_worker_path{""};
-        // enable/disable service worker injection
-        bool enableServiceWorker{true};
-        // Enables upgrading HTTP requests to HTTPS via redirects
-        bool upgrade_insecure{false};
-        // Port to listen to ssl requests
-        uint16_t ssl_port{443};
+
         // Ignore the heartbeat on edge nodes
         bool ignore_heartbeat{false};
-        // Domain to use for pool hosts
-        std::string pool_domain{""};
-        // Subdomain of the pool domain to use for content node hostnames
-        std::string cdn_subdomain{"cdn"};
-        // Maximum number of routes to cache
-        size_t maxRoutesToCache{1024};
 };

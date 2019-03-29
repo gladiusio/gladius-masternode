@@ -3,12 +3,22 @@
 [server]
 ip = "0.0.0.0"
 port = 80
-    [server.compression]
-    enabled = true
-    level = 5
     [server.cache]
     max_entries = 1024
     disk_path = "/home/me/cache"
+
+# Protected domains
+[[protected-domain]]
+domain_name = "blog.gladius.io"
+origin_server_host = "127.0.0.1"
+origin_server_port = 80
+
+[[protected-domain]]
+domain_name = "mail.gladius.io"
+origin_server_host = "127.0.0.2"
+origin_server_port = 8080
+
+####################
 
 [features]
     [features.peer-to-peer-cdn]
@@ -17,33 +27,25 @@ port = 80
     gladius_gateway_port = 3001
     pool_domain = "gladiuspool.com"
     cdn_subdomain = "cdn1"
+    poll_interval = 5
 
     [features.service-worker-injection]
     enabled = true
     path = "/home/me/service-worker.js"
 
-# array of protected domain tables
-[protected-domains]
-    [protected-domains.domain1]
-    domain_name = "blog.gladius.io"
-    origin_server_host = "127.0.0.1"
-    origin_server_port = 80
-
-    [protected-domains.domain2]
-    domain_name = "mail.gladius.io"
-    origin_server_host = "127.0.0.2"
-    origin_server_port = 8080
+    [features.compression]
+    enabled = true
+    level = 5
 
 # SSL Settings
 [ssl]
 enabled = true
 upgrade_insecure = true
 port = 443
-    [ssl.certificates]
-        [ssl.certificates.cert1]
-        cert_path = "/home/me/cert.pem"
-        key_path = "/home/me/key.pem"
+[[ssl.certificate]]
+cert_path = "/home/me/cert.pem"
+key_path = "/home/me/key.pem"
 
-        [ssl.certificates.cert2]
-        cert_path = "/home/me/cert2.pem"
-        key_path = "/home/me/key2.pem"
+[[ssl.certificate]]
+cert_path = "/home/me/cert2.pem"
+key_path = "/home/me/key2.pem"
