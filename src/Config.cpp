@@ -1,5 +1,3 @@
-#include <unistd.h>
-#include "cpptoml.h"
 #include "Config.h"
 
 Config::Config() {}
@@ -35,7 +33,7 @@ ServerConfig Config::createServerConfig(std::shared_ptr<cpptoml::table> c) {
 CacheConfig Config::createCacheConfig(std::shared_ptr<cpptoml::table> c) {
     CacheConfig cConfig;
     cConfig.maxEntries = c->get_qualified_as<uint32_t>("server.cache.max_entries").value_or(1024);
-    cConfig.diskPath = c->get_qualified_as<std::string>("server.cache.disk_path");
+    cConfig.diskPath = c->get_qualified_as<std::string>("server.cache.disk_path").value_or("");
     return cConfig;
 }
 
@@ -54,16 +52,17 @@ P2PConfig Config::createP2PConfig(std::shared_ptr<cpptoml::table> c) {
     pConfig.enabled = c->get_qualified_as<bool>("features.peer-to-peer-cdn.enabled").value_or(false);
     pConfig.gatewayHost = c->get_qualified_as<std::string>("features.peer-to-peer-cdn.gladius_gateway_address").value_or("127.0.0.1");
     pConfig.gatewayPort = c->get_qualified_as<uint16_t>("features.peer-to-peer-cdn.gladius_gateway_port").value_or(3001);
-    pConfig.poolDomain = c->get_qualified_as<std::string>("features.peer-to-peer-cdn.pool_domain");
-    pConfig.cdnSubdomain = c->get_qualified_as<std::string>("features.peer-to-peer-cdn.cdn_subdomain");
+    pConfig.poolDomain = c->get_qualified_as<std::string>("features.peer-to-peer-cdn.pool_domain").value_or("");
+    pConfig.cdnSubdomain = c->get_qualified_as<std::string>("features.peer-to-peer-cdn.cdn_subdomain").value_or("");
     pConfig.pollInterval = c->get_qualified_as<uint16_t>("features.peer-to-peer-cdn.poll_interval").value_or(5);
+    pConfig.ignoreHeartbeat = c->get_qualified_as<bool>("features.peer-to-peer-cdn.ignore_heartbeat").value_or(false);
     return pConfig;
 }
 
 ServiceWorkerConfig Config::createSWConfig(std::shared_ptr<cpptoml::table> c) {
     ServiceWorkerConfig swConfig;
     swConfig.enabled = c->get_qualified_as<bool>("features.service-worker-injection.enabled").value_or(false);
-    swConfig.path = c->get_qualified_as<std::string>("features.service-worker-injection.path");
+    swConfig.path = c->get_qualified_as<std::string>("features.service-worker-injection.path").value_or("");
     return swConfig;
 }
 
@@ -85,9 +84,9 @@ ProtectedDomainsConfig Config::createProtectedDomainsConfig(std::shared_ptr<cppt
     auto domains = c->get_table_array("protected-domain");
     for (const auto& table : *domains) {
         ProtectedDomain pd;
-        pd.domain = table->get_as<std::string>("domain_name");
-        pd.originHost = table->get_as<std::string>("origin_server_host");
-        pd.originPort = table->get_as<uint16_t>("origin_server_port");
+        pd.domain = table->get_as<std::string>("domain_name").value_or("");
+        pd.originHost = table->get_as<std::string>("origin_server_host").value_or("");
+        pd.originPort = table->get_as<uint16_t>("origin_server_port").value_or(80);
         pConfig.protectedDomains.push_back(pd);
     }
     return pConfig;
@@ -101,8 +100,8 @@ SSLConfig Config::createSSLConfig(std::shared_ptr<cpptoml::table> c) {
     auto certs = c->get_table_array("ssl.certificate");
     for (const auto& table : *certs) {
         SSLCertificateConfig sc;
-        sc.certPath = table->get_as<std::string>("cert_path");
-        sc.keyPath = table->get_as<std::string>("key_path");
+        sc.certPath = table->get_as<std::string>("cert_path").value_or("");
+        sc.keyPath = table->get_as<std::string>("key_path").value_or("");
         sc.isDefault = table->get_as<bool>("is_default").value_or(false);
         sConfig.certs.push_back(sc);
     }

@@ -7,12 +7,13 @@
 
 using namespace std::chrono;
 
-NetworkState::NetworkState(std::shared_ptr<Config> config):
-    config_(config) {
+NetworkState::NetworkState(P2PConfig& config):
+    config_(config)
+{
     httpClient_ = std::make_unique<httplib::Client>(
-        config_->gateway_address.c_str(),
-        config->gateway_port,
-        config_->gateway_poll_interval /* timeout in seconds */
+        config.gatewayHost.c_str(),
+        config.gatewayPort,
+        config.pollInterval /* timeout in seconds */
     );
 }
 
@@ -54,8 +55,9 @@ void NetworkState::parseStateUpdate(std::string body, bool ignoreHeartbeat=false
 
 std::string NetworkState::createEdgeNodeHostname(
     std::string address, std::string port) const {
-    return std::string("https://" + address + "." + config_->cdn_subdomain + "." 
-        + config_->pool_domain + ":" + port);
+    
+    return std::string("https://" + address + "." + config_.cdnSubdomain + "." 
+        + config_.poolDomain + ":" + port);
 }
 
 void NetworkState::beginPollingGateway() {
@@ -67,9 +69,9 @@ void NetworkState::beginPollingGateway() {
         if (res && res->status == 200) {
             LOG(INFO) << "Received network state from gateway";
             // parse the JSON into state structs/classes
-            parseStateUpdate(res->body, config_->ignore_heartbeat);
+            parseStateUpdate(res->body, config_.ignoreHeartbeat);
         }
-    }, std::chrono::seconds(config_->gateway_poll_interval), "GatewayPoller");
+    }, std::chrono::seconds(config_.pollInterval), "GatewayPoller");
     fs.setSteady(true);
     fs.start();
     LOG(INFO) << "Started network state polling thread...";

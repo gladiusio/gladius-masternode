@@ -43,7 +43,7 @@ void ProxyHandler::onRequest(std::unique_ptr<HTTPMessage> headers) noexcept {
         if (cachedRoute) {
             std::unique_ptr<folly::IOBuf> content = cachedRoute->getContent();
             VLOG(1) << "Serving from cache for " << url.getUrl();
-            if (config_->enableServiceWorker &&
+            if (config_->getFeaturesConfig().sw.enabled &&
                 cachedRoute->getHeaders()->getHeaders().rawGet("Content-Type")
                 .find("text/html") != std::string::npos) {
                 // inject service worker bootstrap into <head> tag
@@ -74,28 +74,32 @@ void ProxyHandler::onRequest(std::unique_ptr<HTTPMessage> headers) noexcept {
     
     // otherwise, connect to origin server to fetch content
     request_->stripPerHopHeaders();
-    folly::SocketAddress addr;
-    try {
-        addr.setFromHostPort(config_->origin_host, config_->origin_port);
-    } catch (...) {
-        ResponseBuilder(downstream_)
-            .status(503, "Bad Gateway")
-            .sendWithEOM();
-        return;
-    }
+    // folly::SocketAddress addr;
+    // try {
+    //     // TODO: add support for multiple domains here.
+    //     // need to determine which origin host to connect to
+    //     // depending on which domain the request is for
+    //     auto srvConf = config_->getServerConfig();
+    //     addr.setFromHostPort(origin_host, config_->origin_port);
+    // } catch (...) {
+    //     ResponseBuilder(downstream_)
+    //         .status(503, "Bad Gateway")
+    //         .sendWithEOM();
+    //     return;
+    // }
 
     // Stop listening for data from the client while we contact the origin
-    downstream_->pauseIngress();
+    // downstream_->pauseIngress();
 
-    auto evb = folly::EventBaseManager::get()->getEventBase();
-    // TODO: use a connection pool
-    const folly::AsyncSocket::OptionMap opts {
-        {{SOL_SOCKET, SO_REUSEADDR}, 1}
-    };
+    // auto evb = folly::EventBaseManager::get()->getEventBase();
+    // // TODO: use a connection pool
+    // const folly::AsyncSocket::OptionMap opts {
+    //     {{SOL_SOCKET, SO_REUSEADDR}, 1}
+    // };
 
-    // Make a connection to the origin server
-    VLOG(1) << "Connecting to origin server...";
-    connector_.connect(evb, addr, std::chrono::milliseconds(60000), opts);
+    // // Make a connection to the origin server
+    // VLOG(1) << "Connecting to origin server...";
+    // connector_.connect(evb, addr, std::chrono::milliseconds(60000), opts);
 }
 
 void ProxyHandler::onBody(std::unique_ptr<folly::IOBuf> body) noexcept {

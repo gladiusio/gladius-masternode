@@ -21,7 +21,7 @@ void DirectHandler::onRequest(std::unique_ptr<HTTPMessage> headers) noexcept {
     // Construct network state json response
     folly::dynamic jsonResponse = folly::dynamic::object;
 
-    if (config_->enableP2P && state_) {
+    if (config_->getFeaturesConfig().p2pConfig.enabled && state_) {
         // vector of edge node addresses
         const auto& edgeAddrs = state_->getEdgeNodes(); 
         jsonResponse["edgeNodes"] = folly::dynamic::array;

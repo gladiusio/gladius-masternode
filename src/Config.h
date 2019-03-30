@@ -1,8 +1,11 @@
 #pragma once
 
 #include <string.h>
+#include <unistd.h>
 
 #include <proxygen/httpserver/HTTPServer.h>
+
+#include "cpptoml.h"
 
 typedef struct CompressionConfig {
     bool enabled;
@@ -30,6 +33,7 @@ typedef struct P2PConfig {
     std::string poolDomain;
     std::string cdnSubdomain;
     uint16_t pollInterval;
+    bool ignoreHeartbeat;
 } P2PConfig;
 
 typedef struct ServiceWorkerConfig {

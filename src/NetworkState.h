@@ -8,7 +8,7 @@
 
 class NetworkState {
     private:
-        std::shared_ptr<Config> config_{nullptr};
+        P2PConfig config_;
         // List of addresses of edge nodes
         folly::Synchronized<std::vector<std::string>> edgeNodes_;
         // Used to fetch p2p network state on a repeated basis
@@ -17,7 +17,7 @@ class NetworkState {
         std::unique_ptr<httplib::Client> httpClient_{nullptr};
 
     public:
-        explicit NetworkState(std::shared_ptr<Config> config);
+        explicit NetworkState(P2PConfig& config);
         ~NetworkState();
 
         std::vector<std::string> getEdgeNodes() const;

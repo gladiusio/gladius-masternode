@@ -17,7 +17,7 @@ Masternode::Masternode(std::shared_ptr<Config> config):
 
     // configure the NetworkState for peer to peer features
     if (ftConf.p2pConfig.enabled) {
-        state_ = std::make_shared<NetworkState>(config_);
+        state_ = std::make_shared<NetworkState>(ftConf.p2pConfig);
     }
     
     // configure the content cache
@@ -38,7 +38,7 @@ Masternode::Masternode(std::shared_ptr<Config> config):
         srvConf.idleTimeoutMs);
     options.shutdownOn = {SIGINT, SIGTERM};
     options.enableContentCompression = 
-        ftConf.compressionConfig.enabled;
+        ftConf.compression.enabled;
     if (options.enableContentCompression) {
         options.contentCompressionLevel = ftConf.compression.level;
         options.contentCompressionMinimumSize = ftConf.compression.minSize;

@@ -23,7 +23,7 @@ void Router::onServerStart(folly::EventBase *evb) noexcept {
         evb,
         std::chrono::milliseconds(HHWheelTimer::DEFAULT_TICK_INTERVAL),
         folly::AsyncTimeout::InternalEnum::NORMAL,
-        std::chrono::seconds(60000)); // todo: use config timeout
+        std::chrono::milliseconds(config_->getServerConfig().idleTimeoutMs));
     
     LOG(INFO) << "Server thread now started and listening for requests!";
 }
@@ -34,12 +34,14 @@ void Router::onServerStop() noexcept {
 }
 
 bool Router::requestIsValid(std::string host) {
-    if (host == config_->protected_domain) return true;
-    if (config_->ssl_enabled) {
-        if (host == config_->protected_domain + ":" + std::to_string(config_->ssl_port)) return true;
-    }
-    if (host == config_->protected_domain + ":" + std::to_string(config_->port)) return true;
-    return false;
+    // todo: need to add support for multiple domains here
+    return true;
+    // if (host == config_->protected_domain) return true;
+    // if (config_->ssl_enabled) {
+    //     if (host == config_->protected_domain + ":" + std::to_string(config_->ssl_port)) return true;
+    // }
+    // if (host == config_->protected_domain + ":" + std::to_string(config_->port)) return true;
+    // return false;
 }
 
 
@@ -62,7 +64,9 @@ RequestHandler* Router::onRequest(
 
     // if upgrading insecure requests is enabled and this request is
     // not secure, redirect to the secure port
-    if (config_->upgrade_insecure && !m->isSecure()) {
+    if (config_->getSSLConfig().enabled && 
+        config_->getSSLConfig().upgradeInsecure &&
+        !m->isSecure()) {
         return new RedirectHandler(config_);
     }
 
@@ -72,7 +76,7 @@ RequestHandler* Router::onRequest(
         return new DirectHandler(cache_, config_, state_);
     }
 
-    if (config_->enableServiceWorker && sw_) {
+    if (config_->getFeaturesConfig().sw.enabled && sw_) {
         // serving the service worker javascript file itself
         if (m->getURL() == "/gladius-service-worker.js") {
             return new ServiceWorkerHandler(config_, sw_);

@@ -36,7 +36,7 @@ void RedirectHandler::onRequest(
     proxygen::URL redirect_url(
         "https",
         redirect_host,
-        config_->ssl_port,
+        config_->getSSLConfig().port,
         url.getPath().substr(1),
         url.getQuery(),
         url.getFragment()
