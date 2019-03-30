@@ -1,15 +1,12 @@
+#include <unistd.h>
 #include "cpptoml.h"
-
 #include "Config.h"
 
-Config::Config(bool validate):
-    validate_(validate) {}
+Config::Config() {}
 
 // Creates a Config object based on values provided by
 // a TOML configuration file.
-Config::Config(const std::string& path, bool validate):
-    validate_(validate)
-{
+Config::Config(const std::string& path) {
     // read config file (can throw, let it bubble up)
     auto toml = cpptoml::parse_file(path);
 
@@ -21,18 +18,16 @@ Config::Config(const std::string& path, bool validate):
     sslConfig_ = createSSLConfig(toml);
 }
 
-// validates the config as a whole to check that settings
-// that depend on each other are set to valid values
-void validateHolistically() {
-
-}
-
 ServerConfig Config::createServerConfig(std::shared_ptr<cpptoml::table> c) {
     ServerConfig sConfig;
     sConfig.ip = c->get_qualified_as<std::string>("server.ip")
         .value_or("0.0.0.0");
     sConfig.port = c->get_qualified_as<uint16_t>("server.port")
         .value_or(80);
+    sConfig.threads = c->get_qualified_as<size_t>("server.threads")
+        .value_or(sysconf(_SC_NPROCESSORS_ONLN));
+    sConfig.idleTimeoutMs = c->get_qualified_as<uint32_t>("server.idle_timeout_ms")
+        .value_or(20000);
     sConfig.cache = createCacheConfig(c);
     return sConfig;
 }
@@ -49,8 +44,8 @@ FeaturesConfig Config::createFeaturesConfig(
 {
     FeaturesConfig fConfig;
     fConfig.p2pConfig = createP2PConfig(c);
-    fConfig.swConfig = createSWConfig(c);
-    fConfig.compressionConfig = createCompressionConfig(c);
+    fConfig.sw = createSWConfig(c);
+    fConfig.compression = createCompressionConfig(c);
     return fConfig;
 }
 
@@ -80,6 +75,8 @@ CompressionConfig Config::createCompressionConfig(
         .value_or(false);
     cConfig.level = c->get_qualified_as<uint8_t>("features.compression.level")
         .value_or(4);
+    cConfig.minSize = c->get_qualified_as<uint64_t>("features.compression.minimum_size")
+        .value_or(1024);
     return cConfig;
 }
 
@@ -106,7 +103,18 @@ SSLConfig Config::createSSLConfig(std::shared_ptr<cpptoml::table> c) {
         SSLCertificateConfig sc;
         sc.certPath = table->get_as<std::string>("cert_path");
         sc.keyPath = table->get_as<std::string>("key_path");
+        sc.isDefault = table->get_as<bool>("is_default").value_or(false);
         sConfig.certs.push_back(sc);
     }
     return sConfig;
 }
+
+ServerConfig Config::getServerConfig() const { return serverConfig_; }
+FeaturesConfig Config::getFeaturesConfig() const { return featConfig_; }
+ProtectedDomainsConfig Config::getProtectedDomainsConfig() const { return protDomainsConfig_; }
+SSLConfig Config::getSSLConfig() const { return sslConfig_; }
+
+void Config::setServerConfig(ServerConfig c) { serverConfig_ = c; }
+void Config::setFeaturesConfig(FeaturesConfig c) { featConfig_ = c; }
+void Config::setProtectedDomainsConfig(ProtectedDomainsConfig c) { protDomainsConfig_ = c; }
+void Config::setSSLConfig(SSLConfig c) { sslConfig_ = c; }

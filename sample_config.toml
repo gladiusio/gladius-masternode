@@ -3,6 +3,8 @@
 [server]
 ip = "0.0.0.0"
 port = 80
+threads = 4
+idle_timeout_ms = 20000
     [server.cache]
     max_entries = 1024
     disk_path = "/home/me/cache"
@@ -36,16 +38,19 @@ origin_server_port = 8080
     [features.compression]
     enabled = true
     level = 5
+    minimum_size = 1024
 
 # SSL Settings
 [ssl]
 enabled = true
 upgrade_insecure = true
 port = 443
-[[ssl.certificate]]
-cert_path = "/home/me/cert.pem"
-key_path = "/home/me/key.pem"
+    [[ssl.certificate]]
+    cert_path = "/home/me/cert.pem"
+    key_path = "/home/me/key.pem"
+    is_default = true
 
-[[ssl.certificate]]
-cert_path = "/home/me/cert2.pem"
-key_path = "/home/me/key2.pem"
+    [[ssl.certificate]]
+    cert_path = "/home/me/cert2.pem"
+    key_path = "/home/me/key2.pem"
+    is_default = false

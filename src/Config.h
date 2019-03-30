@@ -6,7 +6,8 @@
 
 typedef struct CompressionConfig {
     bool enabled;
-    uint8_t level;      
+    uint8_t level;
+    uint64_t minSize;  
 } CompressionConfig;
 
 typedef struct CacheConfig {
@@ -18,6 +19,8 @@ typedef struct ServerConfig {
     std::string ip;
     uint16_t port;
     CacheConfig cache;
+    size_t threads;
+    uint32_t idleTimeoutMs;
 } ServerConfig;
 
 typedef struct P2PConfig {
@@ -36,8 +39,8 @@ typedef struct ServiceWorkerConfig {
 
 typedef struct FeaturesConfig {
     P2PConfig p2pConfig;
-    ServiceWorkerConfig swConfig;
-    CompressionConfig compressionConfig;
+    ServiceWorkerConfig sw;
+    CompressionConfig compression;
 } FeaturesConfig;
 
 typedef struct ProtectedDomain {
@@ -50,9 +53,10 @@ typedef struct ProtectedDomainsConfig {
     std::vector<ProtectedDomain> protectedDomains;
 } ProtectedDomainsConfig;
 
-typedef SSLCertificateConfig {
+typedef struct SSLCertificateConfig {
     std::string certPath;
     std::string keyPath;
+    bool isDefault;
 } SSLCertificateConfig;
 
 typedef struct SSLConfig {
@@ -65,10 +69,10 @@ typedef struct SSLConfig {
 class Config {
     private:
         bool validate_{false};
-        ServerConfig serverConfig_{nullptr};
-        FeaturesConfig featConfig_{nullptr};
-        ProtectedDomainsConfig protDomainsConfig_{nullptr};
-        SSLConfig sslConfig_{nullptr};
+        ServerConfig serverConfig_;
+        FeaturesConfig featConfig_;
+        ProtectedDomainsConfig protDomainsConfig_;
+        SSLConfig sslConfig_;
 
         ServerConfig createServerConfig(std::shared_ptr<cpptoml::table> c);
         CacheConfig createCacheConfig(std::shared_ptr<cpptoml::table> c);
@@ -83,17 +87,26 @@ class Config {
 
         // constructor to use if you are going to manually set
         // individual fields in the config
-        Config(bool validate = false);
+        Config();
         
         // constructor to use if you wish to populate the config
         // values using a TOML config file
-        Config(const std::string& path, bool validate = true);
+        Config(const std::string& path);
     
+        ServerConfig getServerConfig() const;
+        FeaturesConfig getFeaturesConfig() const;
+        ProtectedDomainsConfig getProtectedDomainsConfig() const;
+        SSLConfig getSSLConfig() const;
+
+        void setServerConfig(ServerConfig c);
+        void setFeaturesConfig(FeaturesConfig c);
+        void setProtectedDomainsConfig(ProtectedDomainsConfig c);
+        void setSSLConfig(SSLConfig c);
+
         // todo: move HTTPServerOptions and IPConfig structures/creation
         // to Masternode.cpp. not needed in config 
 
-        // Proxygen server options
-        proxygen::HTTPServerOptions options;
+        
 
         // IPs for the server to locally bind to
         std::vector<proxygen::HTTPServer::IPConfig> IPs;
