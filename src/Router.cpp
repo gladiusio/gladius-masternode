@@ -49,10 +49,11 @@ RequestHandler* Router::onRequest(
     RequestHandler *req, HTTPMessage *m) noexcept {
 
     logRequest(m);
-    // make sure this request always has a Host: header
-    m->ensureHostHeader();
-    
-    std::string host = m->getHeaders().getSingleOrEmpty(HTTP_HEADER_HOST);
+    proxygen::URL url(m->getURL());
+    std::string host = url.getHostAndPort();
+    if (host.empty()) {
+        host = m->getHeaders().getSingleOrEmpty(HTTP_HEADER_HOST);
+    }
 
     if (!requestIsValid(host)) {
         // reject this request
