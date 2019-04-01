@@ -94,10 +94,11 @@ ProtectedDomainsConfig Config::createProtectedDomainsConfig(std::shared_ptr<cppt
 
 SSLConfig Config::createSSLConfig(std::shared_ptr<cpptoml::table> c) {
     SSLConfig sConfig;
-    sConfig.enabled = c->get_qualified_as<bool>("ssl.enabled").value_or(false);
-    sConfig.upgradeInsecure = c->get_qualified_as<bool>("ssl.upgrade_insecure").value_or(false);
-    sConfig.port = c->get_qualified_as<uint16_t>("ssl.port").value_or(443);
-    auto certs = c->get_table_array("ssl.certificate");
+    auto ssl = c->get_table("ssl");
+    sConfig.enabled = ssl->get_as<bool>("enabled").value_or(false);
+    sConfig.upgradeInsecure = ssl->get_as<bool>("upgrade_insecure").value_or(false);
+    sConfig.port = ssl->get_as<uint16_t>("port").value_or(443);
+    auto certs = ssl->get_table_array("certificate");
     for (const auto& table : *certs) {
         SSLCertificateConfig sc;
         sc.certPath = table->get_as<std::string>("cert_path").value_or("");
