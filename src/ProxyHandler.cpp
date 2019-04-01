@@ -164,6 +164,9 @@ void ProxyHandler::connectSuccess(
     if (removed) VLOG(1) << 
         "Stripped Accept-Encoding header from origin request";
 
+    // TODO: set Host: header in case an origin server needs it
+    // due to serving multiple domains
+
     originTxn_->sendHeaders(*request_);
     VLOG(1) << "Sent headers to origin server";
     downstream_->resumeIngress();
