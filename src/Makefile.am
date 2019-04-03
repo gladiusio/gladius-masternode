@@ -23,7 +23,9 @@ libmasternode_la_SOURCES= \
     NetworkState.cpp \
     ServiceWorker.cpp \
     RedirectHandler.cpp \
-    RejectHandler.cpp
+    RejectHandler.cpp \
+    Geo.cpp \
+    EdgeNode.cpp
 
 libmasternode_la_LDFLAGS = -static -pthread -pie -Wl,-z,relro,-z,now
 
@@ -38,7 +40,9 @@ libmasternode_la_LIBADD = \
     -lgflags \
     -lcrypto \
     -ldouble-conversion \
-    -lmyhtml
+    -lmyhtml \
+    -lgeolite2++ \
+    -lmaxminddb
 
 bin_PROGRAMS = masternode
 
@@ -59,7 +63,9 @@ check_PROGRAMS = masternode_tests
 masternode_tests_SOURCES = \
     tests/MasternodeTests.cpp \
     tests/NetworkStateTests.cpp \
-    tests/TestRunner.cpp
+    tests/TestRunner.cpp \
+    tests/GeoTests.cpp \
+    tests/EdgeNodeTests.cpp
 
 masternode_tests_LDADD = \
     libmasternode.la \

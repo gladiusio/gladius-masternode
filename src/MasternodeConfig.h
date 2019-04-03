@@ -6,8 +6,12 @@
 
 class MasternodeConfig {
     public:
+        // IP address to bind to locally to serve requests
         std::string ip{""};
+        // Port to bind to locally to serve requests
         uint16_t port{80};
+        // Internal indicator for whether SSL features should be used
+        // (not exposed to user config)
         bool ssl_enabled{false};
         // IP or hostname of the origin server (required)
         std::string origin_host{""};
@@ -43,6 +47,10 @@ class MasternodeConfig {
         std::string pool_domain{""};
         // Subdomain of the pool domain to use for content node hostnames
         std::string cdn_subdomain{"cdn"};
+        // Path to the directory for storing geographic IP data
+        std::string geoip_path{""};
+        // GeoIP enabled
+        bool geo_ip_enabled{false};
         // Maximum number of routes to cache
         size_t maxRoutesToCache{1024};
 };

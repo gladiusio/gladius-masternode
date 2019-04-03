@@ -20,8 +20,8 @@ class CachedRoute {
     private:
         std::string sha256_;
         std::string url_;
-        std::unique_ptr<folly::IOBuf> content_;
-        std::shared_ptr<proxygen::HTTPMessage> headers_;
+        std::unique_ptr<folly::IOBuf> content_{nullptr};
+        std::shared_ptr<proxygen::HTTPMessage> headers_{nullptr};
 };
 
 class ContentCache {

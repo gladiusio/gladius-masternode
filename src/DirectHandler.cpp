@@ -19,27 +19,35 @@ DirectHandler::DirectHandler(std::shared_ptr<ContentCache> cache,
 
 void DirectHandler::onRequest(std::unique_ptr<HTTPMessage> headers) noexcept {
     // Construct network state json response
-    folly::dynamic jsonResponse = folly::dynamic::object;
 
+    // top level JSON response object
+    folly::dynamic jsonRes = folly::dynamic::object;
+    std::vector<std::shared_ptr<EdgeNode>> edgeNodes;
     if (config_->enableP2P && state_) {
-        // vector of edge node addresses
-        const auto& edgeAddrs = state_->getEdgeNodes(); 
-        jsonResponse["edgeNodes"] = folly::dynamic::array;
-        for (auto edge : edgeAddrs) {
-            jsonResponse["edgeNodes"].push_back(edge);
+        // if geoip is on, use nearest neighbor edge nodes
+        if (config_->geo_ip_enabled) {
+            edgeNodes = state_->getNearestEdgeNodes(headers->getClientIP(), 5);
+        } else { // else send all edge node addresses for now (random in future?)
+            edgeNodes = state_->getEdgeNodes();
+        }
+        // array of edge node http addresses
+        jsonRes["edgeNodes"] = folly::dynamic::array;
+        for (auto edge : edgeNodes) {
+            jsonRes["edgeNodes"].push_back(
+                edge->getFQDN(config_->pool_domain, config_->cdn_subdomain));
         }
     }
-    
+
     const auto& assetMap = cache_->getAssetHashMap(); // map of urls : hashes
-    jsonResponse["assetHashes"] = folly::dynamic::object;
+    jsonRes["assetHashes"] = folly::dynamic::object;
     for (auto kv : *assetMap.get()) {
-        jsonResponse["assetHashes"][kv.first] = kv.second;
+        jsonRes["assetHashes"][kv.first] = kv.second;
     }
 
     ResponseBuilder(downstream_)
         .status(200, "OK")
         .header("Content-Type", "application/json")
-        .body(folly::toJson(jsonResponse))
+        .body(folly::toJson(jsonRes))
         .sendWithEOM();
 }
 

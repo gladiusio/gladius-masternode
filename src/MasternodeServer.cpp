@@ -26,6 +26,8 @@ DEFINE_string(sw_path, "", "File path of service worker javascript file to injec
 DEFINE_bool(upgrade_insecure, true, "Set to true to redirect HTTP requests to the HTTPS port");
 DEFINE_string(pool_domain, "", "Domain to use for pool hosts"); // i.e. examplepool.com
 DEFINE_string(cdn_subdomain, "cdn", "Subdomain of the pool domain to use for content node hostnames");
+DEFINE_string(geoip_path, "", "Path to the directory for geographic IP data");
+DEFINE_bool(geo_ip_enabled, false, "Set to true to enable geoip request routing");
 DEFINE_bool(enable_compression, false, "Set to true to enable compression");
 DEFINE_bool(enable_service_worker, true, "Set to true to enable service worker injection");
 DEFINE_int32(max_cached_routes, 1024, "Maximum number of routes to cache");
@@ -85,6 +87,8 @@ int main(int argc, char *argv[]) {
     config->ignore_heartbeat = FLAGS_ignore_heartbeat;
     config->pool_domain = FLAGS_pool_domain;
     config->cdn_subdomain = FLAGS_cdn_subdomain;
+    config->geoip_path = FLAGS_geoip_path;
+    config->geo_ip_enabled = FLAGS_geo_ip_enabled;
     config->options.threads = threads;
     config->options.idleTimeout = std::chrono::milliseconds(60000);
     config->options.shutdownOn = {SIGINT, SIGTERM};

@@ -1,0 +1,14 @@
+https://github.com/jlblancoc/nanoflann       BSD
+https://github.com/facebook/proxygen         BSD
+https://github.com/facebook/wangle           Apache-2.0
+https://github.com/facebook/folly            Apache-2.0
+boost system library                         https://www.boost.org/LICENSE_1_0.txt
+boost thread library                         https://www.boost.org/LICENSE_1_0.txt
+https://github.com/google/glog               https://github.com/google/glog/blob/master/COPYING
+https://github.com/gflags/gflags             BSD-3-Clause
+openssl                                      Apache-2.0
+https://github.com/google/double-conversion  BSD-3-Clause
+https://github.com/lexborisov/myhtml         LGPL-2.1
+https://www.ccoderun.ca/GeoLite2++/api/      https://www.ccoderun.ca/GeoLite2PP/download/license.txt
+https://github.com/maxmind/MaxMind-DB        Commons Attribution-ShareAlike 3.0 Unported License
+https://github.com/yhirose/cpp-httplib       MIT
