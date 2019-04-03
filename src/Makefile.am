@@ -14,8 +14,9 @@ AM_CPPFLAGS = -I$(top_srcdir) -I$(top_srcdir)/libs \
 lib_LTLIBRARIES = libmasternode.la
 
 libmasternode_la_SOURCES= \
-    Cache.cpp \
+    CachedRoute.cpp \
     Config.cpp \
+    ContentCache.cpp \
     DirectHandler.cpp \
     Masternode.cpp \
     NetworkState.cpp \

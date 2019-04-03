@@ -53,7 +53,7 @@ void ProxyHandler::onRequest(std::unique_ptr<HTTPMessage> headers) noexcept {
                     content = folly::IOBuf::copyBuffer(injected_body);
                 }
             }
-            
+            // todo: build a better system for applying headers
             ResponseBuilder(downstream_)
                 .status(200, "OK")
                 .header("Content-Type", cachedRoute->getHeaders()->
@@ -133,7 +133,7 @@ void ProxyHandler::requestComplete() noexcept {
         proxygen::URL url(request_->getURL());
         VLOG(1) << "Adding " << url.getUrl() << " to memory cache";
         // todo: may want to do this asynchronously
-        cache_->addCachedRoute(url.getUrl(),
+        cache_->addCachedRoute(domain_, url.getUrl(),
             contentBody_->cloneCoalesced(), contentHeaders_); 
     }
 

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Cache.h"
+#include "ContentCache.h"
 #include "Config.h"
 #include "NetworkState.h"
 

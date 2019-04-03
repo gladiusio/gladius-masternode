@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Config.h"
-#include "Cache.h"
+#include "ContentCache.h"
 #include "NetworkState.h"
 #include "ServiceWorker.h"
 

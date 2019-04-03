@@ -21,10 +21,14 @@ Masternode::Masternode(std::shared_ptr<Config> config):
     }
     
     // configure the content cache
+    std::vector<std::string> domains;
+    for (const auto& domain : domConf.protectedDomains) {
+        domains.push_back(domain.domain);
+    }
     cache_ = std::make_shared<ContentCache>(
-        srvConf.cache.maxEntries,
-        srvConf.cache.diskPath,
-        ftConf.p2pConfig.enabled);
+        domains,
+        srvConf.cache.diskPath
+    );
 
     // configure the service worker module
     if (ftConf.sw.enabled) {

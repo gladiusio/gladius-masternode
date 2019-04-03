@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Cache.h"
+#include "ContentCache.h"
 #include "Config.h"
 #include "ServiceWorker.h"
 
@@ -118,6 +118,9 @@ class ProxyHandler : public proxygen::RequestHandler,
 
         // Incoming request (headers)
         std::unique_ptr<proxygen::HTTPMessage> request_{nullptr};
+
+        // Which domain this request is for
+        std::string domain_;
 
         // Content received from the origin. Used to collect data as it
         // comes in from the origin and later pass in to the cache once

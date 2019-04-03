@@ -3,8 +3,6 @@
 #include <string.h>
 #include <unistd.h>
 
-#include <proxygen/httpserver/HTTPServer.h>
-
 #include "cpptoml.h"
 
 typedef struct CompressionConfig {
@@ -106,14 +104,6 @@ class Config {
         void setFeaturesConfig(FeaturesConfig c);
         void setProtectedDomainsConfig(ProtectedDomainsConfig c);
         void setSSLConfig(SSLConfig c);
-
-        // todo: move HTTPServerOptions and IPConfig structures/creation
-        // to Masternode.cpp. not needed in config 
-
-        
-
-        // IPs for the server to locally bind to
-        std::vector<proxygen::HTTPServer::IPConfig> IPs;
 
         // Ignore the heartbeat on edge nodes
         bool ignore_heartbeat{false};

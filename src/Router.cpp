@@ -1,3 +1,5 @@
+#include <proxygen/lib/utils/URL.h>
+
 #include "Router.h"
 #include "DirectHandler.h"
 #include "RedirectHandler.h"
@@ -33,9 +35,23 @@ void Router::onServerStop() noexcept {
     LOG(INFO) << "Server thread stopped";
 }
 
-bool Router::requestIsValid(std::string host) {
-    // todo: need to add support for multiple domains here
-    return true;
+// given a proxygen::URL and HTTPMessage, this function will check to see
+// if the HTTP request is being made for a domain and port
+// that we are configured to serve requests for.
+bool Router::requestIsValid(proxygen::URL& url, 
+    HTTPMessage* m, 
+    std::string& domain)
+{
+    if (domain.empty()) return false;
+    // loop through configured domains and check to see
+    // if this request matches any of them
+    for (const auto& pDom: config_->
+        getProtectedDomainsConfig().protectedDomains) {
+        if (domain == pDom.domain) return true;
+    }
+
+    return false;
+    // old code for single-domain support
     // if (host == config_->protected_domain) return true;
     // if (config_->ssl_enabled) {
     //     if (host == config_->protected_domain + ":" + std::to_string(config_->ssl_port)) return true;
@@ -44,18 +60,25 @@ bool Router::requestIsValid(std::string host) {
     // return false;
 }
 
+// given a proxygen::URL and HTTPMessage, this function will return the domain
+// that the request is made for
+std::string Router::determineDomain(proxygen::URL& url, HTTPMessage* m) {
+    std::string host = url.getHostAndPort();
+    if (host.empty()) {
+        host = m->getHeaders().getSingleOrEmpty(HTTP_HEADER_HOST); // could have a port attached to the end
+    }
+
+    // strip the port off, if any
+    return host.substr(0, host.find(":"));
+}
 
 RequestHandler* Router::onRequest(
     RequestHandler *req, HTTPMessage *m) noexcept {
+    proxygen::URL url(m->getURL()); // parse the request URL
 
-    logRequest(m);
-    proxygen::URL url(m->getURL());
-    std::string host = url.getHostAndPort();
-    if (host.empty()) {
-        host = m->getHeaders().getSingleOrEmpty(HTTP_HEADER_HOST);
-    }
+    std::string domain = determineDomain(url, m);
 
-    if (!requestIsValid(host)) {
+    if (!requestIsValid(url, m, domain)) {
         // reject this request
         return new RejectHandler(400, "Bad Request");
     }
@@ -86,11 +109,4 @@ RequestHandler* Router::onRequest(
 
     // all other requests for proxied content
     return new ProxyHandler(timer_->timer.get(), cache_, config_, sw_);
-}
-
-void Router::logRequest(HTTPMessage *m) {
-    // ip [time] method url protocol
-    LOG(INFO) << m->getClientIP() << " " <<
-        "[" << getDateTimeStr(m->getStartTime()) << "] " <<
-        m->getMethodString() << " " << m->getURL();
 }
