@@ -26,12 +26,12 @@ class ContentCache {
             std::shared_ptr<proxygen::HTTPMessage> headers);
 
         std::shared_ptr<folly::F14FastMap<std::string, std::string>>
-            getAssetHashMap() const;
+            getAssetHashMap(const std::string& domain) const;
 
         size_t size() const;
 
         std::shared_ptr<folly::ConcurrentHashMap<std::string, std::shared_ptr<CachedRoute>>>
-            getDomainCache(const std::string& domain);
+            getDomainCache(const std::string& domain) const;
 
     private:
         // thread-safe map of domain:cache-for-domain

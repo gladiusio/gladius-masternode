@@ -29,9 +29,9 @@ std::shared_ptr<CachedRoute>
     return nullptr;
 }
 
-// returns the LRUCache for the specified domain
+// returns the cache map for the specified domain
 std::shared_ptr<folly::ConcurrentHashMap<std::string, std::shared_ptr<CachedRoute>>>
-    ContentCache::getDomainCache(const std::string& domain) 
+    ContentCache::getDomainCache(const std::string& domain) const
 {
      // find the cache for this domain
     auto map = domainCaches_.find(domain);
@@ -75,17 +75,23 @@ bool ContentCache::addCachedRoute(std::string domain, std::string path,
 }
 
 std::shared_ptr<folly::F14FastMap<std::string, std::string>> 
-    ContentCache::getAssetHashMap() const {
-    // auto map = std::make_shared
-    //     <folly::F14FastMap<std::string, std::string>>(this->size());
-    // for (auto it = map_.cbegin(); it != map_.cend(); ++it) {
-    //     map->insert(std::make_pair(it->first, it->second->getHash()));
-    // }
-    // return map;
-    return nullptr;
+    ContentCache::getAssetHashMap(const std::string& domain) const {
+    auto dCache = getDomainCache(domain);
+    if (dCache == nullptr) { return nullptr; }
+
+    auto map = std::make_shared
+        <folly::F14FastMap<std::string, std::string>>(dCache->size());
+    for (auto it = dCache->cbegin(); it != dCache->cend(); ++it) {
+        map->insert(std::make_pair(it->first, it->second->getHash()));
+    }
+    return map;
 }
 
 size_t ContentCache::size() const { 
     // return lrus_.size(); 
-    return 0;
+    size_t size = 0;
+    for (auto it = domainCaches_.cbegin(); it != domainCaches_.cend(); ++it) {
+        size += it->second->size();
+    }
+    return size;
 }

@@ -10,7 +10,8 @@ class DirectHandler : public proxygen::RequestHandler {
     public:
         DirectHandler(std::shared_ptr<ContentCache>, 
             std::shared_ptr<Config>, 
-            std::shared_ptr<NetworkState>);
+            std::shared_ptr<NetworkState>,
+            const std::string& domain);
 
         // RequestHandler methods
         void onRequest(std::unique_ptr<proxygen::HTTPMessage> headers) noexcept override;
@@ -28,4 +29,6 @@ class DirectHandler : public proxygen::RequestHandler {
 
         // Network state
         std::shared_ptr<NetworkState> state_{nullptr};
+
+        std::string domain_;
 };

@@ -45,6 +45,12 @@ bool Router::requestIsValid(proxygen::URL& url,
     if (domain.empty()) return false;
     // loop through configured domains and check to see
     // if this request matches any of them
+
+    // TODO: harden this to check that the port of the requested host
+    // from the URL or the Host: header matches what this server is configured
+    // for. for example, if we're listening on port 80 but someone somehow requests
+    // GET ourdomain.com:1234/index or GET /index (Host: ourdomain.com:1234) then
+    // we should block that
     for (const auto& pDom: config_->
         getProtectedDomainsConfig().protectedDomains) {
         if (domain == pDom.domain) return true;
@@ -97,7 +103,7 @@ RequestHandler* Router::onRequest(
     // For speaking directly to the masternode and not an underlying
     // (protected) domain
     if (m->getHeaders().rawExists(DIRECT_HEADER_NAME)) {
-        return new DirectHandler(cache_, config_, state_);
+        return new DirectHandler(cache_, config_, state_, domain);
     }
 
     if (config_->getFeaturesConfig().sw.enabled && sw_) {

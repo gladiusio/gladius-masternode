@@ -9,10 +9,12 @@ using namespace proxygen;
 
 DirectHandler::DirectHandler(std::shared_ptr<ContentCache> cache, 
     std::shared_ptr<Config> config,
-    std::shared_ptr<NetworkState> state):
+    std::shared_ptr<NetworkState> state,
+    const std::string& domain):
         cache_(cache),
         config_(config),
-        state_(state) {
+        state_(state),
+        domain_(domain) {
             CHECK(cache_) << "Cache object was null";
             CHECK(config_) << "Config object was null";
 }
@@ -30,7 +32,7 @@ void DirectHandler::onRequest(std::unique_ptr<HTTPMessage> headers) noexcept {
         }
     }
     
-    const auto& assetMap = cache_->getAssetHashMap(); // map of urls : hashes
+    const auto& assetMap = cache_->getAssetHashMap(domain_); // map of urls : hashes
     jsonResponse["assetHashes"] = folly::dynamic::object;
     for (auto kv : *assetMap.get()) {
         jsonResponse["assetHashes"][kv.first] = kv.second;
