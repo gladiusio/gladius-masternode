@@ -20,6 +20,8 @@ masternode_SOURCES = \
     Config.cpp \
     ContentCache.cpp \
     DirectHandler.cpp \
+    EdgeNode.cpp \
+    Geo.cpp \
     Masternode.cpp \
     MasternodeServer.cpp \
     NetworkState.cpp \
@@ -41,7 +43,9 @@ masternode_LDADD = \
     -lgflags \
     -lcrypto \
     -ldouble-conversion \
-    -lmyhtml
+    -lmyhtml \
+    -lgeolite2++ \
+    -lmaxminddb
 
 
 TESTS = masternode_tests
@@ -53,6 +57,8 @@ masternode_tests_SOURCES = \
     Config.cpp \
     ContentCache.cpp \
     DirectHandler.cpp \
+    EdgeNode.cpp \
+    Geo.cpp \
     Masternode.cpp \
     MasternodeServer.cpp \
     NetworkState.cpp \
@@ -61,11 +67,13 @@ masternode_tests_SOURCES = \
     RejectHandler.cpp \
     Router.cpp \
     ServiceWorker.cpp \
-    ServiceWorkerHandler.cpp \
+    ServiceWorkerHandler.cpp
     tests/ConfigTests.cpp \
     tests/MasternodeTests.cpp \
     tests/NetworkStateTests.cpp \
-    tests/TestRunner.cpp
+    tests/TestRunner.cpp \
+    tests/GeoTests.cpp \
+    tests/EdgeNodeTests.cpp
 
 masternode_tests_LDADD = \
     -lproxygenhttpserver \

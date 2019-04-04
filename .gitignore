@@ -19,6 +19,7 @@ masternode_tests
 *.log
 *.trs
 test-driver
+GeoLite2-City.mmdb*
 
 .DS_store
 .vscode/

@@ -56,6 +56,8 @@ P2PConfig Config::createP2PConfig(std::shared_ptr<cpptoml::table> c) {
     pConfig.cdnSubdomain = c->get_qualified_as<std::string>("features.peer-to-peer-cdn.cdn_subdomain").value_or("");
     pConfig.pollInterval = c->get_qualified_as<uint16_t>("features.peer-to-peer-cdn.poll_interval").value_or(5);
     pConfig.ignoreHeartbeat = c->get_qualified_as<bool>("features.peer-to-peer-cdn.ignore_heartbeat").value_or(false);
+    pConfig.geoipEnabled = c->get_qualified_as<bool>("features.peer-to-peer-cdn.geoip_enabled").value_or(false);
+    pConfig.geoipDBPath = c->get_qualified_as<std::string>("features.peer-to-peer-cdn.geoip_path").value_or("");
     return pConfig;
 }
 

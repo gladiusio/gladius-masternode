@@ -10,9 +10,6 @@ using namespace masternode;
 
 DEFINE_string(config, "", "Path to the config file to use");
 
-// debug use only
-DEFINE_bool(ignore_heartbeat, false, "Set to true to disable heartbeat checking for edge nodes");
-
 int main(int argc, char *argv[]) {
     gflags::ParseCommandLineFlags(&argc, &argv, true);
     google::InitGoogleLogging(argv[0]);

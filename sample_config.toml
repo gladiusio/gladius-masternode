@@ -31,6 +31,8 @@ origin_server_port = 8080
     cdn_subdomain = "cdn1"
     poll_interval = 5
     ignore_heartbeat = false
+    geoip_enabled = true
+    geoip_path = "/geoip/GeoLite2-City.mmdb"
 
     [features.service-worker-injection]
     enabled = true

@@ -32,6 +32,8 @@ typedef struct P2PConfig {
     std::string cdnSubdomain;
     uint16_t pollInterval;
     bool ignoreHeartbeat;
+    bool geoipEnabled;
+    std::string geoipDBPath;
 } P2PConfig;
 
 typedef struct ServiceWorkerConfig {
