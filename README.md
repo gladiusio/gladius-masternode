@@ -15,11 +15,6 @@ The masternode can generally be thought of as a custom proxy server built with F
 docker build -t gladiusio/masternode .
 ```
 
-### (Optional) Build the first stage of the docker container (proxygen environment)
-```shell
-docker build --target proxygen-env -t gladiusio/proxygen-env .
-```
-
 ### (Optional) Build the second stage of the docker container (builds the masternode binary)
 ```shell
 docker build --target masternode-builder -t gladiusio/masternode-builder .

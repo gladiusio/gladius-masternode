@@ -11,14 +11,17 @@ AM_CPPFLAGS = -I$(top_srcdir) -I$(top_srcdir)/libs \
     -fstack-protector \
     -fPIE
 
-lib_LTLIBRARIES = libmasternode.la
+bin_PROGRAMS = masternode
 
-libmasternode_la_SOURCES= \
+masternode_LDFLAGS = --verbose -pthread -pie -Wl,-z,relro,-z,now
+
+masternode_SOURCES = \
     CachedRoute.cpp \
     Config.cpp \
     ContentCache.cpp \
     DirectHandler.cpp \
     Masternode.cpp \
+    MasternodeServer.cpp \
     NetworkState.cpp \
     ProxyHandler.cpp \
     RedirectHandler.cpp \
@@ -27,9 +30,7 @@ libmasternode_la_SOURCES= \
     ServiceWorker.cpp \
     ServiceWorkerHandler.cpp
 
-libmasternode_la_LDFLAGS = -static -pthread -pie -Wl,-z,relro,-z,now
-
-libmasternode_la_LIBADD = \
+masternode_LDADD = \
     -lproxygenhttpserver \
     -lproxygenlib \
     -lwangle \
@@ -42,32 +43,43 @@ libmasternode_la_LIBADD = \
     -ldouble-conversion \
     -lmyhtml
 
-bin_PROGRAMS = masternode
-
-masternode_LDFLAGS = -pthread -pie -Wl,-z,relro,-z,now
-
-masternode_SOURCES = \
-    MasternodeServer.cpp 
-
-masternode_LDADD = \
-    libmasternode.la \
-    -lproxygenhttpserver
-
 
 TESTS = masternode_tests
 
 check_PROGRAMS = masternode_tests
 
 masternode_tests_SOURCES = \
+    CachedRoute.cpp \
+    Config.cpp \
+    ContentCache.cpp \
+    DirectHandler.cpp \
+    Masternode.cpp \
+    MasternodeServer.cpp \
+    NetworkState.cpp \
+    ProxyHandler.cpp \
+    RedirectHandler.cpp \
+    RejectHandler.cpp \
+    Router.cpp \
+    ServiceWorker.cpp \
+    ServiceWorkerHandler.cpp \
     tests/ConfigTests.cpp \
     tests/MasternodeTests.cpp \
     tests/NetworkStateTests.cpp \
     tests/TestRunner.cpp
 
 masternode_tests_LDADD = \
-    libmasternode.la \
     -lproxygenhttpserver \
+    -lproxygenlib \
+    -lwangle \
+    -lfolly \
+    -lboost_system \
+    -lboost_thread \
+    -lglog \
+    -lgflags \
+    -lcrypto \
+    -ldouble-conversion \
+    -lmyhtml \
     -lgtest \
-    -lz
+    -lz 
     
 masternode_tests_LDFLAGS = -pthread
