@@ -17,9 +17,6 @@ class NetworkState {
     private:
         P2PConfig config_;
 
-        // pointer to shared global config
-        std::shared_ptr<MasternodeConfig> config_{nullptr};
-
         // List of edge node data classes
         LockedNodeList edgeNodes_;
 

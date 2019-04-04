@@ -61,7 +61,7 @@ void NetworkState::parseStateUpdate(std::string body,
             if (hasNoContent) continue;
             std::shared_ptr<EdgeNode> node = std::make_shared<EdgeNode>(
                 ip, port, nodeAddress, heartbeat);
-            if (config_->geo_ip_enabled) 
+            if (config_.geoipEnabled) 
                 node->setLocation(geo_->lookupCoordinates(ip));
             newList.push_back(node);
         } catch (const std::exception& e) {
@@ -70,7 +70,7 @@ void NetworkState::parseStateUpdate(std::string body,
         }
     }
     
-    if (config_->geo_ip_enabled) {
+    if (config_.geoipEnabled) {
         // create new KD-Tree with new LockedNodeList
         auto newTreeData = geo_->buildTreeData(newList);
         // swap the old one with the new one
@@ -88,7 +88,7 @@ std::vector<std::string> NetworkState::getEdgeNodeHostnames() const {
         auto lockedList = edgeNodes_.wlock();
         for (auto& node : *lockedList) {
             std::string fqdn = 
-                node->getFQDN(config_->pool_domain, config_->cdn_subdomain);
+                node->getFQDN(config_.poolDomain, config_.cdnSubdomain);
             v.push_back(fqdn);
         }
     }

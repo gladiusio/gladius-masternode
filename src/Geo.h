@@ -4,7 +4,7 @@
 #include "nanoflann.hpp"
 #include <folly/Synchronized.h>
 
-#include "MasternodeConfig.h"
+#include "Config.h"
 #include "EdgeNode.h"
 
 typedef folly::Synchronized<std::vector

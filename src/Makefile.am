@@ -67,7 +67,7 @@ masternode_tests_SOURCES = \
     RejectHandler.cpp \
     Router.cpp \
     ServiceWorker.cpp \
-    ServiceWorkerHandler.cpp
+    ServiceWorkerHandler.cpp \
     tests/ConfigTests.cpp \
     tests/MasternodeTests.cpp \
     tests/NetworkStateTests.cpp \

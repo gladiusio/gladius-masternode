@@ -26,7 +26,7 @@ void DirectHandler::onRequest(std::unique_ptr<HTTPMessage> headers) noexcept {
     std::vector<std::shared_ptr<EdgeNode>> edgeNodes;
     if (config_->getFeaturesConfig().p2pConfig.enabled && state_) {
         // if geoip is on, use nearest neighbor edge nodes
-        if (config_->getFeaturesConfig().geoip.enabled) {
+        if (config_->getFeaturesConfig().p2pConfig.geoipEnabled) {
             edgeNodes = state_->getNearestEdgeNodes(headers->getClientIP(), 5);
         } else { // else send all edge node addresses for now (random in future?)
             edgeNodes = state_->getEdgeNodes();
