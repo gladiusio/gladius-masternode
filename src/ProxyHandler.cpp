@@ -4,17 +4,21 @@
 #include <proxygen/lib/http/session/HTTPUpstreamSession.h>
 #include <proxygen/lib/utils/URL.h>
 
+#include <folly/io/async/EventBaseManager.h>
+
 using namespace proxygen;
 
 ProxyHandler::ProxyHandler(folly::HHWheelTimer *timer,
     std::shared_ptr<ContentCache> cache, 
     std::shared_ptr<Config> config,
-    std::shared_ptr<ServiceWorker> sw):
+    std::shared_ptr<ServiceWorker> sw,
+    ProtectedDomain domain):
         connector_{this, timer},
         originHandler_(*this),
         cache_(cache),
         config_(config),
-        sw_(sw) {}
+        sw_(sw),
+        domain_(domain) {}
 
 bool ProxyHandler::checkForShutdown() {
     if (clientTerminated_ && !originTxn_) {
@@ -37,7 +41,7 @@ void ProxyHandler::onRequest(std::unique_ptr<HTTPMessage> headers) noexcept {
 
     if (request_->getMethod() == HTTPMethod::GET) {
         // check the cache for this url
-        const auto& cachedRoute = cache_->getCachedRoute(url.getUrl());
+        const auto& cachedRoute = cache_->getCachedRoute(domain_.domain, url.getUrl());
         
         // if we have it cached, reply to client
         if (cachedRoute) {
@@ -74,32 +78,28 @@ void ProxyHandler::onRequest(std::unique_ptr<HTTPMessage> headers) noexcept {
     
     // otherwise, connect to origin server to fetch content
     request_->stripPerHopHeaders();
-    // folly::SocketAddress addr;
-    // try {
-    //     // TODO: add support for multiple domains here.
-    //     // need to determine which origin host to connect to
-    //     // depending on which domain the request is for
-    //     auto srvConf = config_->getServerConfig();
-    //     addr.setFromHostPort(origin_host, config_->origin_port);
-    // } catch (...) {
-    //     ResponseBuilder(downstream_)
-    //         .status(503, "Bad Gateway")
-    //         .sendWithEOM();
-    //     return;
-    // }
+    folly::SocketAddress addr;
+    try {
+        addr.setFromHostPort(domain_.originHost, domain_.originPort);
+    } catch (...) {
+        ResponseBuilder(downstream_)
+            .status(503, "Bad Gateway")
+            .sendWithEOM();
+        return;
+    }
 
     // Stop listening for data from the client while we contact the origin
-    // downstream_->pauseIngress();
+    downstream_->pauseIngress();
 
-    // auto evb = folly::EventBaseManager::get()->getEventBase();
-    // // TODO: use a connection pool
-    // const folly::AsyncSocket::OptionMap opts {
-    //     {{SOL_SOCKET, SO_REUSEADDR}, 1}
-    // };
+    auto evb = folly::EventBaseManager::get()->getEventBase();
+    // TODO: use a connection pool
+    const folly::AsyncSocket::OptionMap opts {
+        {{SOL_SOCKET, SO_REUSEADDR}, 1}
+    };
 
-    // // Make a connection to the origin server
-    // VLOG(1) << "Connecting to origin server...";
-    // connector_.connect(evb, addr, std::chrono::milliseconds(60000), opts);
+    // Make a connection to the origin server
+    VLOG(1) << "Connecting to origin server...";
+    connector_.connect(evb, addr, std::chrono::milliseconds(60000), opts);
 }
 
 void ProxyHandler::onBody(std::unique_ptr<folly::IOBuf> body) noexcept {
@@ -133,7 +133,7 @@ void ProxyHandler::requestComplete() noexcept {
         proxygen::URL url(request_->getURL());
         VLOG(1) << "Adding " << url.getUrl() << " to memory cache";
         // todo: may want to do this asynchronously
-        cache_->addCachedRoute(domain_, url.getUrl(),
+        cache_->addCachedRoute(domain_.domain, url.getUrl(),
             contentBody_->cloneCoalesced(), contentHeaders_); 
     }
 

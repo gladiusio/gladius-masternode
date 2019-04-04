@@ -15,7 +15,8 @@ class ProxyHandler : public proxygen::RequestHandler,
         ProxyHandler(folly::HHWheelTimer *timer,
             std::shared_ptr<ContentCache> cache,
             std::shared_ptr<Config> config, 
-            std::shared_ptr<ServiceWorker> sw);
+            std::shared_ptr<ServiceWorker> sw,
+            ProtectedDomain domain);
 
         bool checkForShutdown();
         void abortDownstream();
@@ -119,9 +120,6 @@ class ProxyHandler : public proxygen::RequestHandler,
         // Incoming request (headers)
         std::unique_ptr<proxygen::HTTPMessage> request_{nullptr};
 
-        // Which domain this request is for
-        std::string domain_;
-
         // Content received from the origin. Used to collect data as it
         // comes in from the origin and later pass in to the cache once
         // all the data is there.
@@ -141,5 +139,7 @@ class ProxyHandler : public proxygen::RequestHandler,
 
         // Service worker wrapper
         std::shared_ptr<ServiceWorker> sw_{nullptr};
+
+        ProtectedDomain domain_;
 }; 
 

@@ -18,7 +18,7 @@ class ContentCache {
             const std::string& dir);
 
         // Retrieve cached content with the URL as the lookup key
-        std::shared_ptr<CachedRoute> getCachedRoute(std::string) const;
+        std::shared_ptr<CachedRoute> getCachedRoute(std::string, std::string) const;
 
         // Add a new CachedRoute entry to the memory cache
         bool addCachedRoute(std::string domain, std::string url,

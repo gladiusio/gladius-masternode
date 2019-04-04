@@ -112,7 +112,11 @@ RequestHandler* Router::onRequest(
             return new ServiceWorkerHandler(config_, sw_);
         }
     }
-
+    ProtectedDomain dConfig;
+    for (const auto& pDom: config_->
+        getProtectedDomainsConfig().protectedDomains) {
+        if (domain == pDom.domain) dConfig = pDom;
+    }
     // all other requests for proxied content
-    return new ProxyHandler(timer_->timer.get(), cache_, config_, sw_);
+    return new ProxyHandler(timer_->timer.get(), cache_, config_, sw_, dConfig);
 }

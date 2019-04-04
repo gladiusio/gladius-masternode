@@ -18,22 +18,22 @@ ContentCache::ContentCache(const std::vector<std::string>& domains,
 }
 
 std::shared_ptr<CachedRoute>
-    ContentCache::getCachedRoute(std::string url) const {
-    // auto item = map_.find(url);
-    // if (item == map_.cend()) {
-    //     // URL is not in the cache
-    //     return nullptr;
-    // }
-    
-    // return item->second;
-    return nullptr;
+    ContentCache::getCachedRoute(std::string domain, std::string url) const {
+    auto dCache = getDomainCache(domain);
+    if (dCache == nullptr) { return nullptr; }
+    auto item = dCache->find(url);
+    if (item == dCache->cend()) {
+        return nullptr;
+    }
+
+    return item->second;
 }
 
 // returns the cache map for the specified domain
 std::shared_ptr<folly::ConcurrentHashMap<std::string, std::shared_ptr<CachedRoute>>>
     ContentCache::getDomainCache(const std::string& domain) const
 {
-     // find the cache for this domain
+    // find the cache for this domain
     auto map = domainCaches_.find(domain);
     if (map == domainCaches_.cend()) {
         // this domain does not have a cache
@@ -88,7 +88,6 @@ std::shared_ptr<folly::F14FastMap<std::string, std::string>>
 }
 
 size_t ContentCache::size() const { 
-    // return lrus_.size(); 
     size_t size = 0;
     for (auto it = domainCaches_.cbegin(); it != domainCaches_.cend(); ++it) {
         size += it->second->size();
